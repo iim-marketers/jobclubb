@@ -81,7 +81,7 @@ export default function SignUpPage() {
                   )}
                   defaultValue="airlines"
                 >
-                  <SelectTrigger id="vertical" className="h-10 w-full">
+                  <SelectTrigger id="vertical" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -98,7 +98,7 @@ export default function SignUpPage() {
               <div className="space-y-2">
                 <Label htmlFor="source">How did you hear about JobClubb?</Label>
                 <Select defaultValue={SOURCING_CHANNELS[0]}>
-                  <SelectTrigger id="source" className="h-10 w-full">
+                  <SelectTrigger id="source" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

@@ -141,7 +141,7 @@ export default function AdminDashboard() {
                   items={{ "48": "48 hours", "72": "72 hours" }}
                   defaultValue="48"
                 >
-                  <SelectTrigger id="validity" className="h-10 w-full">
+                  <SelectTrigger id="validity" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

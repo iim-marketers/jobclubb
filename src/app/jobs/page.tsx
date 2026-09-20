@@ -122,7 +122,7 @@ export default function JobsPage() {
                   }}
                   defaultValue="recent"
                 >
-                  <SelectTrigger id="sort" className="h-9 font-head font-medium">
+                  <SelectTrigger id="sort" size="sm" className="w-[180px] font-head font-medium">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
