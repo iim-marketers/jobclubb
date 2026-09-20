@@ -58,7 +58,7 @@ export default function Home() {
 
 function Hero() {
   return (
-    <section className="bg-linear-to-b from-muted/60 to-background px-4 py-16 sm:px-6 lg:py-20">
+    <section className="bg-linear-to-b from-muted/60 to-background px-4 py-12 sm:px-6 lg:py-16">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="min-w-0">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">

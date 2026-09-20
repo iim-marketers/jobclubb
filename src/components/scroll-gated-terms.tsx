@@ -1,29 +1,40 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Lock } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TERMS_SECTIONS, TERMS_VERSION } from "@/lib/terms-content";
 
-// SOP §3.5: the checkbox must stay disabled until the whole document is scrolled.
-// On accept, the backend must record (user, tc_version, timestamp, ip).
-export function ScrollGatedTerms({ onAccept }: { onAccept?: (v: boolean) => void }) {
+export function ScrollGatedTerms({
+  onAccept,
+  onRead,
+}: {
+  onAccept?: (v: boolean) => void;
+  onRead?: (v: boolean) => void;
+}) {
   const [hasRead, setHasRead] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [progress, setProgress] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  function handleScroll() {
+  const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     const max = el.scrollHeight - el.clientHeight;
     const pct = max <= 0 ? 1 : el.scrollTop / max;
     setProgress(Math.min(1, pct));
     // 2px tolerance for sub-pixel scroll heights
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) setHasRead(true);
-  }
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
+      setHasRead(true);
+      onRead?.(true);
+    }
+  }, [onRead]);
+
+  useEffect(() => {
+    handleScroll();
+  }, [handleScroll]);
 
   return (
     <div className="rounded-2xl border border-border bg-card">
@@ -43,7 +54,9 @@ export function ScrollGatedTerms({ onAccept }: { onAccept?: (v: boolean) => void
       >
         {TERMS_SECTIONS.map((section) => (
           <section key={section.heading}>
-            <h4 className="font-head font-bold text-foreground">{section.heading}</h4>
+            <h4 className="font-head font-bold text-foreground">
+              {section.heading}
+            </h4>
             <p className="mt-1.5">{section.body}</p>
           </section>
         ))}
@@ -58,13 +71,13 @@ export function ScrollGatedTerms({ onAccept }: { onAccept?: (v: boolean) => void
 
       <div className="px-5 py-4">
         <div
-          className={`flex items-start gap-3 ${
+          className={`flex items-start gap-2 ${
             hasRead ? "" : "cursor-not-allowed opacity-60"
           }`}
         >
           <Checkbox
             id="accept-terms"
-            className="mt-0.5"
+            className="mt-1"
             disabled={!hasRead}
             checked={accepted}
             onCheckedChange={(checked) => {
@@ -78,9 +91,9 @@ export function ScrollGatedTerms({ onAccept }: { onAccept?: (v: boolean) => void
               hasRead ? "cursor-pointer" : "cursor-not-allowed"
             }`}
           >
-            I have read and agree to the Terms &amp; Conditions and the Privacy Policy,
-            and I consent to my personal data being processed as described, in line with
-            the Digital Personal Data Protection Act.
+            I have read and agree to the Terms &amp; Conditions and the Privacy
+            Policy, and I consent to my personal data being processed as
+            described, in line with the Digital Personal Data Protection Act.
           </Label>
         </div>
 

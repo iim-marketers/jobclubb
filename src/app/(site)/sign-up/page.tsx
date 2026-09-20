@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Check, Upload } from "lucide-react";
 
-import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
+import { SignUpSubmit } from "@/components/sign-up-submit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -133,14 +133,7 @@ export default function SignUpPage() {
                 </Button>
               </div>
 
-              <ScrollGatedTerms />
-
-              <Button
-                type="submit"
-                className="w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-              >
-                Create my account
-              </Button>
+              <SignUpSubmit />
 
               <p className="text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
