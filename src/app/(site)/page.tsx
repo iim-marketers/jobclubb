@@ -377,12 +377,9 @@ function Membership() {
 
           <p className="mt-4 flex flex-wrap items-baseline gap-2">
             <span className="font-head text-4xl font-extrabold tracking-tight text-brand">
-              ₹999
+              ₹1,499
             </span>
-            <span className="text-sm text-muted-foreground">/ year ·</span>
-            <span className="text-sm text-muted-foreground line-through">
-              ₹1499
-            </span>
+            <span className="text-sm text-muted-foreground">/ year</span>
           </p>
 
           <ul className="mt-6 space-y-3">
