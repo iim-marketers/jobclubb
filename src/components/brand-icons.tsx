@@ -1,9 +1,6 @@
 import type { SVGProps } from "react";
 
-/**
- * lucide-react v1 dropped brand glyphs, so the social marks are inlined here.
- * These are fill-based (not stroke-based like the rest of the icon set).
- */
+// lucide-react v1 dropped brand glyphs, so these are inlined (and fill-based).
 
 export function FacebookIcon(props: SVGProps<SVGSVGElement>) {
   return (

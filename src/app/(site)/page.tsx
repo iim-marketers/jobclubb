@@ -14,8 +14,6 @@ import {
 } from "lucide-react";
 
 import { CompanyAvatar } from "@/components/company-avatar";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,37 +42,29 @@ const STAT_ICONS = {
 export default function Home() {
   return (
     <>
-      <SiteHeader />
-
-      <main className="flex-1">
-        <Hero />
-        <StatsBand />
-        <EmployerMarquee />
-        <FeaturedOpenings />
-        <HowItWorks />
-        <Membership />
-        <Categories />
-        <Franchise />
-        <About />
-        <ClosingCta />
-      </main>
-
-      <SiteFooter />
+      <Hero />
+      <StatsBand />
+      <EmployerMarquee />
+      <FeaturedOpenings />
+      <HowItWorks />
+      <Membership />
+      <Categories />
+      <Franchise />
+      <About />
+      <ClosingCta />
     </>
   );
 }
 
-/* ---------------------------------------------------------------- Hero */
-
 function Hero() {
   return (
-    <section className="bg-linear-to-b from-muted/60 to-background px-6 py-16 lg:py-20">
+    <section className="bg-linear-to-b from-muted/60 to-background px-4 py-12 sm:px-6 lg:py-16">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-        <div>
+        <div className="min-w-0">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">
-            <span className="rounded-full bg-good/15 px-2.5 py-0.5 font-head text-xs font-bold text-good">
+            {/* <span className="rounded-full bg-good/15 px-2.5 py-0.5 font-head text-xs font-bold text-good">
               NEW
-            </span>
+            </span> */}
             3 guaranteed interviews for members
           </span>
 
@@ -105,22 +95,19 @@ function Hero() {
           </form>
 
           <ul className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-            {["Free to join", "Verified employers", "Upskilling included"].map(
-              (item) => (
-                <li
-                  key={item}
-                  className="flex items-center gap-2 text-sm text-muted-foreground"
-                >
-                  <Check className="size-4 text-brand-accent" />
-                  {item}
-                </li>
-              ),
-            )}
+            {["Free to join", "Verified employers"].map((item) => (
+              <li
+                key={item}
+                className="flex items-center gap-2 text-sm text-muted-foreground"
+              >
+                <Check className="size-4 text-brand-accent" />
+                {item}
+              </li>
+            ))}
           </ul>
         </div>
 
-        {/* Fresh today card */}
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-lg">
+        <div className="min-w-0 rounded-3xl border border-border bg-card p-6 shadow-lg">
           <div className="flex items-center justify-between">
             <h2 className="font-head text-lg font-bold tracking-tight">
               Fresh today
@@ -162,11 +149,9 @@ function Hero() {
   );
 }
 
-/* --------------------------------------------------------- Stats band */
-
 function StatsBand() {
   return (
-    <section className="bg-brand-surface px-6 py-12 text-white">
+    <section className="bg-brand-surface px-4 py-12 text-white sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-3 lg:grid-cols-5">
         {HERO_STATS.map((stat) => {
           const Icon = STAT_ICONS[stat.icon];
@@ -187,8 +172,6 @@ function StatsBand() {
   );
 }
 
-/* ----------------------------------------------------- Employer marquee */
-
 function EmployerMarquee() {
   return (
     <section className="border-b border-border bg-card py-10">
@@ -196,7 +179,7 @@ function EmployerMarquee() {
         Our members get placed at leading employers
       </p>
 
-      <div className="mt-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+      <div className="mt-6 overflow-hidden mask-[linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
         <div className="jc-marquee flex w-max gap-4">
           {[...EMPLOYERS, ...EMPLOYERS].map((name, i) => (
             <span
@@ -215,11 +198,9 @@ function EmployerMarquee() {
   );
 }
 
-/* --------------------------------------------------- Featured openings */
-
 function FeaturedOpenings() {
   return (
-    <section className="px-6 py-16">
+    <section className="px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>Featured openings</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -245,7 +226,6 @@ function FeaturedOpenings() {
           ))}
         </div>
 
-        {/* Membership gate */}
         <div className="relative mt-4 overflow-hidden rounded-3xl border border-border bg-card">
           <div
             aria-hidden
@@ -283,7 +263,7 @@ function FeaturedOpenings() {
 
 function JobCard({ job }: { job: Job }) {
   return (
-    <article className="group rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
+    <article className="group min-w-0 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-3">
         <CompanyAvatar name={job.company} />
         <div className="min-w-0 flex-1">
@@ -332,11 +312,9 @@ function MetaPill({
   );
 }
 
-/* ------------------------------------------------------- How it works */
-
 function HowItWorks() {
   return (
-    <section className="bg-card px-6 py-16">
+    <section className="bg-card px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>For job seekers</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -366,11 +344,9 @@ function HowItWorks() {
   );
 }
 
-/* --------------------------------------------------------- Membership */
-
 function Membership() {
   return (
-    <section className="px-6 py-16">
+    <section className="px-4 py-16 sm:px-6">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>Why JobClubb membership</SectionEyebrow>
@@ -390,7 +366,6 @@ function Membership() {
           </ul>
         </div>
 
-        {/* Pricing card */}
         <div className="relative rounded-3xl border border-border bg-card p-8 shadow-lg">
           <span className="absolute -top-3 left-8 rounded-full bg-brand px-3 py-1 font-head text-xs font-bold text-brand-foreground">
             Most popular
@@ -436,11 +411,9 @@ function Membership() {
   );
 }
 
-/* --------------------------------------------------------- Categories */
-
 function Categories() {
   return (
-    <section className="bg-card px-6 py-16">
+    <section className="bg-card px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>Explore</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -471,11 +444,9 @@ function Categories() {
   );
 }
 
-/* ---------------------------------------------------------- Franchise */
-
 function Franchise() {
   return (
-    <section className="px-6 py-16">
+    <section className="px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <SectionEyebrow>Partner with us</SectionEyebrow>
@@ -519,11 +490,9 @@ function Franchise() {
   );
 }
 
-/* -------------------------------------------------------------- About */
-
 function About() {
   return (
-    <section className="bg-card px-6 py-16">
+    <section className="bg-card px-4 py-16 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>About JobClubb</SectionEyebrow>
@@ -556,7 +525,7 @@ function About() {
 
           <Link
             href="/about"
-            className="mt-6 inline-flex items-center gap-2 font-head text-sm font-semibold text-brand hover:underline"
+            className="mt-6 inline-flex items-center gap-2 py-1.5 font-head text-sm font-semibold text-brand hover:underline"
           >
             Read more about us
             <ArrowRight className="size-4" />
@@ -583,12 +552,10 @@ function About() {
   );
 }
 
-/* -------------------------------------------------------- Closing CTA */
-
 function ClosingCta() {
   return (
-    <section className="px-6 py-16">
-      <div className="mx-auto max-w-6xl rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-8 py-14 text-center text-white shadow-lg">
+    <section className="px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-6xl rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-5 py-12 sm:px-8 sm:py-14 text-center text-white shadow-lg">
         <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
           Looking for a career change?
         </h2>
