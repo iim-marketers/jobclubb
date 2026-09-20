@@ -61,13 +61,17 @@ export function MobileNav({
           <SheetClose
             nativeButton={false}
             render={
-              <Link href="/" aria-label="JobClubb — home" className="flex items-center">
+              <Link
+                href="/"
+                aria-label="JobClubb — home"
+                className="flex items-center"
+              >
                 <Image
                   src="/brand/jobclubb-logo.png"
                   alt="JobClubb"
                   width={142}
                   height={26}
-                  className="h-[22px] w-auto object-contain dark:hidden"
+                  className="h-5.5 w-auto object-contain dark:hidden"
                 />
                 <Image
                   src="/brand/jobclubb-logo-dark.png"
@@ -75,7 +79,7 @@ export function MobileNav({
                   aria-hidden
                   width={142}
                   height={26}
-                  className="hidden h-[22px] w-auto object-contain dark:block"
+                  className="hidden h-5.5 w-auto object-contain dark:block"
                 />
               </Link>
             }
@@ -116,8 +120,7 @@ export function MobileNav({
           </ul>
 
           <div className="mt-5 overflow-hidden rounded-2xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-5 text-white">
-            <Sparkles className="size-5 text-brand-accent" />
-            <p className="mt-2.5 font-head text-sm font-bold tracking-tight">
+            <p className="font-head text-sm font-bold tracking-tight">
               Unlock the full job board
             </p>
             <p className="mt-1 text-xs leading-5 text-white/75">
