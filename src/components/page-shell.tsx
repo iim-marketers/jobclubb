@@ -1,22 +1,3 @@
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-
-export function PageShell({
-  children,
-  footer = true,
-}: {
-  children: React.ReactNode;
-  footer?: boolean;
-}) {
-  return (
-    <>
-      <SiteHeader />
-      <main className="flex flex-1 flex-col">{children}</main>
-      {footer && <SiteFooter />}
-    </>
-  );
-}
-
 export function PageHeader({
   eyebrow,
   title,

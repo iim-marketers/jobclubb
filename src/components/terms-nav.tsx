@@ -29,7 +29,6 @@ export function TermsNav() {
         setActive(ITEMS[ITEMS.length - 1].id);
         return;
       }
-      // Otherwise: the last section whose top has passed the reading line.
       const line = 140;
       let current = sections[0].id;
       for (const el of sections) {
@@ -48,7 +47,6 @@ export function TermsNav() {
     };
   }, []);
 
-  // Keep the active item visible inside the (scrollable) nav column.
   useEffect(() => {
     const el = listRef.current?.querySelector<HTMLElement>(
       `[data-id="${active}"]`

@@ -25,7 +25,6 @@ export function DashboardShell({
 }) {
   return (
     <div className="flex min-h-full flex-1 flex-col lg:flex-row">
-      {/* Sidebar */}
       <aside className="border-b border-border bg-card lg:w-64 lg:flex-none lg:border-r lg:border-b-0">
         <div className="flex h-16 items-center px-4 sm:px-6 lg:h-[72px]">
           <Link href="/" aria-label="JobClubb — home" className="flex items-center">
@@ -66,7 +65,6 @@ export function DashboardShell({
         </nav>
       </aside>
 
-      {/* Content */}
       <div className="min-w-0 flex-1 bg-background">
         <header className="border-b border-border px-4 py-6 sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-4">

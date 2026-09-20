@@ -46,7 +46,7 @@ export function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="font-head text-sm font-semibold whitespace-nowrap text-muted-foreground transition-colors hover:text-brand"
+              className="relative py-2 font-head text-sm font-semibold whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-brand focus-visible:text-brand after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:origin-right after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-out hover:after:origin-left hover:after:scale-x-100 focus-visible:after:origin-left focus-visible:after:scale-x-100 motion-reduce:after:transition-none"
             >
               {link.label}
             </Link>

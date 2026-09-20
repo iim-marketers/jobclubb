@@ -43,7 +43,6 @@ export const TERMS_SECTIONS = [
   },
 ];
 
-/** Stable anchor id for a section heading, e.g. "1. About these terms" -> "about-these-terms". */
 export function termsSlug(heading: string): string {
   return heading
     .replace(/^\d+\.\s*/, "")
@@ -52,7 +51,6 @@ export function termsSlug(heading: string): string {
     .replace(/^-|-$/g, "");
 }
 
-/** Heading without its leading number, for the table of contents. */
 export function termsLabel(heading: string): string {
   return heading.replace(/^\d+\.\s*/, "");
 }

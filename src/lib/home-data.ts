@@ -9,7 +9,6 @@ export type Job = {
   featured?: boolean;
 };
 
-/** Deterministic avatar palette lifted from the live site. */
 const AVATAR_COLORS = [
   "#c1442e",
   "#5a3d8a",

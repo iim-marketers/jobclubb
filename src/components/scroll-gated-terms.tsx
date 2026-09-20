@@ -7,14 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TERMS_SECTIONS, TERMS_VERSION } from "@/lib/terms-content";
 
-/**
- * SOP §3.5 — the T&C checkbox must stay disabled until the candidate has
- * scrolled through the entire document. Enforced via scroll tracking, not a
- * static checkbox.
- *
- * On the real build, accepting records (user, tc_version, timestamp, ip)
- * so consent is provable against a specific version of the text.
- */
+// SOP §3.5: the checkbox must stay disabled until the whole document is scrolled.
+// On accept, the backend must record (user, tc_version, timestamp, ip).
 export function ScrollGatedTerms({ onAccept }: { onAccept?: (v: boolean) => void }) {
   const [hasRead, setHasRead] = useState(false);
   const [accepted, setAccepted] = useState(false);
@@ -55,7 +49,6 @@ export function ScrollGatedTerms({ onAccept }: { onAccept?: (v: boolean) => void
         ))}
       </div>
 
-      {/* Read progress */}
       <div className="h-1 w-full bg-muted">
         <div
           className="h-full bg-brand transition-[width] duration-150"

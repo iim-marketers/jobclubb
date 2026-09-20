@@ -12,7 +12,7 @@ export type JobListing = {
   workMode: "WFO" | "WFH" | "Hybrid" | "Field" | "Onsite";
   postedAgo: string;
   featured?: boolean;
-  /** Gated behind membership — SOP §3.3 */
+  // Gated behind membership (SOP §3.3).
   description: string;
   responsibilities: string[];
   requirements: string[];

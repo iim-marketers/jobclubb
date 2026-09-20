@@ -4,10 +4,7 @@ import { Briefcase, IndianRupee, MapPin } from "lucide-react";
 import { CompanyAvatar } from "@/components/company-avatar";
 import type { JobListing } from "@/lib/jobs-data";
 
-/**
- * Free/no-membership view — SOP §3.3 allows only:
- * job location, job position, experience required, salary range.
- */
+// SOP §3.3: unpaid users may see only position, location, experience and salary.
 export function JobCard({ job }: { job: JobListing }) {
   return (
     <article className="group min-w-0 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md">

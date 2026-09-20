@@ -1,8 +1,4 @@
-/**
- * Sector / vertical / role taxonomy.
- * Source: JobClubb SOP §4.1 "Target Companies & Role Specializations"
- * and the "Sectors & Roles We Cover" section of the proposal.
- */
+// Taxonomy per JobClubb SOP §4.1 and "Sectors & Roles We Cover".
 
 export type Vertical = {
   slug: string;
@@ -122,13 +118,11 @@ export const VERTICALS: Vertical[] = [
   },
 ];
 
-/** Employer list — SOP Tab 2, "Please add these co." */
 export const EMPLOYER_DIRECTORY: {
   name: string;
   vertical: string;
   openRoles: number;
 }[] = [
-  // Airlines
   { name: "Singapore Airlines", vertical: "Airlines", openRoles: 6 },
   { name: "Qatar Airways", vertical: "Airlines", openRoles: 9 },
   { name: "Emirates", vertical: "Airlines", openRoles: 11 },
@@ -137,7 +131,6 @@ export const EMPLOYER_DIRECTORY: {
   { name: "Gulf Air", vertical: "Airlines", openRoles: 3 },
   { name: "Air India", vertical: "Airlines", openRoles: 14 },
   { name: "IndiGo", vertical: "Airlines", openRoles: 18 },
-  // Hotels
   { name: "The Oberoi", vertical: "Hotels", openRoles: 8 },
   { name: "Taj", vertical: "Hotels", openRoles: 12 },
   { name: "J.W. Marriott", vertical: "Hotels", openRoles: 9 },
@@ -156,10 +149,8 @@ export const EMPLOYER_DIRECTORY: {
   { name: "Jumeirah Beach Resort Dubai", vertical: "Hotels", openRoles: 7 },
   { name: "ORYX Rotana Dubai", vertical: "Hotels", openRoles: 4 },
   { name: "Hilton Group", vertical: "Hotels", openRoles: 10 },
-  // Cruise Lines
   { name: "Dream Cruises", vertical: "Cruise Lines", openRoles: 6 },
   { name: "Star Cruises", vertical: "Cruise Lines", openRoles: 5 },
-  // Travel Platforms
   { name: "MakeMyTrip", vertical: "Travel & Tourism", openRoles: 9 },
   { name: "Yatra.com", vertical: "Travel & Tourism", openRoles: 6 },
   { name: "easemytrip.com", vertical: "Travel & Tourism", openRoles: 5 },
@@ -168,11 +159,9 @@ export const EMPLOYER_DIRECTORY: {
   { name: "Travelmaxx", vertical: "Travel & Tourism", openRoles: 2 },
 ];
 
-/** SOP §4.3 — job vacancy fields */
 export const JOB_TYPES = ["Full time", "Internship"] as const;
 export const WORK_MODES = ["WFO", "WFH", "Hybrid", "Field", "Onsite"] as const;
 
-/** SOP §3.1 — candidate sourcing channels */
 export const SOURCING_CHANNELS = [
   "Digital marketing",
   "Emporium",

@@ -57,7 +57,6 @@ export function MobileNav({
         side="right"
         className="flex w-[min(21rem,88vw)] flex-col gap-0 p-0"
       >
-        {/* Branded header */}
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <SheetClose
             nativeButton={false}
@@ -84,7 +83,6 @@ export function MobileNav({
           <SheetTitle className="sr-only">Menu</SheetTitle>
         </div>
 
-        {/* Links */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <p className="px-2 pb-2 font-head text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
             Explore
@@ -117,7 +115,6 @@ export function MobileNav({
             })}
           </ul>
 
-          {/* Membership CTA */}
           <div className="mt-5 overflow-hidden rounded-2xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-5 text-white">
             <Sparkles className="size-5 text-brand-accent" />
             <p className="mt-2.5 font-head text-sm font-bold tracking-tight">
@@ -142,7 +139,6 @@ export function MobileNav({
           </div>
         </nav>
 
-        {/* Footer */}
         <div className="border-t border-border px-5 py-4">
           <SheetClose
             nativeButton={false}
