@@ -23,7 +23,7 @@ export const metadata = {
 
 export default function SignUpPage() {
   return (
-    <PageShell>
+    <PageShell footer={false}>
       <div className="px-4 py-14 sm:px-6">
         <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_340px]">
           <div>

@@ -1,12 +1,18 @@
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
-export function PageShell({ children }: { children: React.ReactNode }) {
+export function PageShell({
+  children,
+  footer = true,
+}: {
+  children: React.ReactNode;
+  footer?: boolean;
+}) {
   return (
     <>
       <SiteHeader />
-      <main className="flex-1">{children}</main>
-      <SiteFooter />
+      <main className="flex flex-1 flex-col">{children}</main>
+      {footer && <SiteFooter />}
     </>
   );
 }
@@ -34,7 +40,9 @@ export function PageHeader({
           {title}
         </h1>
         {description && (
-          <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{description}</p>
+          <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
+            {description}
+          </p>
         )}
         {children}
       </div>

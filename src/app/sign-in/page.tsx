@@ -19,9 +19,9 @@ const ACCOUNT_TYPES = [
 
 export default function SignInPage() {
   return (
-    <PageShell>
-      <div className="px-4 py-16 sm:px-6">
-        <div className="mx-auto max-w-md">
+    <PageShell footer={false}>
+      <div className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
+        <div className="w-full max-w-md">
           <h1 className="text-center font-head text-3xl font-extrabold tracking-tight">
             Sign in
           </h1>

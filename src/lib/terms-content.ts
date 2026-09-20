@@ -42,3 +42,17 @@ export const TERMS_SECTIONS = [
     body: "We may update these terms from time to time and will ask you to accept any material change. Questions can be sent to contact@jobclubb.com. By ticking the box below you confirm you have read this document in full.",
   },
 ];
+
+/** Stable anchor id for a section heading, e.g. "1. About these terms" -> "about-these-terms". */
+export function termsSlug(heading: string): string {
+  return heading
+    .replace(/^\d+\.\s*/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/** Heading without its leading number, for the table of contents. */
+export function termsLabel(heading: string): string {
+  return heading.replace(/^\d+\.\s*/, "");
+}
