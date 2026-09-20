@@ -116,6 +116,15 @@
   }
 }
 
+.footer-surface {
+  --card: #16202e;
+  --foreground: #edf2f8;
+  --card-foreground: #edf2f8;
+  --muted-foreground: #a3adba;
+  --border: #2b3747;
+  --brand: #38b6dd;
+}
+
 @keyframes jc-scroll {
   to {
     transform: translateX(-50%);

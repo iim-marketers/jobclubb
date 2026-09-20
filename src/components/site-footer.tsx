@@ -19,35 +19,31 @@ const EXPLORE_LINKS = [
 
 const CONTACT_ITEMS = [
   { icon: MapPin, text: "Kolkata, India", href: null },
-  { icon: Mail, text: "contact@jobclubb.com", href: "mailto:contact@jobclubb.com" },
+  {
+    icon: Mail,
+    text: "contact@jobclubb.com",
+    href: "mailto:contact@jobclubb.com",
+  },
   { icon: Phone, text: "+91 90739 33000", href: "tel:+919073933000" },
   { icon: Clock, text: "Mon-Sat, 10:30am - 6:30pm", href: null },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="footer-surface border-t border-border bg-card">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:pr-6">
             <Image
-              src="/brand/jobclubb-logo.png"
+              src="/brand/jobclubb-logo-dark.png"
               alt="JobClubb"
               width={142}
               height={26}
-              className="object-contain dark:hidden"
-            />
-            <Image
-              src="/brand/jobclubb-logo-dark.png"
-              alt=""
-              aria-hidden
-              width={142}
-              height={26}
-              className="hidden object-contain dark:block"
+              className="object-contain"
             />
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Where talent meets opportunity. We connect job seekers with the right
-              employers and help careers begin.
+              Where talent meets opportunity. We connect job seekers with the
+              right employers and help careers begin.
             </p>
             <div className="mt-5 flex items-center gap-3">
               <Link
@@ -76,10 +72,16 @@ export function SiteFooter() {
             </h3>
             <ul className="mt-4 space-y-3">
               {CONTACT_ITEMS.map(({ icon: Icon, text, href }) => (
-                <li key={text} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                <li
+                  key={text}
+                  className="flex items-start gap-2.5 text-sm text-muted-foreground"
+                >
                   <Icon className="mt-0.5 size-4 flex-none text-brand" />
                   {href ? (
-                    <Link href={href} className="-my-1 inline-block py-1 transition-colors hover:text-brand">
+                    <Link
+                      href={href}
+                      className="-my-1 inline-block py-1 transition-colors hover:text-brand"
+                    >
                       {text}
                     </Link>
                   ) : (
@@ -93,8 +95,10 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>
-            <span className="font-head font-semibold text-foreground">JobClubb</span> ©{" "}
-            {new Date().getFullYear()}. All rights reserved.
+            <span className="font-head font-semibold text-foreground">
+              JobClubb
+            </span>{" "}
+            © {new Date().getFullYear()}. All rights reserved.
           </p>
           <p>Where careers begin and businesses thrive.</p>
         </div>
@@ -112,7 +116,9 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h3 className="font-head text-sm font-bold tracking-wide text-foreground">{title}</h3>
+      <h3 className="font-head text-sm font-bold tracking-wide text-foreground">
+        {title}
+      </h3>
       <ul className="mt-4 space-y-3">
         {links.map((link) => (
           <li key={link.href}>
