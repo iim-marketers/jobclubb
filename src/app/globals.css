@@ -59,8 +59,10 @@
   --secondary-foreground: #0b1723;
   --muted: #ebf3fc;
   --muted-foreground: #525f6f;
-  --accent: #00bea2;
-  --accent-foreground: #04302a;
+  /* shadcn component hover/focus surface — must track the brand blue.
+     The teal lives on --brand-accent, not here. */
+  --accent: #00789f;
+  --accent-foreground: #ffffff;
   --destructive: #df202e;
   --destructive-foreground: #fcfcfc;
   --border: #d8dfe8;
@@ -89,8 +91,8 @@
   --secondary-foreground: #edf2f8;
   --muted: #1f2a38;
   --muted-foreground: #969fab;
-  --accent: #2ad3b6;
-  --accent-foreground: #04302a;
+  --accent: #37b6dd;
+  --accent-foreground: #010d16;
   --destructive: #f14d4c;
   --destructive-foreground: #040b18;
   --border: #293442;

@@ -27,7 +27,7 @@ const CONTACT_ITEMS = [
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-card">
-      <div className="mx-auto max-w-6xl px-6 py-14">
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:pr-6">
             <Image
@@ -53,14 +53,14 @@ export function SiteFooter() {
               <Link
                 href="https://facebook.com"
                 aria-label="JobClubb on Facebook"
-                className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+                className="flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand hover:text-brand sm:size-9"
               >
                 <FacebookIcon className="size-4" />
               </Link>
               <Link
                 href="https://instagram.com"
                 aria-label="JobClubb on Instagram"
-                className="flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand hover:text-brand"
+                className="flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand hover:text-brand sm:size-9"
               >
                 <InstagramIcon className="size-4" />
               </Link>
@@ -79,7 +79,7 @@ export function SiteFooter() {
                 <li key={text} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                   <Icon className="mt-0.5 size-4 flex-none text-brand" />
                   {href ? (
-                    <Link href={href} className="transition-colors hover:text-brand">
+                    <Link href={href} className="-my-1 inline-block py-1 transition-colors hover:text-brand">
                       {text}
                     </Link>
                   ) : (
@@ -118,7 +118,7 @@ function FooterColumn({
           <li key={link.href}>
             <Link
               href={link.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-brand"
+              className="-my-1 inline-block py-1.5 text-sm text-muted-foreground transition-colors hover:text-brand"
             >
               {link.label}
             </Link>

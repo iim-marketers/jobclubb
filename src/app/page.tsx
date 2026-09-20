@@ -68,9 +68,9 @@ export default function Home() {
 
 function Hero() {
   return (
-    <section className="bg-linear-to-b from-muted/60 to-background px-6 py-16 lg:py-20">
+    <section className="bg-linear-to-b from-muted/60 to-background px-4 py-16 sm:px-6 lg:py-20">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-        <div>
+        <div className="min-w-0">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">
             <span className="rounded-full bg-good/15 px-2.5 py-0.5 font-head text-xs font-bold text-good">
               NEW
@@ -120,7 +120,7 @@ function Hero() {
         </div>
 
         {/* Fresh today card */}
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-lg">
+        <div className="min-w-0 rounded-3xl border border-border bg-card p-6 shadow-lg">
           <div className="flex items-center justify-between">
             <h2 className="font-head text-lg font-bold tracking-tight">
               Fresh today
@@ -166,7 +166,7 @@ function Hero() {
 
 function StatsBand() {
   return (
-    <section className="bg-brand-surface px-6 py-12 text-white">
+    <section className="bg-brand-surface px-4 py-12 text-white sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-3 lg:grid-cols-5">
         {HERO_STATS.map((stat) => {
           const Icon = STAT_ICONS[stat.icon];
@@ -196,7 +196,7 @@ function EmployerMarquee() {
         Our members get placed at leading employers
       </p>
 
-      <div className="mt-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+      <div className="mt-6 overflow-hidden mask-[linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
         <div className="jc-marquee flex w-max gap-4">
           {[...EMPLOYERS, ...EMPLOYERS].map((name, i) => (
             <span
@@ -219,7 +219,7 @@ function EmployerMarquee() {
 
 function FeaturedOpenings() {
   return (
-    <section className="px-6 py-16">
+    <section className="px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>Featured openings</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -283,7 +283,7 @@ function FeaturedOpenings() {
 
 function JobCard({ job }: { job: Job }) {
   return (
-    <article className="group rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
+    <article className="group min-w-0 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-3">
         <CompanyAvatar name={job.company} />
         <div className="min-w-0 flex-1">
@@ -336,7 +336,7 @@ function MetaPill({
 
 function HowItWorks() {
   return (
-    <section className="bg-card px-6 py-16">
+    <section className="bg-card px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>For job seekers</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -370,7 +370,7 @@ function HowItWorks() {
 
 function Membership() {
   return (
-    <section className="px-6 py-16">
+    <section className="px-4 py-16 sm:px-6">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>Why JobClubb membership</SectionEyebrow>
@@ -440,7 +440,7 @@ function Membership() {
 
 function Categories() {
   return (
-    <section className="bg-card px-6 py-16">
+    <section className="bg-card px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>Explore</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -475,7 +475,7 @@ function Categories() {
 
 function Franchise() {
   return (
-    <section className="px-6 py-16">
+    <section className="px-4 py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <SectionEyebrow>Partner with us</SectionEyebrow>
@@ -523,7 +523,7 @@ function Franchise() {
 
 function About() {
   return (
-    <section className="bg-card px-6 py-16">
+    <section className="bg-card px-4 py-16 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>About JobClubb</SectionEyebrow>
@@ -556,7 +556,7 @@ function About() {
 
           <Link
             href="/about"
-            className="mt-6 inline-flex items-center gap-2 font-head text-sm font-semibold text-brand hover:underline"
+            className="mt-6 inline-flex items-center gap-2 py-1.5 font-head text-sm font-semibold text-brand hover:underline"
           >
             Read more about us
             <ArrowRight className="size-4" />
@@ -587,8 +587,8 @@ function About() {
 
 function ClosingCta() {
   return (
-    <section className="px-6 py-16">
-      <div className="mx-auto max-w-6xl rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-8 py-14 text-center text-white shadow-lg">
+    <section className="px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-6xl rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-5 py-12 sm:px-8 sm:py-14 text-center text-white shadow-lg">
         <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
           Looking for a career change?
         </h2>
