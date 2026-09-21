@@ -181,3 +181,78 @@ export function validateCompany(formData: FormData): FieldErrors {
 
   return errors;
 }
+
+// ---------------------------------------------------------------- Franchise
+
+// SOP §5.1: franchise partners sign up with the franchise-specific email ID
+// issued to them by JobClubb head office (e.g. pune.west@jobclubb.com).
+export const FRANCHISE_EMAIL_DOMAIN = "jobclubb.com";
+
+export const BUSINESS_TYPES = [
+  { value: "individual", label: "Individual / Proprietorship" },
+  { value: "partnership", label: "Partnership firm" },
+  { value: "llp", label: "LLP" },
+  { value: "private-limited", label: "Private Limited" },
+] as const;
+
+const PAN_PATTERN = /^[A-Z]{5}\d{4}[A-Z]$/;
+
+export const FRANCHISE_STEPS: SignUpStep[] = [
+  {
+    title: "Franchise ID",
+    description: "Use the franchise email ID issued to you by JobClubb head office.",
+    fields: ["email", "franchiseName", "city", "pincode"],
+  },
+  {
+    title: "Business details",
+    description: "The business your franchise operates under — used for verification and payouts.",
+    fields: ["businessName", "businessType", "pan", "gstin", "address"],
+  },
+  {
+    title: "Owner & login",
+    description: "Who runs this franchise, and the password for your dashboard.",
+    fields: ["ownerName", "phone", "password", "confirmPassword", "acceptTerms"],
+  },
+];
+
+export function isFranchiseEmail(email: string) {
+  return email.trim().toLowerCase().endsWith(`@${FRANCHISE_EMAIL_DOMAIN}`);
+}
+
+export function validateFranchise(formData: FormData): FieldErrors {
+  const v = {
+    email: readText(formData, "email").toLowerCase(),
+    franchiseName: readText(formData, "franchiseName"),
+    city: readText(formData, "city"),
+    pincode: readText(formData, "pincode"),
+    businessName: readText(formData, "businessName"),
+    businessType: readText(formData, "businessType"),
+    pan: readText(formData, "pan").toUpperCase(),
+    gstin: readText(formData, "gstin").toUpperCase(),
+    address: readText(formData, "address"),
+    ownerName: readText(formData, "ownerName"),
+    phone: readText(formData, "phone"),
+    password: String(formData.get("password") ?? ""),
+    confirmPassword: String(formData.get("confirmPassword") ?? ""),
+    acceptTerms: readText(formData, "acceptTerms"),
+  };
+  const errors: FieldErrors = {};
+
+  if (!EMAIL_PATTERN.test(v.email)) errors.email = "Enter your franchise email ID.";
+  else if (!isFranchiseEmail(v.email)) errors.email = `Use the @${FRANCHISE_EMAIL_DOMAIN} franchise email ID issued to you, not a personal address.`;
+  if (!v.franchiseName) errors.franchiseName = "Enter your franchise name, like Kolkata South.";
+  if (!v.city) errors.city = "Enter your territory city.";
+  if (!PINCODE_PATTERN.test(v.pincode)) errors.pincode = "Enter a 6-digit pincode.";
+  if (!v.businessName) errors.businessName = "Enter your registered business name.";
+  if (!BUSINESS_TYPES.some((t) => t.value === v.businessType)) errors.businessType = "Choose a business type.";
+  if (!PAN_PATTERN.test(v.pan)) errors.pan = "PAN should be 10 characters, like ABCDE1234F.";
+  if (v.gstin && !GSTIN_PATTERN.test(v.gstin)) errors.gstin = "GSTIN should be 15 characters, like 19AABCT1234F1Z5.";
+  if (v.address.length < 10) errors.address = "Enter your full office address.";
+  if (!v.ownerName) errors.ownerName = "Enter the owner's full name.";
+  if (!PHONE_PATTERN.test(v.phone)) errors.phone = "Enter a valid 10-digit Indian mobile number.";
+  if (v.password.length < 8) errors.password = "Use at least 8 characters.";
+  else if (v.password !== v.confirmPassword) errors.confirmPassword = "Passwords don't match.";
+  if (v.acceptTerms !== "yes") errors.acceptTerms = "Read and accept the Terms & Conditions.";
+
+  return errors;
+}

@@ -85,7 +85,7 @@ export default function CompaniesPage() {
                 variant="outline"
                 className="font-head"
                 nativeButton={false}
-                render={<Link href="/sign-in" />}
+                render={<Link href="/sign-in?as=company" />}
               >
                 Sign in to post a job
               </Button>

@@ -43,12 +43,23 @@ export function useFitToHeight(
       frame = requestAnimationFrame(fit);
     };
     const observer = new ResizeObserver(schedule);
-    observer.observe(box);
-    Array.from(box.children).forEach((child) => observer.observe(child));
+    const observeAll = () => {
+      observer.observe(box);
+      Array.from(box.children).forEach((child) => observer.observe(child));
+    };
+    observeAll();
+    // Content swapped out entirely (e.g. a different preview) — re-observe.
+    const mutations = new MutationObserver(() => {
+      observer.disconnect();
+      observeAll();
+      schedule();
+    });
+    mutations.observe(box, { childList: true, subtree: true });
     media.addEventListener("change", schedule);
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      mutations.disconnect();
       media.removeEventListener("change", schedule);
     };
   }, [ref, minWidth]);

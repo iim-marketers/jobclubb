@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MailCheck, PartyPopper, UserCheck } from "lucide-react";
+import { MailCheck, PartyPopper, Store, UserCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +28,17 @@ const CONTENT = {
       "Sign in and post your first opening",
     ],
   },
+  franchise: {
+    icon: Store,
+    iconClass: "bg-good/15 text-good",
+    title: "Almost live — check your franchise inbox",
+    body: "We've sent an activation link to your franchise email ID. Head office will verify your business details alongside it.",
+    steps: [
+      "Click the activation link in your franchise inbox",
+      "Head office verifies your PAN and business details",
+      "Get your franchise code and start adding leads",
+    ],
+  },
   manual: {
     icon: UserCheck,
     iconClass: "bg-brand/15 text-brand",
@@ -41,12 +52,13 @@ const CONTENT = {
   },
 };
 
-export default async function CompanySignUpSubmittedPage({
+const ROUTES = ["candidate", "franchise", "manual", "email"] as const;
+
+export default async function SignUpSubmittedPage({
   searchParams,
 }: PageProps<"/sign-up/submitted">) {
   const { route } = await searchParams;
-  const content =
-    route === "candidate" || route === "manual" ? CONTENT[route] : CONTENT.email;
+  const content = CONTENT[ROUTES.find((r) => r === route) ?? "email"];
   const Icon = content.icon;
 
   return (
@@ -87,7 +99,17 @@ export default async function CompanySignUpSubmittedPage({
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
             nativeButton={false}
-            render={<Link href="/sign-in" />}
+            render={
+              <Link
+                href={
+                  route === "candidate"
+                    ? "/sign-in"
+                    : route === "franchise"
+                      ? "/sign-in?as=franchise"
+                      : "/sign-in?as=company"
+                }
+              />
+            }
           >
             Go to sign in
           </Button>

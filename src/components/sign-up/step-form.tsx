@@ -38,7 +38,8 @@ export function useStepForm({
     setStep(next);
     setMoved(true);
     const top = formRef.current?.getBoundingClientRect().top ?? 0;
-    if (top < 0) formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (top < 0)
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function showErrors(all: FieldErrors) {
@@ -100,7 +101,10 @@ export function StepProgress({
   onJump: (index: number) => void;
 }) {
   return (
-    <ol className="grid gap-3" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
+    <ol
+      className="grid gap-3"
+      style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+    >
       {steps.map((s, i) => {
         const done = i < current;
         const active = i === current;
@@ -261,7 +265,9 @@ export function FormAlert({ errors }: { errors: FieldErrors }) {
       className="mb-6 flex items-center gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
     >
       <CircleAlert className="size-4 flex-none" />
-      {count === 1 ? "One field needs your attention." : `${count} fields need your attention.`}
+      {count === 1
+        ? "One field needs your attention."
+        : `${count} fields need your attention.`}
     </p>
   );
 }
