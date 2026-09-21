@@ -260,7 +260,7 @@ export function JobFiltersSheet() {
               render={
                 <Button
                   size="lg"
-                  className="flex-[2] bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                  className="flex-2 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
                   onClick={() => setApplied(draft)}
                 >
                   Apply filters
@@ -272,7 +272,7 @@ export function JobFiltersSheet() {
       </Sheet>
 
       {appliedChips.length > 0 && (
-        <ul className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden">
+        <ul className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden">
           {appliedChips.map(({ key, v }) => (
             <li key={`${key}-${v}`} className="flex-none">
               <button

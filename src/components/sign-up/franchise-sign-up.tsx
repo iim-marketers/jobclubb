@@ -401,7 +401,7 @@ function VerticalSteps({
               {i < last && (
                 <span
                   aria-hidden
-                  className={`absolute top-9 bottom-1 left-[15px] w-0.5 rounded-full transition-colors duration-500 ${
+                  className={`absolute top-9 bottom-1 left-3.75 w-0.5 rounded-full transition-colors duration-500 ${
                     done ? "bg-brand" : "bg-border"
                   }`}
                 />
@@ -459,9 +459,6 @@ function StepDot({
   );
 }
 
-// A live partner ID card that fills in as the franchise details are typed.
-// The franchise code (SOP §3.1 lead attribution) is only issued on activation,
-// so its tail stays masked here.
 function PartnerCard({
   franchiseName,
   city,
@@ -480,12 +477,12 @@ function PartnerCard({
   ).toUpperCase();
 
   return (
-    <div className="relative w-full max-w-[20rem] sm:max-w-sm lg:w-[360px]">
+    <div className="relative w-full max-w-[20rem] sm:max-w-sm lg:w-90">
       <div
         aria-hidden
-        className="absolute -inset-6 rounded-[2rem] bg-brand-accent/20 blur-3xl"
+        className="absolute -inset-6 rounded-4xl bg-brand-accent/20 blur-3xl"
       />
-      <div className="relative overflow-hidden sm:aspect-[1.586] rounded-2xl bg-linear-to-br from-white/20 via-white/10 to-white/5 p-4 shadow-2xl sm:rounded-3xl sm:p-5 ring-1 ring-white/25 backdrop-blur-xl sm:p-6 lg:rotate-2 lg:transition-transform lg:duration-500 lg:hover:rotate-0">
+      <div className="relative overflow-hidden sm:aspect-[1.586] rounded-2xl bg-linear-to-br from-white/20 via-white/10 to-white/5 p-4 shadow-2xl sm:rounded-3xl sm:p-5 ring-1 ring-white/25 backdrop-blur-xl lg:rotate-2 lg:transition-transform lg:duration-500 lg:hover:rotate-0">
         <div
           aria-hidden
           className="absolute -top-20 -right-16 size-56 rounded-full bg-brand-accent/30 blur-2xl"
@@ -496,7 +493,7 @@ function PartnerCard({
               <p className="font-head text-[10px] font-bold tracking-[0.18em] text-white/60 uppercase">
                 JobClubb partner
               </p>
-              <p className="mt-1.5 max-w-[12rem] truncate font-head text-lg font-extrabold tracking-tight sm:max-w-[14rem] sm:text-xl">
+              <p className="mt-1.5 max-w-48 truncate font-head text-lg font-extrabold tracking-tight sm:max-w-56 sm:text-xl">
                 {franchiseName?.trim() || "Your franchise"}
               </p>
             </div>

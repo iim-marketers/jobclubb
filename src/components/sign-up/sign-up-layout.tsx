@@ -7,14 +7,24 @@ import { Building2, User } from "lucide-react";
 import { useFitToHeight } from "@/components/sign-up/use-fit-to-height";
 
 const AUDIENCES = [
-  { id: "candidate", label: "I'm looking for a job", short: "Candidate", href: "/sign-up", icon: User },
-  { id: "company", label: "I'm hiring", short: "Company", href: "/sign-up/company", icon: Building2 },
+  {
+    id: "candidate",
+    label: "I'm looking for a job",
+    short: "Candidate",
+    href: "/sign-up",
+    icon: User,
+  },
+  {
+    id: "company",
+    label: "I'm hiring",
+    short: "Company",
+    href: "/sign-up/company",
+    icon: Building2,
+  },
 ] as const;
 
 export type Audience = (typeof AUDIENCES)[number]["id"];
 
-// Split screen: a brand panel that stays pinned under the site header while the
-// form scrolls, then releases once both columns end together.
 export function SignUpLayout({
   audience,
   eyebrow,
@@ -35,9 +45,7 @@ export function SignUpLayout({
 
   return (
     <div className="flex-1 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      <aside className="jc-auth-panel relative isolate overflow-hidden text-white lg:sticky lg:top-[72px] lg:h-[calc(100dvh-72px)]">
-        {/* The panel never scrolls: lower-priority details (`data-fit`, highest
-            number first) are hidden until everything fits on screen. */}
+      <aside className="jc-auth-panel relative isolate overflow-hidden text-white lg:sticky lg:top-18 lg:h-[calc(100dvh-72px)]">
         <div
           ref={panelRef}
           className="relative mx-auto flex h-full max-w-xl flex-col px-4 pt-8 pb-10 sm:px-8 lg:overflow-hidden lg:px-10 lg:py-10 xl:px-14"
@@ -55,7 +63,10 @@ export function SignUpLayout({
           </p>
 
           {panel && (
-            <div data-fit="5" className="mt-10 hidden lg:block [@media(max-height:56rem)]:lg:mt-7">
+            <div
+              data-fit="5"
+              className="mt-10 hidden lg:block [@media(max-height:56rem)]:lg:mt-7"
+            >
               {panel}
             </div>
           )}
