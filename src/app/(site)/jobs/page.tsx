@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Lock, MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { Lock, MapPin, Search } from "lucide-react";
 
 import { JobCard } from "@/components/job-card";
+import { JobFiltersPanel, JobFiltersSheet } from "@/components/job-filters";
 import { PageHeader, Section } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { JOBS } from "@/lib/jobs-data";
-import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
 
 export const metadata = {
   title: "Jobs — JobClubb",
@@ -40,7 +39,7 @@ export default function JobsPage() {
               className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
             />
           </div>
-          <div className="relative flex-1 sm:max-w-[220px]">
+          <div className="relative flex-1 sm:max-w-55">
             <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               aria-label="City or pincode"
@@ -57,81 +56,84 @@ export default function JobsPage() {
         </form>
       </PageHeader>
 
-      <Section>
+      <Section className="py-12!">
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          <aside className="min-w-0 space-y-7">
-            <div className="flex items-center gap-2 font-head font-bold tracking-tight">
-              <SlidersHorizontal className="size-4 text-brand" />
-              Filters
-            </div>
+          <aside className="hidden min-w-0 lg:sticky lg:block lg:top-18 lg:self-start lg:pt-4">
+            <JobFiltersPanel />
 
-            <FilterGroup title="Sector">
-              {VERTICALS.map((v) => (
-                <FilterRow key={v.slug} label={v.name} />
-              ))}
-            </FilterGroup>
-
-            <FilterGroup title="Job type">
-              {JOB_TYPES.map((t) => (
-                <FilterRow key={t} label={t} />
-              ))}
-            </FilterGroup>
-
-            <FilterGroup title="Work mode">
-              {WORK_MODES.map((m) => (
-                <FilterRow key={m} label={m} />
-              ))}
-            </FilterGroup>
-
-            <div className="rounded-2xl border border-border bg-muted/50 p-4">
-              <div className="flex items-center gap-2 font-head text-sm font-bold">
+            <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-muted/50 p-4">
+              <span className="mt-0.5 flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
                 <Lock className="size-3.5 text-brand" />
-                Location match
+              </span>
+              <div className="min-w-0">
+                <p className="font-head text-sm font-bold">Location match</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Surface jobs near your home address — members only.
+                </p>
+                <Link
+                  href="/membership"
+                  className="mt-2 inline-flex items-center font-head text-xs font-bold text-brand hover:underline"
+                >
+                  Unlock with membership
+                </Link>
               </div>
-              <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-                Surface jobs near your home address. Available to members only.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-3 w-full font-head"
-                nativeButton={false}
-                render={<Link href="/membership" />}
-              >
-                Unlock
-              </Button>
             </div>
           </aside>
 
           <div className="min-w-0">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{JOBS.length}</span>{" "}
-                openings
-              </p>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Label htmlFor="sort">Sort</Label>
-                <Select
-                  items={{
-                    recent: "Most recent",
-                    salary: "Salary: high to low",
-                    experience: "Experience: low to high",
-                  }}
-                  defaultValue="recent"
-                >
-                  <SelectTrigger id="sort" size="sm" className="w-[180px] font-head font-medium">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recent">Most recent</SelectItem>
-                    <SelectItem value="salary">Salary: high to low</SelectItem>
-                    <SelectItem value="experience">Experience: low to high</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background/95 px-4 pt-3 pb-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:top-18 lg:-mx-1 lg:bg-background lg:px-1 lg:pt-4 lg:backdrop-blur-none">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <JobFiltersSheet />
+                  <p className="hidden text-sm text-muted-foreground sm:block lg:block">
+                    Showing{" "}
+                    <span className="font-semibold text-foreground">
+                      {JOBS.length}
+                    </span>{" "}
+                    openings
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Label htmlFor="sort" className="hidden sm:block">
+                    Sort
+                  </Label>
+                  <Select
+                    items={{
+                      recent: "Most recent",
+                      salary: "Salary: high to low",
+                      experience: "Experience: low to high",
+                    }}
+                    defaultValue="recent"
+                  >
+                    <SelectTrigger
+                      id="sort"
+                      size="sm"
+                      aria-label="Sort openings"
+                      className="w-40 font-head font-medium sm:w-45"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recent">Most recent</SelectItem>
+                      <SelectItem value="salary">Salary: high to low</SelectItem>
+                      <SelectItem value="experience">
+                        Experience: low to high
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <p className="mt-4 text-sm text-muted-foreground sm:hidden">
+              Showing{" "}
+              <span className="font-semibold text-foreground">
+                {JOBS.length}
+              </span>{" "}
+              openings
+            </p>
+
+            <div className="mt-3 grid gap-4 sm:mt-5 sm:grid-cols-2">
               {JOBS.map((job) => (
                 <div key={job.slug} className="relative min-w-0">
                   <JobCard job={job} />
@@ -145,8 +147,9 @@ export default function JobsPage() {
                 More openings inside
               </p>
               <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">
-                Free browsing shows position, location, experience and salary range only.
-                Membership unlocks full job details and one-click apply.
+                Free browsing shows position, location, experience and salary
+                range only. Membership unlocks full job details and one-click
+                apply.
               </p>
               <Button
                 className="mt-4 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
@@ -160,35 +163,5 @@ export default function JobsPage() {
         </div>
       </Section>
     </>
-  );
-}
-
-function FilterGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <h3 className="font-head text-sm font-bold tracking-tight">{title}</h3>
-      <ul className="mt-3 space-y-2">{children}</ul>
-    </div>
-  );
-}
-
-function FilterRow({ label }: { label: string }) {
-  const id = `filter-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-  return (
-    <li className="flex items-center gap-2.5">
-      <Checkbox id={id} />
-      <Label
-        htmlFor={id}
-        className="cursor-pointer text-sm font-normal text-muted-foreground hover:text-foreground"
-      >
-        {label}
-      </Label>
-    </li>
   );
 }

@@ -12,11 +12,16 @@ export function JobCard({ job }: { job: JobListing }) {
         <CompanyAvatar name={job.company} />
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-head font-bold tracking-tight transition-colors group-hover:text-brand">
-            <Link href={`/jobs/${job.slug}`} className="after:absolute after:inset-0">
+            <Link
+              href={`/jobs/${job.slug}`}
+              className="after:absolute after:inset-0"
+            >
               {job.title}
             </Link>
           </h3>
-          <p className="truncate text-sm text-muted-foreground">{job.company}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {job.company}
+          </p>
         </div>
         {job.featured && (
           <span className="flex-none rounded-full bg-brand-accent/15 px-2.5 py-1 font-head text-[10px] font-bold tracking-wide text-good uppercase">
@@ -31,7 +36,7 @@ export function JobCard({ job }: { job: JobListing }) {
         <Pill>{job.vertical}</Pill>
       </ul>
 
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+      <div className="mt-4 flex -mx-5 px-5 items-center justify-between border-t border-border pt-4">
         <span className="flex items-center gap-1 font-head text-sm font-bold text-brand">
           <IndianRupee className="size-3.5" />
           {job.salaryRange.replace("₹", "")}

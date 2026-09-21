@@ -16,6 +16,7 @@ import {
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   ABOUT_STATS,
   CATEGORIES,
@@ -30,6 +31,12 @@ import {
   MEMBERSHIP_POINTS,
   type Job,
 } from "@/lib/home-data";
+
+// On small screens the long stacked sections turn into horizontal snap
+// carousels so the page stays short; from `sm` up they fall back to grids.
+const CAROUSEL =
+  "jc-hscroll -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-1 sm:mx-0 sm:grid sm:snap-none sm:scroll-px-0 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0";
+const CAROUSEL_ITEM = "w-[82%] flex-none snap-start sm:w-auto";
 
 const STAT_ICONS = {
   shield: Shield,
@@ -58,19 +65,23 @@ export default function Home() {
 
 function Hero() {
   return (
-    <section className="bg-linear-to-b from-muted/60 to-background px-4 py-12 sm:px-6 lg:py-16">
+    <section className="bg-linear-to-b from-muted/60 to-background px-4 pt-8 pb-12 md:py-12 sm:px-6 lg:py-16">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="min-w-0">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">
+          <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">
             {/* <span className="rounded-full bg-good/15 px-2.5 py-0.5 font-head text-xs font-bold text-good">
               NEW
             </span> */}
             3 guaranteed interviews for members
           </span>
 
-          <h1 className="mt-5 font-head text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="mt-0 md:mt-5 font-head text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
             Find your <span className="text-brand">dream job</span> now.
           </h1>
+
+          <span className="mt-5 inline-flex items-center rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm md:hidden">
+            3 guaranteed interviews for members
+          </span>
 
           <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
             5 lakh+ live jobs from verified employers. Get matched, prepare with
@@ -152,11 +163,14 @@ function Hero() {
 function StatsBand() {
   return (
     <section className="bg-brand-surface px-4 py-12 text-white sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="jc-hscroll -mx-4 flex max-w-6xl snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 sm:mx-auto sm:grid sm:snap-none sm:scroll-px-0 sm:gap-8 sm:overflow-visible sm:px-0 sm:grid-cols-3 lg:grid-cols-5">
         {HERO_STATS.map((stat) => {
           const Icon = STAT_ICONS[stat.icon];
           return (
-            <div key={stat.label} className="text-center">
+            <div
+              key={stat.label}
+              className="w-[42%] flex-none snap-start text-center sm:w-auto"
+            >
               <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-white/10">
                 <Icon className="size-5" />
               </span>
@@ -200,36 +214,40 @@ function EmployerMarquee() {
 
 function FeaturedOpenings() {
   return (
-    <section className="px-4 py-16 sm:px-6">
+    <section className="px-4 py-12 md:py-16  sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>Featured openings</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
           Jobs actively hiring now
         </h2>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="jc-hscroll -mx-4 mt-6 flex gap-2 overflow-x-auto overscroll-x-contain px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {JOB_FILTERS.map((filter, i) => (
             <button
               key={filter}
               type="button"
               aria-pressed={i === 0}
-              className="rounded-full border border-border px-4 py-2 font-head text-sm font-semibold transition-colors aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground"
+              className="flex-none rounded-full border border-border px-4 py-2 font-head text-sm font-semibold whitespace-nowrap transition-colors aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-brand-foreground"
             >
               {filter}
             </button>
           ))}
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="jc-hscroll -mx-4 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:snap-none lg:scroll-px-0 lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:pb-0">
           {FEATURED_JOBS.map((job) => (
-            <JobCard key={`${job.company}-${job.role}`} job={job} />
+            <JobCard
+              key={`${job.company}-${job.role}`}
+              job={job}
+              className="w-[84%] flex-none snap-start sm:w-[60%] md:w-[46%] lg:w-auto"
+            />
           ))}
         </div>
 
         <div className="relative mt-4 overflow-hidden rounded-3xl border border-border bg-card">
           <div
             aria-hidden
-            className="grid gap-4 p-5 blur-[6px] select-none lg:grid-cols-2"
+            className="grid max-h-96 gap-4 overflow-hidden p-5 blur-[6px] select-none lg:max-h-none lg:grid-cols-2"
           >
             {FEATURED_JOBS.slice(0, 4).map((job) => (
               <JobCard key={`ghost-${job.role}`} job={job} />
@@ -261,9 +279,14 @@ function FeaturedOpenings() {
   );
 }
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({ job, className }: { job: Job; className?: string }) {
   return (
-    <article className="group min-w-0 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
+    <article
+      className={cn(
+        "group min-w-0 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md",
+        className,
+      )}
+    >
       <div className="flex items-start gap-3">
         <CompanyAvatar name={job.company} />
         <div className="min-w-0 flex-1">
@@ -287,7 +310,7 @@ function JobCard({ job }: { job: Job }) {
         <MetaPill>{job.category}</MetaPill>
       </ul>
 
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+      <div className="mt-4 -mx-5 px-5 flex items-center justify-between border-t border-border pt-4">
         <span className="font-head text-sm font-bold text-brand">
           {job.salary}
         </span>
@@ -314,18 +337,21 @@ function MetaPill({
 
 function HowItWorks() {
   return (
-    <section className="bg-card px-4 py-16 sm:px-6">
+    <section className="bg-card px-4 py-12 md:py-16  sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>For job seekers</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
           How JobClubb works
         </h2>
 
-        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className={cn(CAROUSEL, "mt-10 sm:grid-cols-2 lg:grid-cols-4")}>
           {HOW_IT_WORKS.map((item) => (
             <li
               key={item.step}
-              className="rounded-2xl border border-border bg-background p-6"
+              className={cn(
+                CAROUSEL_ITEM,
+                "rounded-2xl border border-border bg-background p-6",
+              )}
             >
               <span className="font-head text-3xl font-extrabold text-brand/25">
                 {item.step}
@@ -346,7 +372,7 @@ function HowItWorks() {
 
 function Membership() {
   return (
-    <section className="px-4 py-16 sm:px-6">
+    <section className="px-4 py-12 md:py-16 sm:px-6">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>Why JobClubb membership</SectionEyebrow>
@@ -410,19 +436,22 @@ function Membership() {
 
 function Categories() {
   return (
-    <section className="bg-card px-4 py-16 sm:px-6">
+    <section className="bg-card px-4 py-12 md:py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>Explore</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
           Discover jobs across popular roles
         </h2>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={cn(CAROUSEL, "mt-8 sm:grid-cols-2 lg:grid-cols-3")}>
           {CATEGORIES.map((category) => (
             <Link
               key={category.name}
               href={`/jobs?category=${encodeURIComponent(category.name)}`}
-              className="group flex items-center justify-between rounded-2xl border border-border bg-background p-5 transition-colors hover:border-brand"
+              className={cn(
+                CAROUSEL_ITEM,
+                "group flex items-center justify-between gap-3 rounded-2xl border border-border bg-background p-5 transition-colors hover:border-brand",
+              )}
             >
               <span>
                 <span className="block font-head font-bold tracking-tight transition-colors group-hover:text-brand">
@@ -443,7 +472,7 @@ function Categories() {
 
 function Franchise() {
   return (
-    <section className="px-4 py-16 sm:px-6">
+    <section className="px-4 py-12 md:py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <SectionEyebrow>Partner with us</SectionEyebrow>
@@ -464,11 +493,14 @@ function Franchise() {
           </Button>
         </div>
 
-        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className={cn(CAROUSEL, "mt-10 sm:grid-cols-2 lg:grid-cols-4")}>
           {FRANCHISE_STEPS.map((item) => (
             <li
               key={item.step}
-              className="rounded-2xl border border-border bg-card p-6"
+              className={cn(
+                CAROUSEL_ITEM,
+                "rounded-2xl border border-border bg-card p-6",
+              )}
             >
               <span className="font-head text-3xl font-extrabold text-brand/25">
                 {item.step}
@@ -489,7 +521,7 @@ function Franchise() {
 
 function About() {
   return (
-    <section className="bg-card px-4 py-16 sm:px-6">
+    <section className="bg-card px-4 py-12 md:py-16 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>About JobClubb</SectionEyebrow>
@@ -551,7 +583,7 @@ function About() {
 
 function ClosingCta() {
   return (
-    <section className="px-4 py-16 sm:px-6">
+    <section className="px-4 py-12 md:py-16 sm:px-6">
       <div className="mx-auto max-w-6xl rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-5 py-12 sm:px-8 sm:py-14 text-center text-white shadow-lg">
         <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
           Looking for a career change?

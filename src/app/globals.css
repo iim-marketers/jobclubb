@@ -140,3 +140,13 @@
     animation: none;
   }
 }
+
+/* Horizontal snap carousels used on small screens (see home page sections). */
+.jc-hscroll {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.jc-hscroll::-webkit-scrollbar {
+  display: none;
+}
