@@ -73,13 +73,23 @@ export default function CompaniesPage() {
               identity stays private until you choose to unlock it — so you assess on
               capability first.
             </p>
-            <Button
-              className="mt-6 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-              nativeButton={false}
-              render={<Link href="/company" />}
-            >
-              Post a job
-            </Button>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button
+                className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                nativeButton={false}
+                render={<Link href="/sign-up/company" />}
+              >
+                Register your company
+              </Button>
+              <Button
+                variant="outline"
+                className="font-head"
+                nativeButton={false}
+                render={<Link href="/sign-in" />}
+              >
+                Sign in to post a job
+              </Button>
+            </div>
           </div>
 
           <div className="rounded-3xl border border-border bg-background p-7">

@@ -32,11 +32,13 @@ const NAV = [
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
+// SOP §4.4: companies on a corporate domain verify by email; free-mail or
+// mismatched-domain sign-ups land here for manual review.
 const APPROVALS = [
-  { name: "Emirates — India Recruitment", type: "Company", email: "careers@emirates.com", status: "In review" as const },
-  { name: "Pune West Franchise", type: "Franchise", email: "pune.west@jobclubb.com", status: "In review" as const },
-  { name: "Leela Kempinski", type: "Company", email: "hr@leela.com", status: "Approved" as const },
-  { name: "Jaipur Franchise", type: "Franchise", email: "jaipur@jobclubb.com", status: "Approved" as const },
+  { name: "Sea Breeze Cafe", type: "Company", email: "seabreezecafe.goa@gmail.com", verification: "Manual · GSTIN", status: "In review" as const },
+  { name: "Pune West Franchise", type: "Franchise", email: "pune.west@jobclubb.com", verification: "Admin created", status: "In review" as const },
+  { name: "Emirates — India Recruitment", type: "Company", email: "careers@emirates.com", verification: "Corporate email", status: "Approved" as const },
+  { name: "Leela Kempinski", type: "Company", email: "hr@theleela.com", verification: "Corporate email", status: "Approved" as const },
 ];
 
 const CODES = [
@@ -78,12 +80,13 @@ export default function AdminDashboard() {
           }
         >
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-sm">
+            <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs text-muted-foreground">
                   <th className="pb-3 font-medium">Account</th>
                   <th className="pb-3 font-medium">Type</th>
                   <th className="pb-3 font-medium">Email</th>
+                  <th className="pb-3 font-medium">Verification</th>
                   <th className="pb-3 font-medium">Status</th>
                   <th className="pb-3" />
                 </tr>
@@ -96,6 +99,7 @@ export default function AdminDashboard() {
                     <td className="py-3 font-mono text-xs text-muted-foreground">
                       {a.email}
                     </td>
+                    <td className="py-3 text-xs text-muted-foreground">{a.verification}</td>
                     <td className="py-3">
                       <StatusPill status={a.status} />
                     </td>
@@ -118,8 +122,9 @@ export default function AdminDashboard() {
           </div>
 
           <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Large companies must register with a corporate email address. Free-mail
-            domains require manual verification before approval.
+            Companies with 200+ employees must register with a corporate email address.
+            Free-mail or mismatched-domain sign-ups need manual verification (GSTIN or
+            business document) before approval.
           </p>
         </Panel>
 

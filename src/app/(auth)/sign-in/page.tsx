@@ -72,9 +72,16 @@ export default function SignInPage() {
             </Link>
           </p>
 
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Hiring?{" "}
+            <Link href="/sign-up/company" className="font-semibold text-brand hover:underline">
+              Register your company
+            </Link>
+          </p>
+
           <p className="mt-6 text-center text-xs leading-5 text-muted-foreground">
-            Company and franchise accounts are created by the JobClubb admin team and can
-            sign in once approved.
+            Company accounts can sign in once verified. Franchise accounts are created by
+            the JobClubb admin team.
           </p>
         </div>
       </div>
