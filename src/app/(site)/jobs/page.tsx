@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Lock, MapPin, Search, SlidersHorizontal } from "lucide-react";
+import { Lock, MapPin, Search } from "lucide-react";
 
 import { JobCard } from "@/components/job-card";
+import { JobFiltersPanel, JobFiltersSheet } from "@/components/job-filters";
 import { PageHeader, Section } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { JOBS } from "@/lib/jobs-data";
-import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
 
 export const metadata = {
   title: "Jobs — JobClubb",
@@ -59,39 +58,8 @@ export default function JobsPage() {
 
       <Section className="py-12!">
         <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          <aside className="min-w-0 lg:sticky lg:top-18 lg:self-start lg:pt-4">
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <div className="flex items-center gap-2 font-head font-bold tracking-tight">
-                <SlidersHorizontal className="size-4 text-brand" />
-                Filters
-              </div>
-
-              <div className="mt-4 -mx-5 divide-y divide-border">
-                <FilterGroup title="Sector">
-                  <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 lg:grid-cols-1">
-                    {VERTICALS.map((v) => (
-                      <FilterRow key={v.slug} label={v.name} />
-                    ))}
-                  </ul>
-                </FilterGroup>
-
-                <FilterGroup title="Job type">
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {JOB_TYPES.map((t) => (
-                      <FilterChip key={t} label={t} />
-                    ))}
-                  </ul>
-                </FilterGroup>
-
-                <FilterGroup title="Work mode">
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {WORK_MODES.map((m) => (
-                      <FilterChip key={m} label={m} />
-                    ))}
-                  </ul>
-                </FilterGroup>
-              </div>
-            </div>
+          <aside className="hidden min-w-0 lg:sticky lg:block lg:top-18 lg:self-start lg:pt-4">
+            <JobFiltersPanel />
 
             <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-muted/50 p-4">
               <span className="mt-0.5 flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
@@ -113,43 +81,59 @@ export default function JobsPage() {
           </aside>
 
           <div className="min-w-0">
-            <div className="flex items-center justify-between gap-3 lg:sticky lg:top-18 lg:z-10 lg:-mx-1 lg:border-b lg:border-border lg:bg-background lg:px-1 lg:pt-4 lg:pb-3">
-              <p className="text-sm text-muted-foreground">
-                Showing{" "}
-                <span className="font-semibold text-foreground">
-                  {JOBS.length}
-                </span>{" "}
-                openings
-              </p>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Label htmlFor="sort">Sort</Label>
-                <Select
-                  items={{
-                    recent: "Most recent",
-                    salary: "Salary: high to low",
-                    experience: "Experience: low to high",
-                  }}
-                  defaultValue="recent"
-                >
-                  <SelectTrigger
-                    id="sort"
-                    size="sm"
-                    className="w-45 font-head font-medium"
+            <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background/95 px-4 pt-3 pb-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:top-18 lg:-mx-1 lg:bg-background lg:px-1 lg:pt-4 lg:backdrop-blur-none">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <JobFiltersSheet />
+                  <p className="hidden text-sm text-muted-foreground sm:block lg:block">
+                    Showing{" "}
+                    <span className="font-semibold text-foreground">
+                      {JOBS.length}
+                    </span>{" "}
+                    openings
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Label htmlFor="sort" className="hidden sm:block">
+                    Sort
+                  </Label>
+                  <Select
+                    items={{
+                      recent: "Most recent",
+                      salary: "Salary: high to low",
+                      experience: "Experience: low to high",
+                    }}
+                    defaultValue="recent"
                   >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recent">Most recent</SelectItem>
-                    <SelectItem value="salary">Salary: high to low</SelectItem>
-                    <SelectItem value="experience">
-                      Experience: low to high
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      id="sort"
+                      size="sm"
+                      aria-label="Sort openings"
+                      className="w-40 font-head font-medium sm:w-45"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recent">Most recent</SelectItem>
+                      <SelectItem value="salary">Salary: high to low</SelectItem>
+                      <SelectItem value="experience">
+                        Experience: low to high
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <p className="mt-4 text-sm text-muted-foreground sm:hidden">
+              Showing{" "}
+              <span className="font-semibold text-foreground">
+                {JOBS.length}
+              </span>{" "}
+              openings
+            </p>
+
+            <div className="mt-3 grid gap-4 sm:mt-5 sm:grid-cols-2">
               {JOBS.map((job) => (
                 <div key={job.slug} className="relative min-w-0">
                   <JobCard job={job} />
@@ -179,54 +163,5 @@ export default function JobsPage() {
         </div>
       </Section>
     </>
-  );
-}
-
-function FilterGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="py-4 px-4 first:pt-0 last:pb-0">
-      <h3 className="font-head text-sm font-bold tracking-tight">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function filterId(label: string) {
-  return `filter-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-}
-
-function FilterRow({ label }: { label: string }) {
-  const id = filterId(label);
-  return (
-    <li className="flex min-w-0 items-center gap-2.5">
-      <Checkbox id={id} />
-      <Label
-        htmlFor={id}
-        className="cursor-pointer truncate text-sm font-normal text-muted-foreground hover:text-foreground"
-      >
-        {label}
-      </Label>
-    </li>
-  );
-}
-
-function FilterChip({ label }: { label: string }) {
-  const id = filterId(label);
-  return (
-    <li>
-      <input type="checkbox" id={id} className="peer sr-only" />
-      <label
-        htmlFor={id}
-        className="inline-flex cursor-pointer items-center rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/50 hover:text-foreground peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-foreground peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50"
-      >
-        {label}
-      </label>
-    </li>
   );
 }
