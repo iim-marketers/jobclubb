@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { registerCompany } from "@/app/(site)/sign-up/company/actions";
+import { registerCompany } from "@/app/(auth)/sign-up/company/actions";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
 import { Field, FieldError, FileField, SelectField } from "@/components/sign-up/fields";
@@ -294,7 +294,7 @@ function EmployerBadge({
         </div>
       </div>
 
-      <dl className="mt-5 divide-y divide-white/10 rounded-2xl bg-black/15 px-4 text-sm">
+      <dl data-fit="7" className="mt-5 divide-y divide-white/10 rounded-2xl bg-black/15 px-4 text-sm">
         <BadgeRow label="Company size" value={sizeLabel ?? "—"} />
         <BadgeRow label="Plan" value={planLabel ?? "—"} />
         <BadgeRow label="Candidate view" value="Skills & experience" />

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { EyeOff, FileText, Lock, MapPin, ShieldCheck, Sparkles } from "lucide-react";
 
-import { registerCandidate } from "@/app/(site)/sign-up/actions";
+import { registerCandidate } from "@/app/(auth)/sign-up/actions";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
 import { Field, FieldError, FileField, SelectField } from "@/components/sign-up/fields";
 import {
@@ -228,7 +228,7 @@ function ProfilePreview({
         </Chip>
       </div>
 
-      <div className="mt-5 rounded-2xl bg-black/15 p-4">
+      <div data-fit="7" className="mt-5 rounded-2xl bg-black/15 p-4">
         <p className="flex items-center gap-1.5 text-xs font-semibold text-white/80">
           <Sparkles className="size-3.5 text-brand-accent" />
           Skills &amp; experience
@@ -248,7 +248,7 @@ function ProfilePreview({
         </p>
       </div>
 
-      <div className="mt-5">
+      <div data-fit="8" className="mt-5">
         <div className="flex items-center justify-between text-[11px] text-white/60">
           <span>Profile basics</span>
           <span className="font-head font-bold text-white">{Math.round(filled * 100)}%</span>
