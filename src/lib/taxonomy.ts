@@ -118,47 +118,6 @@ export const VERTICALS: Vertical[] = [
   },
 ];
 
-export const EMPLOYER_DIRECTORY: {
-  name: string;
-  vertical: string;
-  openRoles: number;
-}[] = [
-  { name: "Singapore Airlines", vertical: "Airlines", openRoles: 6 },
-  { name: "Qatar Airways", vertical: "Airlines", openRoles: 9 },
-  { name: "Emirates", vertical: "Airlines", openRoles: 11 },
-  { name: "Saudi Arabian Airlines", vertical: "Airlines", openRoles: 4 },
-  { name: "Etihad", vertical: "Airlines", openRoles: 7 },
-  { name: "Gulf Air", vertical: "Airlines", openRoles: 3 },
-  { name: "Air India", vertical: "Airlines", openRoles: 14 },
-  { name: "IndiGo", vertical: "Airlines", openRoles: 18 },
-  { name: "The Oberoi", vertical: "Hotels", openRoles: 8 },
-  { name: "Taj", vertical: "Hotels", openRoles: 12 },
-  { name: "J.W. Marriott", vertical: "Hotels", openRoles: 9 },
-  { name: "The St. Regis", vertical: "Hotels", openRoles: 4 },
-  { name: "The Ritz-Carlton", vertical: "Hotels", openRoles: 5 },
-  { name: "Hyatt", vertical: "Hotels", openRoles: 7 },
-  { name: "ITC Welcomgroup", vertical: "Hotels", openRoles: 6 },
-  { name: "Leela Kempinski", vertical: "Hotels", openRoles: 4 },
-  { name: "Le Meridien", vertical: "Hotels", openRoles: 5 },
-  { name: "Accor Hotels", vertical: "Hotels", openRoles: 8 },
-  { name: "Shangri-La", vertical: "Hotels", openRoles: 3 },
-  { name: "The Park Hotel", vertical: "Hotels", openRoles: 4 },
-  { name: "Four Seasons", vertical: "Hotels", openRoles: 6 },
-  { name: "Crowne Plaza", vertical: "Hotels", openRoles: 5 },
-  { name: "Swissotel", vertical: "Hotels", openRoles: 3 },
-  { name: "Jumeirah Beach Resort Dubai", vertical: "Hotels", openRoles: 7 },
-  { name: "ORYX Rotana Dubai", vertical: "Hotels", openRoles: 4 },
-  { name: "Hilton Group", vertical: "Hotels", openRoles: 10 },
-  { name: "Dream Cruises", vertical: "Cruise Lines", openRoles: 6 },
-  { name: "Star Cruises", vertical: "Cruise Lines", openRoles: 5 },
-  { name: "MakeMyTrip", vertical: "Travel & Tourism", openRoles: 9 },
-  { name: "Yatra.com", vertical: "Travel & Tourism", openRoles: 6 },
-  { name: "easemytrip.com", vertical: "Travel & Tourism", openRoles: 5 },
-  { name: "cleartrip.com", vertical: "Travel & Tourism", openRoles: 4 },
-  { name: "Ixigo.com", vertical: "Travel & Tourism", openRoles: 3 },
-  { name: "Travelmaxx", vertical: "Travel & Tourism", openRoles: 2 },
-];
-
 export const JOB_TYPES = ["Full time", "Internship"] as const;
 export const WORK_MODES = ["WFO", "WFH", "Hybrid", "Field", "Onsite"] as const;
 

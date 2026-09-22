@@ -1,18 +1,26 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Building2, ShieldCheck } from "lucide-react";
+import { Building2 } from "lucide-react";
 
-import { CompanyAvatar } from "@/components/company-avatar";
 import { PageHeader, Section } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { EMPLOYER_DIRECTORY, VERTICALS } from "@/lib/taxonomy";
+import { VERTICALS } from "@/lib/taxonomy";
+import { COMPANY_SECTORS, getCompanies } from "@/server/companies/directory";
 
 export const metadata = {
   title: "Companies — JobClubb",
-  description: "Verified employers hiring across Airlines, Hospitality and Travel & Tourism.",
+  description:
+    "Verified employers hiring across Airlines, Hospitality and Travel & Tourism.",
 };
 
-export default function CompaniesPage() {
-  const groups = ["Airlines", "Hotels", "Cruise Lines", "Travel & Tourism"];
+const slug = (value: string) => value.toLowerCase().replace(/[^a-z]+/g, "-");
+
+export default async function CompaniesPage() {
+  const companies = await getCompanies();
+  const sectors = COMPANY_SECTORS.map((sector) => ({
+    ...sector,
+    companies: companies.filter((c) => c.sector === sector.value),
+  })).filter((sector) => sector.companies.length);
 
   return (
     <>
@@ -20,45 +28,63 @@ export default function CompaniesPage() {
         eyebrow="Verified employers"
         title="Companies hiring on JobClubb"
         description="Built on Emporium's existing employer relationships across Airlines, Hotels and Travel — live openings, not cold outreach."
-      />
+      >
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          {sectors.map((sector) => (
+            <a
+              key={sector.value}
+              href={`#${slug(sector.value)}`}
+              className="rounded-full border border-border bg-card px-3 py-1 text-xs font-medium transition-colors hover:border-brand hover:text-brand"
+            >
+              {sector.label}
+              <span className="ml-1.5 text-muted-foreground">
+                {sector.companies.length}
+              </span>
+            </a>
+          ))}
+        </div>
+      </PageHeader>
 
       <Section>
-        {groups.map((group) => {
-          const companies = EMPLOYER_DIRECTORY.filter((c) => c.vertical === group);
-          if (!companies.length) return null;
-          return (
-            <div key={group} className="mb-12 last:mb-0">
-              <div className="flex items-center gap-3">
-                <h2 className="font-head text-2xl font-extrabold tracking-tight">
-                  {group}
+        <div className="divide-y divide-border">
+          {sectors.map((sector) => (
+            <section
+              key={sector.value}
+              id={slug(sector.value)}
+              className="scroll-mt-24 py-8 first:pt-0 last:pb-0"
+            >
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="font-head text-lg font-extrabold tracking-tight sm:text-xl">
+                  {sector.label}
                 </h2>
-                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
-                  {companies.length} employers
+                <span className="text-xs text-muted-foreground">
+                  {sector.companies.length}{" "}
+                  {sector.companies.length === 1 ? "employer" : "employers"}
                 </span>
               </div>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {companies.map((company) => (
-                  <div
-                    key={company.name}
-                    className="group flex min-w-0 items-center gap-3 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-brand"
+              <ul className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                {sector.companies.map((company) => (
+                  <li
+                    key={company.id}
+                    className="group flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:border-brand hover:shadow-md"
                   >
-                    <CompanyAvatar name={company.name} className="size-11" />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-head font-bold tracking-tight transition-colors group-hover:text-brand">
-                        {company.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {company.openRoles} open roles
-                      </p>
+                    <div className="aspect-260/215 bg-white">
+                      <Image
+                        src={company.logo_path}
+                        alt={`${company.name} logo`}
+                        width={260}
+                        height={215}
+                        sizes="(min-width: 1024px) 170px, (min-width: 768px) 20vw, (min-width: 640px) 25vw, 33vw"
+                        className="size-full object-contain p-2"
+                      />
                     </div>
-                    <ShieldCheck className="size-4 flex-none text-good" />
-                  </div>
+                  </li>
                 ))}
-              </div>
-            </div>
-          );
-        })}
+              </ul>
+            </section>
+          ))}
+        </div>
       </Section>
 
       <Section className="bg-card">
@@ -69,9 +95,9 @@ export default function CompaniesPage() {
               Hiring for your team?
             </h2>
             <p className="mt-4 leading-7 text-muted-foreground">
-              Post openings and review candidates by skills and experience. Candidate
-              identity stays private until you choose to unlock it — so you assess on
-              capability first.
+              Post openings and review candidates by skills and experience.
+              Candidate identity stays private until you choose to unlock it —
+              so you assess on capability first.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Button
@@ -93,7 +119,9 @@ export default function CompaniesPage() {
           </div>
 
           <div className="rounded-3xl border border-border bg-background p-7">
-            <h3 className="font-head font-bold tracking-tight">Sectors we cover</h3>
+            <h3 className="font-head font-bold tracking-tight">
+              Sectors we cover
+            </h3>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               {VERTICALS.map((v) => (
                 <li key={v.slug} className="text-sm">
