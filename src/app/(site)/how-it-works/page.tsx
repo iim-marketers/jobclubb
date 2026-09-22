@@ -7,14 +7,14 @@ import { SOURCING_CHANNELS } from "@/lib/taxonomy";
 
 export const metadata = {
   title: "How it works — JobClubb",
-  description: "From free sign-up to your first day — how JobClubb gets you hired.",
+  description: "From sign-up to your first day — how JobClubb gets you hired.",
 };
 
 const STEPS = [
   {
     step: "01",
-    title: "Sign up free",
-    body: "Create your profile free of charge and browse thousands of listings. Add your skills and preferences to get matched with the best opportunities.",
+    title: "Join JobClubb",
+    body: "Create your account, verify your email and activate your membership. Add your skills and preferences to get matched with the best opportunities.",
   },
   {
     step: "02",
@@ -64,7 +64,7 @@ export default function HowItWorksPage() {
               An ATS-approved resume, built for you
             </h2>
             <p className="mt-4 leading-7 text-muted-foreground">
-              Every candidate profile — free or paid — generates an AI-built,
+              Every candidate profile generates an AI-built,
               ATS-approved resume. Applicant tracking systems parse it cleanly, so your
               application reaches a human instead of being filtered out.
             </p>
@@ -112,7 +112,7 @@ export default function HowItWorksPage() {
             Ready to start?
           </h2>
           <p className="mx-auto mt-3 max-w-xl leading-7 text-white/80">
-            Create a free profile in minutes, then upgrade whenever you&apos;re ready to
+            Create your account in minutes and activate your membership to
             unlock the full board.
           </p>
           <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
@@ -121,7 +121,7 @@ export default function HowItWorksPage() {
               nativeButton={false}
               render={<Link href="/sign-up" />}
             >
-              Create free profile
+              Join JobClubb
             </Button>
             <Button
               variant="outline"

@@ -157,7 +157,7 @@ export const FEATURED_JOBS: Job[] = [
 ];
 
 export const HOW_IT_WORKS = [
-  { step: "01", title: "Sign up free", body: "Create your profile free of charge and browse thousands of listings. Add your skills and preferences to get matched with the best opportunities." },
+  { step: "01", title: "Join JobClubb", body: "Create your account, verify your email and activate your membership. Add your skills and preferences to get matched with the best opportunities." },
   { step: "02", title: "Browse jobs & set interviews", body: "Search roles that suit your skills. Members enjoy guaranteed interviews with hiring employers, plus recommendations tuned to your profile." },
   { step: "03", title: "Upskill & prepare", body: "Boost your resume and interview performance with our upskilling programs - from interview coaching to certification courses." },
   { step: "04", title: "Get your dream job", body: "Walk in ready to nail the interview and land the role. We support you every step, from application to onboarding." },

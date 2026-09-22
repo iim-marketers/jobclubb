@@ -6,7 +6,7 @@ import { EyeOff, FileText, Lock, MapPin, ShieldCheck, Sparkles } from "lucide-re
 
 import { registerCandidate } from "@/app/(auth)/sign-up/actions";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
-import { Field, FieldError, FileField, SelectField } from "@/components/sign-up/fields";
+import { Field, FieldError, FileField, PasswordField, SelectField } from "@/components/sign-up/fields";
 import {
   PanelCard,
   PanelPoints,
@@ -43,14 +43,14 @@ export function CandidateSignUp() {
   return (
     <SignUpLayout
       audience="candidate"
-      eyebrow="Free to join"
+      eyebrow="Join JobClubb"
       title={
         <>
           One profile. <span className="text-brand-accent">Every verified</span>{" "}
           employer.
         </>
       }
-      description="Create your JobClubb profile in under two minutes. Your AI-built, ATS-ready resume is included on every plan."
+      description="Create your JobClubb profile in under two minutes. Your AI-built, ATS-ready resume is included with membership."
       panel={
         <>
           <ProfilePreview
@@ -81,6 +81,8 @@ export function CandidateSignUp() {
             <Field id="lastName" label="Last name" placeholder="Sharma" autoComplete="family-name" required error={errors.lastName} />
             <Field id="email" label="Email" type="email" placeholder="you@example.com" autoComplete="email" required error={errors.email} className="sm:col-span-2" />
             <Field id="phone" label="Mobile number" type="tel" placeholder="+91 90000 00000" autoComplete="tel" required error={errors.phone} className="sm:col-span-2" />
+            <PasswordField id="password" label="Password" placeholder="At least 8 characters" required error={errors.password} />
+            <PasswordField id="confirmPassword" label="Confirm password" placeholder="Re-enter password" required error={errors.confirmPassword} />
           </div>
         </StepPanel>
 

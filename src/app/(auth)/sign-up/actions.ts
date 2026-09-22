@@ -1,18 +1,30 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { validateCandidate, type FieldErrors } from "@/lib/sign-up-validation";
+import type { FieldErrors } from "@/lib/sign-up-validation";
+import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
+import {
+  registerCandidate as registerCandidateAccount,
+  resendCandidateConfirmation,
+} from "@/server/candidates/register";
 
 export async function registerCandidate(
   formData: FormData,
 ): Promise<{ errors: FieldErrors }> {
-  const errors = validateCandidate(formData);
-  if (Object.keys(errors).length > 0) return { errors };
+  const result = await registerCandidateAccount(formData);
+  if (!result.ok) return { errors: result.errors };
 
-  // TODO: persist once the backend lands — create the candidate, attribute the
-  // sourcing channel / code (SOP §3.1), store the student ID for review, record
-  // T&C version + consent timestamp (DPDP), and send the welcome email.
-
+  (await cookies()).set(PENDING_EMAIL_COOKIE, result.email, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24,
+  });
   redirect("/sign-up/submitted?route=candidate");
+}
+
+export async function resendConfirmation(email: string): Promise<{ error?: string }> {
+  return resendCandidateConfirmation(email);
 }

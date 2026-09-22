@@ -122,7 +122,7 @@ export function JobFiltersPanel() {
 
 /* ---------- Small screens: toolbar + bottom sheet ---------- */
 
-export function JobFiltersSheet() {
+export function JobFiltersSheet({ member }: { member: boolean }) {
   const [applied, setApplied] = useState<Filters>(EMPTY);
   const [draft, setDraft] = useState<Filters>(EMPTY);
   const [open, setOpen] = useState(false);
@@ -222,28 +222,30 @@ export function JobFiltersSheet() {
               />
             </SheetGroup>
 
-            <div className="mt-2 mb-3 flex items-center gap-3 rounded-2xl border border-border bg-muted/50 p-3.5">
-              <span className="flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
-                <Lock className="size-3.5 text-brand" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-head text-sm font-bold">Location match</p>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Jobs near your home address — members only.
-                </p>
+            {!member && (
+              <div className="mt-2 mb-3 flex items-center gap-3 rounded-2xl border border-border bg-muted/50 p-3.5">
+                <span className="flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
+                  <Lock className="size-3.5 text-brand" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-head text-sm font-bold">Location match</p>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Jobs near your home address — members only.
+                  </p>
+                </div>
+                <SheetClose
+                  nativeButton={false}
+                  render={
+                    <Link
+                      href="/membership"
+                      className="flex-none font-head text-xs font-bold text-brand hover:underline"
+                    >
+                      Unlock
+                    </Link>
+                  }
+                />
               </div>
-              <SheetClose
-                nativeButton={false}
-                render={
-                  <Link
-                    href="/membership"
-                    className="flex-none font-head text-xs font-bold text-brand hover:underline"
-                  >
-                    Unlock
-                  </Link>
-                }
-              />
-            </div>
+            )}
           </div>
 
           <div className="flex flex-none gap-3 border-t border-border bg-popover px-5 py-4">

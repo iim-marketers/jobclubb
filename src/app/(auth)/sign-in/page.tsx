@@ -1,4 +1,8 @@
+import { cookies } from "next/headers";
+
 import { SignIn } from "@/components/sign-in/sign-in";
+import { FRESH_JOBS } from "@/lib/home-data";
+import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
 
 export const metadata = {
   title: "Sign in — JobClubb",
@@ -11,7 +15,20 @@ const ROLES = ["candidate", "company", "franchise"] as const;
 export default async function SignInPage({
   searchParams,
 }: PageProps<"/sign-in">) {
-  const { as } = await searchParams;
+  const { as, next, error, verified } = await searchParams;
   const initialRole = ROLES.find((r) => r === as) ?? "candidate";
-  return <SignIn initialRole={initialRole} />;
+  const verifiedEmail =
+    verified === "1"
+      ? (await cookies()).get(PENDING_EMAIL_COOKIE)?.value
+      : undefined;
+  return (
+    <SignIn
+      initialRole={initialRole}
+      next={typeof next === "string" ? next : undefined}
+      linkExpired={error === "link-expired"}
+      verified={verified === "1"}
+      verifiedEmail={verifiedEmail}
+      freshRoles={FRESH_JOBS.map((job) => job.role)}
+    />
+  );
 }
