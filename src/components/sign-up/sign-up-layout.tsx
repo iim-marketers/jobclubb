@@ -13,6 +13,7 @@ const AUDIENCES = [
     short: "Candidate",
     href: "/sign-up",
     icon: User,
+    disabled: false,
   },
   {
     id: "company",
@@ -20,6 +21,7 @@ const AUDIENCES = [
     short: "Company",
     href: "/sign-up/company",
     icon: Building2,
+    disabled: true,
   },
 ] as const;
 
@@ -86,18 +88,39 @@ function AudienceSwitch({ active }: { active: Audience }) {
       aria-label="Account type"
       className="grid grid-cols-2 gap-1 rounded-2xl bg-white/8 p-1 ring-1 ring-white/12 backdrop-blur-sm"
     >
-      {AUDIENCES.map(({ id, label, short, href, icon: Icon }) => (
-        <Link
-          key={id}
-          href={href}
-          aria-current={id === active ? "page" : undefined}
-          className="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 font-head text-sm font-semibold text-white/70 transition-colors hover:text-white aria-[current=page]:bg-white aria-[current=page]:text-brand-surface-strong aria-[current=page]:shadow-sm"
-        >
-          <Icon className="size-4 flex-none" />
-          <span className="sm:hidden">{short}</span>
-          <span className="hidden sm:inline">{label}</span>
-        </Link>
-      ))}
+      {AUDIENCES.map(({ id, label, short, href, icon: Icon, disabled }) => {
+        const content = (
+          <>
+            <Icon className="size-4 flex-none" />
+            <span className="sm:hidden">{short}</span>
+            <span className="hidden sm:inline">{label}</span>
+          </>
+        );
+
+        if (disabled && id !== active) {
+          return (
+            <span
+              key={id}
+              aria-disabled="true"
+              title="Coming soon"
+              className="flex cursor-not-allowed items-center justify-center gap-2 rounded-xl px-3 py-2.5 font-head text-sm font-semibold text-white/35"
+            >
+              {content}
+            </span>
+          );
+        }
+
+        return (
+          <Link
+            key={id}
+            href={href}
+            aria-current={id === active ? "page" : undefined}
+            className="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 font-head text-sm font-semibold text-white/70 transition-colors hover:text-white aria-[current=page]:bg-white aria-[current=page]:text-brand-surface-strong aria-[current=page]:shadow-sm"
+          >
+            {content}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

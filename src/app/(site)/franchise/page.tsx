@@ -93,7 +93,7 @@ export default function FranchisePage() {
         <Button
           className="mt-7 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
           nativeButton={false}
-          render={<Link href="/franchise/apply" />}
+          render={<Link href="/sign-up/franchise" />}
         >
           Become a partner
         </Button>
