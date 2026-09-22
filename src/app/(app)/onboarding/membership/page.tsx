@@ -157,22 +157,20 @@ export default async function CheckoutPage({
             <form action={payForMembership} className="mt-5">
               <PlanSubmit highlighted>Pay {details.price}</PlanSubmit>
             </form>
-
-            {paymentsTestMode ? (
-              <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-xs leading-5 text-amber-800 dark:text-amber-200">
-                <FlaskConical className="mt-0.5 size-3.5 flex-none" />
-                Test mode: no money is charged. Paying activates the membership
-                straight away.
-              </p>
-            ) : (
-              <p className="mt-3 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                <ShieldCheck className="mt-0.5 size-3.5 flex-none text-good" />
-                Paid securely via Razorpay. We&apos;ll remind you 15 days before
-                it renews.
-              </p>
-            )}
           </aside>
         </div>
+
+        {paymentsTestMode ? (
+          <p className="mt-5 flex max-w-4xl items-start gap-2 rounded-xl bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-800 dark:text-amber-200">
+            Test mode: no money is charged. Paying activates the membership
+            straight away.
+          </p>
+        ) : (
+          <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
+            Paid securely via Razorpay. We&apos;ll remind you 15 days before it
+            renews.
+          </p>
+        )}
       </main>
     </div>
   );
