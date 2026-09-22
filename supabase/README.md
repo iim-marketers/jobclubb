@@ -40,7 +40,7 @@ With the Supabase CLI you can run `supabase link` and then `supabase db push` in
 3. **Restart `next dev`** so it picks up the new variables.
 
 Limits:
-- **Per address** (enforced by the app, in `src/lib/auth/confirmation-email.ts` using the `email_sends` table): one confirmation email a minute, and at most 5 an hour. A resend cancels the previous link.
+- **Per address** (enforced by the app, in `src/server/auth/confirmation-email.ts` using the `email_sends` table): one confirmation email a minute, and at most 5 an hour. A resend cancels the previous link.
 - **Gmail's own cap:** about 500 emails a day for a free Gmail account, or 2,000 for Google Workspace.
 
 For launch, send from a Google Workspace address on your own domain (e.g. `noreply@jobclubb.com`), with the same settings and its own app password. Mail sent from a `@gmail.com` address on behalf of a business is more likely to be marked as spam.
