@@ -90,7 +90,7 @@ export default async function CheckoutPage({
           </p>
         )}
 
-        <div className="mt-10 grid w-full max-w-4xl items-start gap-5 md:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="mt-10 grid w-full max-w-4xl gap-5 md:grid-cols-[minmax(0,1fr)_20rem]">
           <section className="rounded-3xl border border-border bg-card p-7 sm:p-8">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-head text-lg font-bold tracking-tight">
@@ -133,7 +133,7 @@ export default async function CheckoutPage({
             </ul>
           </section>
 
-          <aside className="rounded-3xl border border-border bg-card p-6">
+          <aside className="flex flex-col rounded-3xl border border-border bg-card p-6">
             <h2 className="font-head font-bold tracking-tight">
               Order summary
             </h2>
@@ -154,7 +154,7 @@ export default async function CheckoutPage({
               </div>
             </dl>
 
-            <form action={payForMembership} className="mt-5">
+            <form action={payForMembership} className="mt-auto pt-5">
               <PlanSubmit highlighted>Pay {details.price}</PlanSubmit>
             </form>
           </aside>
