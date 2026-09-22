@@ -8,7 +8,7 @@ import { ArrowUpRight, LogOut, Sparkles } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/sign-in/actions";
 import { CANDIDATE_HOME, CANDIDATE_NAV, isActive } from "@/components/candidate/nav";
-import { MEMBERSHIP_PRICE, type MembershipPlan } from "@/lib/membership";
+import { MEMBERSHIP_DAYS, PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 
 export type CandidateProfile = {
@@ -17,32 +17,9 @@ export type CandidateProfile = {
   email: string;
   sector?: string;
   plan: MembershipPlan;
+  validUntil: string;
+  daysLeft: number;
 };
-
-const PLAN_CARD = {
-  free: {
-    title: "Free plan",
-    status: "Limited access",
-    body: "Upgrade to apply to jobs and get 3 guaranteed interviews.",
-    cta: `Upgrade · ${MEMBERSHIP_PRICE}/yr`,
-    tooltip: "Free plan · Upgrade",
-  },
-  // TODO: show the active membership and renewal date once payments exist.
-  member: {
-    title: "JobClubb Membership",
-    status: "Payment pending",
-    body: "Complete your payment to unlock every member benefit.",
-    cta: "Complete payment",
-    tooltip: "Membership · Payment pending",
-  },
-  franchise: {
-    title: "Franchise Membership",
-    status: "Payment pending",
-    body: "Complete your payment to unlock every member benefit.",
-    cta: "Complete payment",
-    tooltip: "Membership · Payment pending",
-  },
-} satisfies Record<MembershipPlan, Record<string, string>>;
 
 export function CandidateSidebar({
   candidate,
@@ -100,7 +77,9 @@ export function SidebarContent({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const card = PLAN_CARD[candidate.plan];
+  const expiringSoon = candidate.daysLeft <= 15;
+  const used = 1 - candidate.daysLeft / MEMBERSHIP_DAYS;
+  const tooltip = `Membership · ${candidate.daysLeft} days left`;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
@@ -189,14 +168,16 @@ export function SidebarContent({
 
       {collapsed ? (
         <div className="flex flex-none flex-col items-center gap-3 px-3 pb-4">
-          <RailTooltip label={card.tooltip} enabled>
+          <RailTooltip label={tooltip} enabled>
             <Link
               href={`${CANDIDATE_HOME}/membership`}
-              aria-label={card.tooltip}
+              aria-label={tooltip}
               className="relative flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/6 text-brand-accent transition-colors hover:bg-white/12"
             >
               <Sparkles className="size-4.5" />
-              <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-300 ring-2 ring-[#023b50]" />
+              {expiringSoon && (
+                <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-300 ring-2 ring-[#023b50]" />
+              )}
             </Link>
           </RailTooltip>
           <RailTooltip label={`${candidate.firstName} ${candidate.lastName}`} enabled>
@@ -209,19 +190,36 @@ export function SidebarContent({
       ) : (
         <div className="flex-none space-y-3 px-3 pb-4">
           <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="truncate font-head text-sm font-bold">{card.title}</p>
-              <p className="flex-none text-xs text-amber-300">{card.status}</p>
-            </div>
-            <p className="mt-1.5 text-xs leading-5 text-white/60">{card.body}</p>
-            <Link
-              href={`${CANDIDATE_HOME}/membership`}
-              onClick={onNavigate}
-              className="mt-3 inline-flex items-center gap-1 font-head text-xs font-bold text-brand-accent hover:text-white"
+            <p className="truncate font-head text-sm font-bold">{PLAN_DETAILS[candidate.plan].name}</p>
+            <div
+              className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"
+              role="meter"
+              aria-label="Membership used"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(used * 100)}
             >
-              {card.cta}
-              <ArrowUpRight className="size-3.5" />
-            </Link>
+              <div
+                className="h-full rounded-full bg-linear-to-r from-brand-accent to-[#38b6dd]"
+                style={{ width: `${Math.min(Math.max(used, 0), 1) * 100}%` }}
+              />
+            </div>
+            <div className="mt-2 flex items-baseline justify-between gap-2 text-xs">
+              <p className="truncate text-white/60">Valid till {candidate.validUntil}</p>
+              <p className={cn("flex-none", expiringSoon ? "text-amber-300" : "text-white/60")}>
+                {candidate.daysLeft} days left
+              </p>
+            </div>
+            {expiringSoon && (
+              <Link
+                href="/membership"
+                onClick={onNavigate}
+                className="mt-2 inline-flex items-center gap-1 font-head text-xs font-bold text-brand-accent hover:text-white"
+              >
+                Renew membership
+                <ArrowUpRight className="size-3.5" />
+              </Link>
+            )}
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl px-2 py-1.5">

@@ -2,27 +2,27 @@
 
 import { redirect } from "next/navigation";
 
-import { isMembershipPlan, plansFor } from "@/lib/membership";
-import { createClient } from "@/lib/supabase/server";
+import { isMembershipActive, planFor } from "@/lib/membership";
 import {
-  CHOOSE_PLAN_PATH,
+  CHECKOUT_PATH,
   requireCandidate,
 } from "@/server/auth/current-candidate";
-import { chooseMembershipPlan } from "@/server/candidates/membership";
+import {
+  activateMembership,
+  paymentsTestMode,
+} from "@/server/candidates/membership";
 
-export async function choosePlan(formData: FormData) {
-  const plan = formData.get("plan");
-  const candidate = await requireCandidate(CHOOSE_PLAN_PATH);
-  if (!isMembershipPlan(plan) || !plansFor(candidate.code).includes(plan))
-    redirect(`${CHOOSE_PLAN_PATH}?error=1`);
+export async function payForMembership() {
+  const candidate = await requireCandidate(CHECKOUT_PATH);
+  if (isMembershipActive(candidate.membership_expires_at))
+    redirect("/candidate/dashboard");
+  if (!paymentsTestMode) redirect(`${CHECKOUT_PATH}?error=unavailable`);
 
-  const saved = await chooseMembershipPlan(
-    await createClient(),
+  const activated = await activateMembership(
     candidate.id,
-    plan,
+    planFor(candidate.code),
   );
-  if (!saved) redirect(`${CHOOSE_PLAN_PATH}?error=1`);
+  if (!activated) redirect(`${CHECKOUT_PATH}?error=failed`);
 
-  // TODO: send paid plans to Razorpay checkout once payments are built.
   redirect("/candidate/dashboard");
 }

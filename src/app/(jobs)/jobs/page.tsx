@@ -15,6 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { JOBS } from "@/lib/jobs-data";
+import {
+  CHECKOUT_PATH,
+  getJobAccess,
+} from "@/server/auth/current-candidate";
 
 export const metadata = {
   title: "Jobs — JobClubb",
@@ -22,13 +26,22 @@ export const metadata = {
     "Live openings across Airlines, Hospitality and Travel & Tourism from verified employers.",
 };
 
-export default function JobsPage() {
+export default async function JobsPage() {
+  const access = await getJobAccess();
+  const unlock = access.signedIn
+    ? { href: CHECKOUT_PATH, label: "Complete payment" }
+    : { href: "/sign-up", label: "Join JobClubb" };
+
   return (
     <>
       <PageHeader
         eyebrow="Live openings"
         title="Browse jobs"
-        description="Verified openings across Airlines, Hospitality and Travel & Tourism. Free to browse — membership unlocks full details and one-click apply."
+        description={
+          access.member
+            ? "Verified openings across Airlines, Hospitality and Travel & Tourism, with full details and one-click apply."
+            : "Verified openings across Airlines, Hospitality and Travel & Tourism. Members see full details and apply in one click."
+        }
       >
         <form className="mt-7 flex max-w-3xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row">
           <div className="relative flex-1">
@@ -61,30 +74,32 @@ export default function JobsPage() {
           <aside className="hidden min-w-0 lg:sticky lg:block lg:top-18 lg:self-start lg:pt-4">
             <JobFiltersPanel />
 
-            <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-muted/50 p-4">
-              <span className="mt-0.5 flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
-                <Lock className="size-3.5 text-brand" />
-              </span>
-              <div className="min-w-0">
-                <p className="font-head text-sm font-bold">Location match</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Surface jobs near your home address — members only.
-                </p>
-                <Link
-                  href="/membership"
-                  className="mt-2 inline-flex items-center font-head text-xs font-bold text-brand hover:underline"
-                >
-                  Unlock with membership
-                </Link>
+            {!access.member && (
+              <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-muted/50 p-4">
+                <span className="mt-0.5 flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
+                  <Lock className="size-3.5 text-brand" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-head text-sm font-bold">Location match</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Surface jobs near your home address — members only.
+                  </p>
+                  <Link
+                    href="/membership"
+                    className="mt-2 inline-flex items-center font-head text-xs font-bold text-brand hover:underline"
+                  >
+                    Unlock with membership
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
           </aside>
 
           <div className="min-w-0">
             <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background/95 px-4 pt-3 pb-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:top-18 lg:-mx-1 lg:bg-background lg:px-1 lg:pt-4 lg:backdrop-blur-none">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-3">
-                  <JobFiltersSheet />
+                  <JobFiltersSheet member={access.member} />
                   <p className="hidden text-sm text-muted-foreground sm:block lg:block">
                     Showing{" "}
                     <span className="font-semibold text-foreground">
@@ -136,29 +151,30 @@ export default function JobsPage() {
             <div className="mt-3 grid gap-4 sm:mt-5 sm:grid-cols-2">
               {JOBS.map((job) => (
                 <div key={job.slug} className="relative min-w-0">
-                  <JobCard job={job} />
+                  <JobCard job={job} locked={!access.member} />
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-center">
-              <Lock className="mx-auto size-5 text-brand" />
-              <p className="mt-3 font-head font-bold tracking-tight">
-                More openings inside
-              </p>
-              <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">
-                Free browsing shows position, location, experience and salary
-                range only. Membership unlocks full job details and one-click
-                apply.
-              </p>
-              <Button
-                className="mt-4 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                nativeButton={false}
-                render={<Link href="/membership" />}
-              >
-                Become a Member
-              </Button>
-            </div>
+            {!access.member && (
+              <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-center">
+                <Lock className="mx-auto size-5 text-brand" />
+                <p className="mt-3 font-head font-bold tracking-tight">
+                  See the full picture
+                </p>
+                <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">
+                  Members see the company, location, salary and full job
+                  details, and apply in one click.
+                </p>
+                <Button
+                  className="mt-4 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                  nativeButton={false}
+                  render={<Link href={unlock.href} />}
+                >
+                  {unlock.label}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </Section>

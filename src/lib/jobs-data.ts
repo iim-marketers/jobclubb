@@ -1,4 +1,5 @@
 export type JobListing = {
+  // Role + id only: the URL is visible to non-members, so no company or city.
   slug: string;
   title: string;
   designation: string;
@@ -21,7 +22,7 @@ export type JobListing = {
 
 export const JOBS: JobListing[] = [
   {
-    slug: "cabin-crew-indigo-kolkata",
+    slug: "cabin-crew-1001",
     title: "Cabin Crew",
     designation: "Cabin Crew Member",
     company: "IndiGo",
@@ -51,7 +52,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Layover allowance", "Staff travel concessions", "Medical cover", "Uniform provided"],
   },
   {
-    slug: "front-office-executive-taj-mumbai",
+    slug: "front-office-executive-1002",
     title: "Front Office / Reception",
     designation: "Front Office Executive",
     company: "Taj",
@@ -81,7 +82,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Duty meals", "Accommodation support", "Performance incentives", "Career progression"],
   },
   {
-    slug: "ground-staff-air-india-bengaluru",
+    slug: "ground-staff-1003",
     title: "Ground Staff",
     designation: "Airport Ground Services Executive",
     company: "Air India",
@@ -111,7 +112,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Shift allowance", "Staff travel benefits", "Medical cover", "Training provided"],
   },
   {
-    slug: "fb-service-staff-jw-marriott-pune",
+    slug: "fb-service-staff-1004",
     title: "F&B Service Staff",
     designation: "F&B Service Associate",
     company: "J.W. Marriott",
@@ -141,7 +142,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Duty meals", "Tips and service charge", "Uniform and laundry", "Skill training"],
   },
   {
-    slug: "reservation-agent-makemytrip-gurugram",
+    slug: "reservation-agent-1005",
     title: "Reservation Agents",
     designation: "Reservation Executive",
     company: "MakeMyTrip",
@@ -170,7 +171,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Hybrid working", "Quarterly incentives", "Travel discounts", "Insurance"],
   },
   {
-    slug: "cruise-staff-dream-cruises-mumbai",
+    slug: "cruise-staff-1006",
     title: "Cruise Staff",
     designation: "Guest Experience Crew",
     company: "Dream Cruises",
@@ -199,7 +200,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Accommodation and meals onboard", "Tax-efficient earnings", "Global travel", "Contract bonus"],
   },
   {
-    slug: "barista-cafe-supervisor-taj-delhi",
+    slug: "barista-cafe-supervisor-1007",
     title: "Baristas",
     designation: "Barista",
     company: "Taj",
@@ -228,7 +229,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Duty meals", "Barista training", "Uniform", "Tips"],
   },
   {
-    slug: "bartender-park-hotel-kolkata",
+    slug: "bartender-1008",
     title: "Bartenders",
     designation: "Bartender",
     company: "The Park Hotel",
@@ -257,7 +258,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Tips and incentives", "Duty meals", "Mixology training", "Staff discounts"],
   },
   {
-    slug: "holiday-package-consultant-yatra-noida",
+    slug: "holiday-package-consultant-1009",
     title: "Holiday Package Consultants",
     designation: "Holiday Consultant",
     company: "Yatra.com",
@@ -286,7 +287,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Sales incentives", "FAM trips", "Insurance", "Travel discounts"],
   },
   {
-    slug: "housekeeping-supervisor-hilton-hyderabad",
+    slug: "housekeeping-supervisor-1010",
     title: "Housekeeping Staff",
     designation: "Housekeeping Supervisor",
     company: "Hilton Group",
@@ -315,7 +316,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Duty meals", "Accommodation support", "Incentives", "Growth path"],
   },
   {
-    slug: "guest-relations-emirates-mumbai",
+    slug: "guest-relations-1011",
     title: "Guest Relations",
     designation: "Premium Guest Relations Executive",
     company: "Emirates",
@@ -344,7 +345,7 @@ export const JOBS: JobListing[] = [
     benefits: ["Airline staff travel", "Medical cover", "Grooming allowance", "International exposure"],
   },
   {
-    slug: "restaurant-manager-oberoi-chennai",
+    slug: "restaurant-manager-1012",
     title: "Restaurant Managers",
     designation: "Restaurant Manager",
     company: "The Oberoi",

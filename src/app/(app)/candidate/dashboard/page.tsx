@@ -21,7 +21,7 @@ import { JOBS } from "@/lib/jobs-data";
 import { VERTICALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
-import { requireCandidateWithPlan } from "@/server/auth/current-candidate";
+import { requireMember } from "@/server/auth/current-candidate";
 
 export const metadata = { title: "Dashboard — JobClubb" };
 
@@ -85,7 +85,7 @@ function greeting(now: Date) {
 }
 
 export default async function CandidateDashboard() {
-  const candidate = await requireCandidateWithPlan(CANDIDATE_HOME);
+  const candidate = await requireMember(CANDIDATE_HOME);
   const vertical = VERTICALS.find((v) => v.slug === candidate.vertical);
   const sector = vertical?.name;
   const now = new Date();
@@ -392,7 +392,7 @@ function ProfileSummary({
                 {firstName} {lastName}
               </p>
               <span className="rounded-full bg-white/15 px-2.5 py-0.5 font-head text-[11px] font-bold">
-                {plan === "free" ? "Free plan" : "Member"}
+                {plan === "franchise" ? "Franchise member" : "Member"}
               </span>
             </div>
             <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/75">

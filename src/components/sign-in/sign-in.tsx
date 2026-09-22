@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 
 import { signIn, type SignInRole } from "@/app/(auth)/sign-in/actions";
-import { CompanyAvatar } from "@/components/company-avatar";
 import { FieldError } from "@/components/sign-up/fields";
 import { VerifyEmail } from "@/components/sign-in/verify-email";
 import { PanelCard } from "@/components/sign-up/sign-up-layout";
@@ -25,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FRESH_JOBS } from "@/lib/home-data";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 
 const ROLES: {
@@ -71,8 +69,10 @@ export function SignIn({
   linkExpired,
   verified,
   verifiedEmail,
+  freshRoles,
 }: {
   initialRole: SignInRole;
+  freshRoles: string[];
   next?: string;
   linkExpired?: boolean;
   verified?: boolean;
@@ -121,7 +121,7 @@ export function SignIn({
             </p>
 
             <div data-fit="5" className="mt-10 hidden lg:block">
-              {role === "candidate" && <CandidatePreview />}
+              {role === "candidate" && <CandidatePreview roles={freshRoles} />}
               {role === "company" && <CompanyPreview />}
               {role === "franchise" && <FranchisePreview />}
             </div>
@@ -364,7 +364,8 @@ function IconField({
 // ---- Role previews in the brand panel. Lower rows carry higher `data-fit`
 // numbers so they're the first to go on short screens.
 
-function CandidatePreview() {
+// Only role names reach this client component; the rest is blurred placeholder.
+function CandidatePreview({ roles }: { roles: string[] }) {
   return (
     <PanelCard
       label="Fresh openings today"
@@ -376,24 +377,30 @@ function CandidatePreview() {
       }
     >
       <ul className="space-y-2">
-        {FRESH_JOBS.map((job, i) => (
+        {roles.map((role, i) => (
           <li
-            key={job.role}
+            key={role}
             data-fit={9 - i}
             className="flex items-center gap-3 rounded-2xl bg-black/15 p-3"
           >
-            <CompanyAvatar
-              name={job.company}
-              className="size-9 ring-2 ring-white/15"
+            <span
+              aria-hidden
+              className="size-9 flex-none rounded-full bg-white/20 ring-2 ring-white/15 blur-[3px]"
             />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-head text-sm font-bold">{job.role}</p>
-              <p className="truncate text-xs text-white/60">
-                {job.company} · {job.location}
+              <p className="truncate font-head text-sm font-bold">{role}</p>
+              <p
+                aria-hidden
+                className="truncate text-xs text-white/60 blur-[4px] select-none"
+              >
+                Company name · City
               </p>
             </div>
-            <span className="font-head text-sm font-bold text-brand-accent">
-              {job.salary}
+            <span
+              aria-hidden
+              className="font-head text-sm font-bold text-brand-accent blur-[4px] select-none"
+            >
+              ₹0L
             </span>
           </li>
         ))}

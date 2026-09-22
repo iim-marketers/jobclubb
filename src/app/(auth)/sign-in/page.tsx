@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import { SignIn } from "@/components/sign-in/sign-in";
+import { FRESH_JOBS } from "@/lib/home-data";
 import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
 
 export const metadata = {
@@ -27,6 +28,7 @@ export default async function SignInPage({
       linkExpired={error === "link-expired"}
       verified={verified === "1"}
       verifiedEmail={verifiedEmail}
+      freshRoles={FRESH_JOBS.map((job) => job.role)}
     />
   );
 }

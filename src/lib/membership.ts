@@ -1,19 +1,20 @@
 import { isFranchiseCode } from "@/lib/sign-up-validation";
 
-export const MEMBERSHIP_PLANS = ["free", "member", "franchise"] as const;
+export const MEMBERSHIP_PLANS = ["member", "franchise"] as const;
 export type MembershipPlan = (typeof MEMBERSHIP_PLANS)[number];
 
-export const MEMBERSHIP_PRICE = "₹1,499";
-export const FRANCHISE_PRICE = "₹1,199";
+export const PLAN_DETAILS: Record<
+  MembershipPlan,
+  { name: string; price: string; amount: number }
+> = {
+  member: { name: "JobClubb Membership", price: "₹1,499", amount: 1499 },
+  franchise: { name: "Franchise Membership", price: "₹1,199", amount: 1199 },
+};
 
-export const FREE_FEATURES = [
-  "Browse every live job",
-  "See location, role, experience and salary",
-  "Your JobClubb candidate profile",
-];
+export const MEMBERSHIP_DAYS = 365;
 
 export const MEMBER_FEATURES = [
-  "Unlock full job details and employer info",
+  "Full job details and employer info",
   "Unlimited one-click apply",
   "3 guaranteed employer interviews",
   "AI-built, ATS-approved resume",
@@ -25,10 +26,12 @@ export function isMembershipPlan(value: unknown): value is MembershipPlan {
   return MEMBERSHIP_PLANS.includes(value as MembershipPlan);
 }
 
-// The franchise price is only offered to candidates who signed up with a
-// franchise partner's code; the database enforces the same rule.
-export function plansFor(signUpCode: string | null): MembershipPlan[] {
-  return signUpCode && isFranchiseCode(signUpCode)
-    ? ["free", "member", "franchise"]
-    : ["free", "member"];
+// Candidates who signed up with a franchise partner's code pay the franchise
+// price; the database refuses that plan for anyone else.
+export function planFor(signUpCode: string | null): MembershipPlan {
+  return signUpCode && isFranchiseCode(signUpCode) ? "franchise" : "member";
+}
+
+export function isMembershipActive(expiresAt: string | null | undefined) {
+  return !!expiresAt && new Date(expiresAt).getTime() > Date.now();
 }

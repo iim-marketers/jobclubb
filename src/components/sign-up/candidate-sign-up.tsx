@@ -43,14 +43,14 @@ export function CandidateSignUp() {
   return (
     <SignUpLayout
       audience="candidate"
-      eyebrow="Free to join"
+      eyebrow="Join JobClubb"
       title={
         <>
           One profile. <span className="text-brand-accent">Every verified</span>{" "}
           employer.
         </>
       }
-      description="Create your JobClubb profile in under two minutes. Your AI-built, ATS-ready resume is included on every plan."
+      description="Create your JobClubb profile in under two minutes. Your AI-built, ATS-ready resume is included with membership."
       panel={
         <>
           <ProfilePreview

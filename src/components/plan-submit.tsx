@@ -9,16 +9,18 @@ import { cn } from "@/lib/utils";
 export function PlanSubmit({
   children,
   highlighted,
+  size = "lg",
 }: {
   children: React.ReactNode;
   highlighted?: boolean;
+  size?: "default" | "lg";
 }) {
   const { pending } = useFormStatus();
 
   return (
     <Button
       type="submit"
-      size="lg"
+      size={size}
       disabled={pending}
       variant={highlighted ? "default" : "outline"}
       className={cn(

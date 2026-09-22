@@ -3,10 +3,15 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import { isMembershipPlan } from "@/lib/membership";
+import {
+  isMembershipActive,
+  isMembershipPlan,
+  planFor,
+  type MembershipPlan,
+} from "@/lib/membership";
 import { createClient } from "@/lib/supabase/server";
 
-export const CHOOSE_PLAN_PATH = "/onboarding/membership";
+export const CHECKOUT_PATH = "/onboarding/membership";
 
 export const getCurrentCandidate = cache(async () => {
   const supabase = await createClient();
@@ -16,7 +21,9 @@ export const getCurrentCandidate = cache(async () => {
 
   const { data: candidate } = await supabase
     .from("candidates")
-    .select("id, first_name, last_name, email, city, pincode, vertical, email_verified, membership_plan, code")
+    .select(
+      "id, first_name, last_name, email, city, pincode, vertical, email_verified, code, membership_plan, membership_expires_at",
+    )
     .eq("id", userId)
     .maybeSingle();
 
@@ -43,10 +50,58 @@ export async function requireCandidate(returnTo: string) {
   return candidate;
 }
 
-export async function requireCandidateWithPlan(returnTo: string) {
+export async function requireMember(returnTo: string) {
   const candidate = await requireCandidate(returnTo);
-  if (!isMembershipPlan(candidate.membership_plan)) redirect(CHOOSE_PLAN_PATH);
-  return { ...candidate, membership_plan: candidate.membership_plan };
+  if (!isMembershipActive(candidate.membership_expires_at))
+    redirect(CHECKOUT_PATH);
+  return {
+    ...candidate,
+    membership_plan: isMembershipPlan(candidate.membership_plan)
+      ? candidate.membership_plan
+      : planFor(candidate.code),
+    membership_expires_at: candidate.membership_expires_at as string,
+  };
+}
+
+export type MembershipView =
+  | { kind: "guest" }
+  | { kind: "unpaid"; plan: MembershipPlan; code: string | null }
+  | {
+      kind: "member";
+      plan: MembershipPlan;
+      code: string | null;
+      validUntil: string;
+      daysLeft: number;
+    };
+
+export const getMembershipView = cache(async (): Promise<MembershipView> => {
+  const candidate = await getCurrentCandidate();
+  if (!candidate) return { kind: "guest" };
+
+  const code = candidate.code as string | null;
+  if (!isMembershipActive(candidate.membership_expires_at))
+    return { kind: "unpaid", plan: planFor(code), code };
+
+  const expiresAt = new Date(candidate.membership_expires_at as string);
+  return {
+    kind: "member",
+    plan: isMembershipPlan(candidate.membership_plan)
+      ? candidate.membership_plan
+      : planFor(code),
+    code,
+    validUntil: new Intl.DateTimeFormat("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Asia/Kolkata",
+    }).format(expiresAt),
+    daysLeft: Math.ceil((expiresAt.getTime() - Date.now()) / 86_400_000),
+  };
+});
+
+export async function getJobAccess() {
+  const view = await getMembershipView();
+  return { signedIn: view.kind !== "guest", member: view.kind === "member" };
 }
 
 export async function redirectIfCandidate() {
