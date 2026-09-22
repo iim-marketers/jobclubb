@@ -10,7 +10,7 @@ export function PageHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="border-b border-border bg-linear-to-b from-muted/60 to-background px-4 pt-8 pb-12 md:py-12 lg:py-16 sm:px-6">
+    <section className="border-b border-border bg-linear-to-b from-muted/60 to-background px-4 pt-8 pb-12 md:py-12 sm:px-6">
       <div className="mx-auto max-w-6xl">
         {eyebrow && (
           <p className="font-head text-xs font-bold tracking-[0.14em] text-brand uppercase">

@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+/* Short viewports (small laptops, older phones) — used to tighten no-scroll pages. */
+@custom-variant short (@media (max-height: 44rem));
 
 @theme inline {
   --color-background: var(--background);
@@ -132,7 +134,15 @@
 }
 
 .jc-marquee {
-  animation: jc-scroll 40s linear infinite;
+  animation: jc-scroll 60s linear infinite;
+}
+
+.jc-marquee-reverse {
+  animation-direction: reverse;
+}
+
+.jc-marquee-group:hover .jc-marquee {
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -149,4 +159,30 @@
 
 .jc-hscroll::-webkit-scrollbar {
   display: none;
+}
+
+/* Brand panel on the sign-up pages: layered glows over the deep brand blue,
+   with a faint dot grid that fades out toward the bottom. */
+.jc-auth-panel {
+  background:
+    radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, var(--brand-accent) 32%, transparent), transparent 70%),
+    radial-gradient(80% 60% at 100% 100%, color-mix(in oklab, #38b6dd 38%, transparent), transparent 70%),
+    #02506b;
+}
+
+.jc-auth-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgb(255 255 255 / 0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+.dark .jc-auth-panel {
+  background:
+    radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, var(--brand-accent) 22%, transparent), transparent 70%),
+    radial-gradient(80% 60% at 100% 100%, color-mix(in oklab, #38b6dd 22%, transparent), transparent 70%),
+    #021f2b;
 }
