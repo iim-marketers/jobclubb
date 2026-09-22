@@ -57,8 +57,8 @@ export function pickErrors(errors: FieldErrors, fields: string[]): FieldErrors {
 export const CANDIDATE_STEPS: SignUpStep[] = [
   {
     title: "About you",
-    description: "How employers reach you once you choose to reveal your profile.",
-    fields: ["firstName", "lastName", "email", "phone"],
+    description: "How employers reach you once you choose to reveal your profile, and the password you'll sign in with.",
+    fields: ["firstName", "lastName", "email", "phone", "password", "confirmPassword"],
   },
   {
     title: "Your preferences",
@@ -80,8 +80,10 @@ export function validateCandidate(formData: FormData): FieldErrors {
   const v = {
     firstName: readText(formData, "firstName"),
     lastName: readText(formData, "lastName"),
-    email: readText(formData, "email"),
+    email: readText(formData, "email").toLowerCase(),
     phone: readText(formData, "phone"),
+    password: String(formData.get("password") ?? ""),
+    confirmPassword: String(formData.get("confirmPassword") ?? ""),
     city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
     vertical: readText(formData, "vertical"),
@@ -96,6 +98,10 @@ export function validateCandidate(formData: FormData): FieldErrors {
   if (!v.lastName) errors.lastName = "Enter your last name.";
   if (!EMAIL_PATTERN.test(v.email)) errors.email = "Enter a valid email address.";
   if (!PHONE_PATTERN.test(v.phone)) errors.phone = "Enter a valid 10-digit Indian mobile number.";
+  if (v.password.length < 8) errors.password = "Use at least 8 characters.";
+  // Supabase Auth hashes with bcrypt, which only reads the first 72 bytes.
+  else if (new TextEncoder().encode(v.password).length > 72) errors.password = "Use 72 characters or fewer.";
+  else if (v.password !== v.confirmPassword) errors.confirmPassword = "Passwords don't match.";
   if (!v.city) errors.city = "Enter your city.";
   if (!PINCODE_PATTERN.test(v.pincode)) errors.pincode = "Enter a 6-digit pincode.";
   if (!VERTICALS.some((s) => s.slug === v.vertical)) errors.vertical = "Choose a sector.";

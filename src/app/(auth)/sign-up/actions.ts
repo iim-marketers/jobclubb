@@ -1,8 +1,17 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { validateCandidate, type FieldErrors } from "@/lib/sign-up-validation";
+import { sendConfirmationEmail } from "@/lib/auth/confirmation-email";
+import { createAdminClient } from "@/lib/supabase/server";
+import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
+import { isStudentCode, validateCandidate, type FieldErrors } from "@/lib/sign-up-validation";
+import { TERMS_VERSION } from "@/lib/terms-content";
+
+const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
+
+const EMAIL_TAKEN = "An account with this email already exists. Sign in instead.";
 
 export async function registerCandidate(
   formData: FormData,
@@ -10,9 +19,109 @@ export async function registerCandidate(
   const errors = validateCandidate(formData);
   if (Object.keys(errors).length > 0) return { errors };
 
-  // TODO: persist once the backend lands — create the candidate, attribute the
-  // sourcing channel / code (SOP §3.1), store the student ID for review, record
-  // T&C version + consent timestamp (DPDP), and send the welcome email.
+  const email = text(formData, "email").toLowerCase();
+  const code = text(formData, "code").toUpperCase();
+  const firstName = text(formData, "firstName");
+  const admin = createAdminClient();
 
+  // generateLink() on an existing unconfirmed email would silently keep the old password.
+  const { data: existing } = await admin
+    .from("candidates")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+  if (existing) return { errors: { email: EMAIL_TAKEN } };
+
+  const result = await sendConfirmationEmail(admin, {
+    email,
+    firstName,
+    password: String(formData.get("password")),
+    data: {
+      role: "candidate",
+      first_name: firstName,
+      last_name: text(formData, "lastName"),
+      phone: text(formData, "phone"),
+      city: text(formData, "city"),
+      pincode: text(formData, "pincode"),
+      vertical: text(formData, "vertical"),
+      source: text(formData, "source"),
+      code,
+      terms_version: TERMS_VERSION,
+    },
+  });
+
+  if (!result.userId) {
+    if (result.error === "email_exists") return { errors: { email: EMAIL_TAKEN } };
+    if (result.error === "weak_password") return { errors: { password: "Choose a stronger password." } };
+    if (result.error === "rate_limited") {
+      return { errors: { email: "Please wait a minute before trying again." } };
+    }
+    return { errors: { email: "We couldn't create your account. Please try again." } };
+  }
+
+  const studentId = formData.get("studentId");
+  if (isStudentCode(code) && studentId instanceof File && studentId.size > 0) {
+    await storeStudentId(result.userId, studentId);
+  }
+
+  // TODO: attribute the franchise / referral code to its owner (SOP §3.1)
+  // once franchise accounts are on Supabase.
+
+  (await cookies()).set(PENDING_EMAIL_COOKIE, email, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24,
+  });
   redirect("/sign-up/submitted?route=candidate");
+}
+
+export async function resendConfirmation(
+  email: string,
+): Promise<{ error?: string }> {
+  const address = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+    return { error: "Enter a valid email address." };
+  }
+
+  // generateLink() on an unknown address would create a new account.
+  const admin = createAdminClient();
+  const { data: candidate } = await admin
+    .from("candidates")
+    .select("first_name")
+    .eq("email", address)
+    .maybeSingle();
+  if (!candidate) return { error: "We couldn't find a JobClubb account for that email." };
+
+  const { error } = await sendConfirmationEmail(admin, {
+    email: address,
+    firstName: candidate.first_name,
+  });
+
+  if (error === "rate_limited") return { error: "Please wait a minute before asking for another email." };
+  if (error === "email_exists") return { error: "Your email is already confirmed. Sign in instead." };
+  if (error) return { error: "We couldn't send the email. Please try again." };
+  return {};
+}
+
+async function storeStudentId(userId: string, file: File) {
+  const extensions: Record<string, string> = { "application/pdf": "pdf", "image/png": "png" };
+  const extension = extensions[file.type] ?? "jpg";
+  const path = `${userId}/student-id.${extension}`;
+
+  try {
+    const admin = createAdminClient();
+    const upload = await admin.storage
+      .from("student-ids")
+      .upload(path, file, { contentType: file.type, upsert: true });
+    if (upload.error) throw upload.error;
+
+    const update = await admin
+      .from("candidates")
+      .update({ student_id_path: path, student_id_status: "pending" })
+      .eq("id", userId);
+    if (update.error) throw update.error;
+  } catch (error) {
+    console.error("Student ID upload failed", error);
+  }
 }

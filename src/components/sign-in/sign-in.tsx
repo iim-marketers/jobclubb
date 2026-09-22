@@ -5,6 +5,8 @@ import { useRef, useState, useTransition } from "react";
 import {
   ArrowRight,
   Building2,
+  CircleAlert,
+  CircleCheck,
   Eye,
   EyeOff,
   Lock,
@@ -16,6 +18,7 @@ import {
 import { signIn, type SignInRole } from "@/app/(auth)/sign-in/actions";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { FieldError } from "@/components/sign-up/fields";
+import { VerifyEmail } from "@/components/sign-in/verify-email";
 import { PanelCard } from "@/components/sign-up/sign-up-layout";
 import { useFitToHeight } from "@/components/sign-up/use-fit-to-height";
 import { Button } from "@/components/ui/button";
@@ -62,10 +65,23 @@ const ROLES: {
   },
 ];
 
-export function SignIn({ initialRole }: { initialRole: SignInRole }) {
+export function SignIn({
+  initialRole,
+  next,
+  linkExpired,
+  verified,
+  verifiedEmail,
+}: {
+  initialRole: SignInRole;
+  next?: string;
+  linkExpired?: boolean;
+  verified?: boolean;
+  verifiedEmail?: string;
+}) {
   const [role, setRole] = useState<SignInRole>(initialRole);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string>();
   const [pending, startTransition] = useTransition();
   const panelRef = useRef<HTMLDivElement>(null);
   useFitToHeight(panelRef);
@@ -116,158 +132,191 @@ export function SignIn({ initialRole }: { initialRole: SignInRole }) {
       <div className="overflow-y-auto">
         <div className="flex min-h-full md:items-center justify-center px-4 py-6 short:py-3 sm:px-8 lg:py-10 lg:short:py-4">
           <div className="w-full max-w-md">
-            <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Sign in
-            </h2>
-            <p className="mt-1.5 text-muted-foreground short:hidden">
-              Choose your account type to continue.
-            </p>
-
-            <form
-              noValidate
-              className="mt-6 space-y-5 short:mt-4 short:space-y-3.5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                startTransition(async () => {
-                  const result = await signIn(formData);
-                  if (result) setErrors(result.errors);
-                });
-              }}
-            >
-              <div
-                role="radiogroup"
-                aria-label="Account type"
-                className="grid grid-cols-3 gap-2"
-              >
-                {ROLES.map(({ id, label, icon: Icon }) => (
-                  <label
-                    key={id}
-                    className="flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 short:py-2 font-head text-xs font-semibold text-muted-foreground transition-all hover:border-brand/50 hover:text-foreground has-checked:border-brand has-checked:bg-brand has-checked:text-brand-foreground has-checked:shadow-md has-checked:shadow-brand/20 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={id}
-                      checked={role === id}
-                      onChange={() => setRole(id)}
-                      className="sr-only"
-                    />
-                    <Icon className="size-5" />
-                    {label}
-                  </label>
-                ))}
-              </div>
-              <FieldError message={errors.role} />
-
-              <IconField
-                id="email"
-                label="Email"
-                type="email"
-                icon={Mail}
-                placeholder={
-                  role === "candidate"
-                    ? "you@example.com"
-                    : "you@yourcompany.com"
-                }
-                autoComplete="email"
-                error={errors.email}
-                onEdit={() => clearError("email")}
+            {unconfirmedEmail && (
+              <VerifyEmail
+                key={unconfirmedEmail}
+                email={unconfirmedEmail}
+                onBack={() => setUnconfirmedEmail(undefined)}
               />
+            )}
+            <div hidden={!!unconfirmedEmail}>
+              <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
+                Sign in
+              </h2>
+              <p className="mt-1.5 text-muted-foreground short:hidden">
+                Choose your account type to continue.
+              </p>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    autoComplete="current-password"
-                    aria-invalid={!!errors.password}
-                    onChange={() => clearError("password")}
-                    className="h-11 bg-card pr-11 pl-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
+              <form
+                noValidate
+                className="mt-6 space-y-5 short:mt-4 short:space-y-3.5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  startTransition(async () => {
+                    const result = await signIn(formData);
+                    if (result) {
+                      setErrors(result.errors);
+                      setUnconfirmedEmail(result.unconfirmedEmail);
                     }
-                    aria-pressed={showPassword}
-                    className="absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="size-4" />
-                    ) : (
-                      <Eye className="size-4" />
-                    )}
-                  </button>
-                </div>
-                <FieldError message={errors.password} />
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
-                  <Checkbox name="remember" value="yes" />
-                  Keep me signed in
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="-my-1 py-1 text-sm font-semibold text-brand hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <Button
-                type="submit"
-                size="lg"
-                disabled={pending}
-                className="h-12 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                  });
+                }}
               >
-                {pending
-                  ? "Signing in…"
-                  : `Sign in as ${active.label.toLowerCase()}`}
-                {!pending && <ArrowRight className="size-4" />}
-              </Button>
-            </form>
+                {next && <input type="hidden" name="next" value={next} />}
+                {linkExpired && (
+                  <p
+                    role="alert"
+                    className="flex items-center gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                  >
+                    <CircleAlert className="size-4 flex-none" />
+                    That link has expired or was already used. Sign in below.
+                  </p>
+                )}
+                {verified && (
+                  <p
+                    role="status"
+                    className="flex items-start gap-2 rounded-xl bg-good/10 px-4 py-3 text-sm text-good"
+                  >
+                    <CircleCheck className="mt-0.5 size-4 flex-none" />
+                    Email confirmed. Sign in with your password to get started.
+                  </p>
+                )}
+                <div
+                  role="radiogroup"
+                  aria-label="Account type"
+                  className="grid grid-cols-3 gap-2"
+                >
+                  {ROLES.map(({ id, label, icon: Icon }) => (
+                    <label
+                      key={id}
+                      className="flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 short:py-2 font-head text-xs font-semibold text-muted-foreground transition-all hover:border-brand/50 hover:text-foreground has-checked:border-brand has-checked:bg-brand has-checked:text-brand-foreground has-checked:shadow-md has-checked:shadow-brand/20 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
+                    >
+                      <input
+                        type="radio"
+                        name="role"
+                        value={id}
+                        checked={role === id}
+                        onChange={() => setRole(id)}
+                        className="sr-only"
+                      />
+                      <Icon className="size-5" />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                <FieldError message={errors.role} />
 
-            <div className="mt-6 border-t border-border pt-5 short:mt-4 short:pt-3 text-center text-sm text-muted-foreground">
-              {role === "candidate" && (
-                <>
-                  New to JobClubb?{" "}
+                <IconField
+                  id="email"
+                  label="Email"
+                  type="email"
+                  icon={Mail}
+                  placeholder={
+                    role === "candidate"
+                      ? "you@example.com"
+                      : "you@yourcompany.com"
+                  }
+                  autoComplete="email"
+                  defaultValue={verifiedEmail}
+                  error={errors.email}
+                  onEdit={() => clearError("email")}
+                />
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      autoFocus={!!verifiedEmail}
+                      aria-invalid={!!errors.password}
+                      onChange={() => clearError("password")}
+                      className="h-11 bg-card pr-11 pl-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      aria-pressed={showPassword}
+                      className="absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </button>
+                  </div>
+                  <FieldError message={errors.password} />
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
+                    <Checkbox name="remember" value="yes" />
+                    Keep me signed in
+                  </label>
                   <Link
-                    href="/sign-up"
-                    className="font-semibold text-brand hover:underline"
+                    href="/forgot-password"
+                    className="-my-1 py-1 text-sm font-semibold text-brand hover:underline"
                   >
-                    Create an account
+                    Forgot password?
                   </Link>
-                </>
-              )}
-              {role === "company" && (
-                <>
-                  Not registered yet?{" "}
-                  <Link
-                    href="/sign-up/company"
-                    className="font-semibold text-brand hover:underline"
-                  >
-                    Register your company
-                  </Link>
-                </>
-              )}
-              {role === "franchise" && (
-                <>
-                  Got your franchise email ID?{" "}
-                  <Link
-                    href="/sign-up/franchise"
-                    className="font-semibold text-brand hover:underline"
-                  >
-                    Activate your franchise
-                  </Link>
-                </>
-              )}
+                </div>
+
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={pending}
+                  className="h-12 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                >
+                  {pending
+                    ? "Signing in…"
+                    : `Sign in as ${active.label.toLowerCase()}`}
+                  {!pending && <ArrowRight className="size-4" />}
+                </Button>
+              </form>
+
+              <div className="mt-6 border-t border-border pt-5 short:mt-4 short:pt-3 text-center text-sm text-muted-foreground">
+                {role === "candidate" && (
+                  <>
+                    New to JobClubb?{" "}
+                    <Link
+                      href="/sign-up"
+                      className="font-semibold text-brand hover:underline"
+                    >
+                      Create an account
+                    </Link>
+                  </>
+                )}
+                {role === "company" && (
+                  <>
+                    Not registered yet?{" "}
+                    <Link
+                      href="/sign-up/company"
+                      className="font-semibold text-brand hover:underline"
+                    >
+                      Register your company
+                    </Link>
+                  </>
+                )}
+                {role === "franchise" && (
+                  <>
+                    Got your franchise email ID?{" "}
+                    <Link
+                      href="/sign-up/franchise"
+                      className="font-semibold text-brand hover:underline"
+                    >
+                      Activate your franchise
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -291,7 +340,7 @@ function IconField({
   onEdit: () => void;
 } & Pick<
   React.ComponentProps<"input">,
-  "type" | "placeholder" | "autoComplete"
+  "type" | "placeholder" | "autoComplete" | "defaultValue"
 >) {
   return (
     <div className="space-y-2">

@@ -1,22 +1,21 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
-import { MailCheck, PartyPopper, Store, UserCheck } from "lucide-react";
+import { MailCheck, Store, UserCheck } from "lucide-react";
 
+import { CheckInbox } from "@/components/sign-up/check-inbox";
 import { Button } from "@/components/ui/button";
+import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
 
-export const metadata = { title: "Registration received — JobClubb" };
+export async function generateMetadata({
+  searchParams,
+}: PageProps<"/sign-up/submitted">) {
+  const { route } = await searchParams;
+  return {
+    title: route === "candidate" ? "Check your inbox — JobClubb" : "Registration received — JobClubb",
+  };
+}
 
 const CONTENT = {
-  candidate: {
-    icon: PartyPopper,
-    iconClass: "bg-good/15 text-good",
-    title: "Welcome to JobClubb",
-    body: "Your account is ready. We've emailed you a link to set your password and sign in.",
-    steps: [
-      "Set your password from the email we sent",
-      "Build your AI-powered, ATS-ready resume",
-      "Browse openings matched to your city",
-    ],
-  },
   email: {
     icon: MailCheck,
     iconClass: "bg-good/15 text-good",
@@ -52,12 +51,16 @@ const CONTENT = {
   },
 };
 
-const ROUTES = ["candidate", "franchise", "manual", "email"] as const;
+const ROUTES = ["franchise", "manual", "email"] as const;
 
 export default async function SignUpSubmittedPage({
   searchParams,
 }: PageProps<"/sign-up/submitted">) {
   const { route } = await searchParams;
+  if (route === "candidate") {
+    return <CheckInbox email={(await cookies()).get(PENDING_EMAIL_COOKIE)?.value} />;
+  }
+
   const content = CONTENT[ROUTES.find((r) => r === route) ?? "email"];
   const Icon = content.icon;
 
@@ -87,6 +90,7 @@ export default async function SignUpSubmittedPage({
           ))}
         </ol>
 
+
         <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button
             variant="outline"
@@ -102,11 +106,9 @@ export default async function SignUpSubmittedPage({
             render={
               <Link
                 href={
-                  route === "candidate"
-                    ? "/sign-in"
-                    : route === "franchise"
-                      ? "/sign-in?as=franchise"
-                      : "/sign-in?as=company"
+                  route === "franchise"
+                    ? "/sign-in?as=franchise"
+                    : "/sign-in?as=company"
                 }
               />
             }
