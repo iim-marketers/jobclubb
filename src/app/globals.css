@@ -134,7 +134,15 @@
 }
 
 .jc-marquee {
-  animation: jc-scroll 40s linear infinite;
+  animation: jc-scroll 60s linear infinite;
+}
+
+.jc-marquee-reverse {
+  animation-direction: reverse;
+}
+
+.jc-marquee-group:hover .jc-marquee {
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {

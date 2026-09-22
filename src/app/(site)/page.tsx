@@ -16,11 +16,11 @@ import {
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RecruiterBoard } from "@/components/recruiter-board";
 import { cn } from "@/lib/utils";
 import {
   ABOUT_STATS,
   CATEGORIES,
-  EMPLOYERS,
   FEATURED_JOBS,
   FRANCHISE_STEPS,
   FRESH_JOBS,
@@ -29,6 +29,7 @@ import {
   JOB_FILTERS,
   MEMBERSHIP_FEATURES,
   MEMBERSHIP_POINTS,
+  RECRUITER_LOGOS,
   type Job,
 } from "@/lib/home-data";
 
@@ -51,7 +52,7 @@ export default function Home() {
     <>
       <Hero />
       <StatsBand />
-      <EmployerMarquee />
+      <EmployerShowcase />
       <FeaturedOpenings />
       <HowItWorks />
       <Membership />
@@ -186,27 +187,23 @@ function StatsBand() {
   );
 }
 
-function EmployerMarquee() {
+function EmployerShowcase() {
   return (
-    <section className="border-b border-border bg-card py-10">
-      <p className="text-center font-head text-xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
-        Our members get placed at leading employers
-      </p>
-
-      <div className="mt-6 overflow-hidden mask-[linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="jc-marquee flex w-max gap-4">
-          {[...EMPLOYERS, ...EMPLOYERS].map((name, i) => (
-            <span
-              key={`${name}-${i}`}
-              className="flex flex-none items-center gap-2.5 rounded-xl border border-border bg-background px-4 py-3"
-            >
-              <CompanyAvatar name={name} className="size-8 text-[10px]" />
-              <span className="font-head text-sm font-semibold whitespace-nowrap">
-                {name}
-              </span>
-            </span>
-          ))}
+    <section className="border-b border-border bg-card px-4 py-12 sm:px-6 md:py-16">
+      <div className="mx-auto flex max-w-6xl gap-8 flex-col">
+        <div>
+          <SectionEyebrow>Where our members land</SectionEyebrow>
+          <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
+            Placed at {Math.floor(RECRUITER_LOGOS.length / 10) * 10}+ leading
+            employers
+          </h2>
+          <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
+            From five-star hotels to airlines, JobClubb members interview
+            directly with the brands that are hiring right now.
+          </p>
         </div>
+
+        <RecruiterBoard logos={RECRUITER_LOGOS} />
       </div>
     </section>
   );
