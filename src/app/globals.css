@@ -186,3 +186,18 @@
     radial-gradient(80% 60% at 100% 100%, color-mix(in oklab, #38b6dd 22%, transparent), transparent 70%),
     #021f2b;
 }
+
+/* Candidate dashboard sidebar: deep brand surface with a soft accent glow. */
+.jc-sidebar {
+  background:
+    radial-gradient(120% 40% at 0% 0%, color-mix(in oklab, var(--brand-accent) 22%, transparent), transparent 70%),
+    radial-gradient(100% 35% at 100% 100%, color-mix(in oklab, #38b6dd 24%, transparent), transparent 70%),
+    #023b50;
+}
+
+.dark .jc-sidebar {
+  background:
+    radial-gradient(120% 40% at 0% 0%, color-mix(in oklab, var(--brand-accent) 14%, transparent), transparent 70%),
+    radial-gradient(100% 35% at 100% 100%, color-mix(in oklab, #38b6dd 14%, transparent), transparent 70%),
+    #031a24;
+}

@@ -13,7 +13,7 @@ import {
 import { signInCandidate } from "@/server/auth/sign-in";
 
 const DASHBOARDS = {
-  candidate: "/dashboard",
+  candidate: "/candidate/dashboard",
   company: "/company",
   franchise: "/franchise/dashboard",
 } as const;

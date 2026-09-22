@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { LayoutDashboard } from "lucide-react";
 
 import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
+import { getCandidateSession } from "@/server/auth/current-candidate";
 
 const NAV_LINKS = [
   { label: "Jobs", href: "/jobs" },
@@ -13,7 +15,9 @@ const NAV_LINKS = [
   { label: "About", href: "/about" },
 ];
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const candidate = await getCandidateSession();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:h-[72px] lg:gap-8">
@@ -54,24 +58,40 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex flex-none items-center gap-2 sm:gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hidden font-head lg:inline-flex"
-            nativeButton={false}
-            render={<Link href="/sign-in" />}
-          >
-            Sign in
-          </Button>
-          <Button
-            size="sm"
-            className="hidden bg-brand font-head whitespace-nowrap text-brand-foreground hover:bg-brand-dark sm:inline-flex"
-            nativeButton={false}
-            render={<Link href="/membership" />}
-          >
-            Become a Member
-          </Button>
-          <MobileNav links={NAV_LINKS} />
+          {candidate ? (
+            <Link
+              href="/candidate/dashboard"
+              className="hidden items-center gap-2 rounded-full border border-border bg-card py-1 pr-3.5 pl-1 font-head text-sm font-semibold transition-colors hover:border-brand/40 hover:text-brand focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:flex"
+            >
+              <span className="flex size-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-accent text-[11px] font-extrabold text-white">
+                {candidate.firstName[0]}
+                {candidate.lastName[0]}
+              </span>
+              <LayoutDashboard className="size-4 text-muted-foreground" />
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden font-head lg:inline-flex"
+                nativeButton={false}
+                render={<Link href="/sign-in" />}
+              >
+                Sign in
+              </Button>
+              <Button
+                size="sm"
+                className="hidden bg-brand font-head whitespace-nowrap text-brand-foreground hover:bg-brand-dark sm:inline-flex"
+                nativeButton={false}
+                render={<Link href="/membership" />}
+              >
+                Become a Member
+              </Button>
+            </>
+          )}
+          <MobileNav links={NAV_LINKS} candidate={candidate} />
         </div>
       </div>
     </header>

@@ -76,6 +76,10 @@ export function isStudentCode(code: string) {
   return code.trim().toUpperCase().startsWith("JC-STU-");
 }
 
+export function isFranchiseCode(code: string) {
+  return code.trim().toUpperCase().startsWith("JC-FR-");
+}
+
 export function validateCandidate(formData: FormData): FieldErrors {
   const v = {
     firstName: readText(formData, "firstName"),

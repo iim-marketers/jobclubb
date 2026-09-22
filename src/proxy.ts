@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/session";
 
-const PROTECTED = ["/dashboard"];
+const PROTECTED = ["/candidate", "/onboarding"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
