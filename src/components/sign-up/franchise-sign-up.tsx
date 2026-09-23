@@ -17,7 +17,6 @@ import { registerFranchise } from "@/app/(auth)/sign-up/franchise/actions";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
 import { Field, FieldError, SelectField } from "@/components/sign-up/fields";
 import {
-  FormAlert,
   StepNav,
   StepPanel,
   useStepForm,
@@ -113,8 +112,6 @@ export function FranchiseSignUp() {
 
           <div className="px-4 py-6 sm:p-8 lg:p-10">
             <form {...formProps}>
-              <FormAlert errors={errors} />
-
               <StepPanel
                 index={0}
                 current={step}

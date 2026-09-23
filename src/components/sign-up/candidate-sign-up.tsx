@@ -2,18 +2,30 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { EyeOff, FileText, Lock, MapPin, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  EyeOff,
+  FileText,
+  Lock,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 
 import { registerCandidate } from "@/app/(auth)/sign-up/actions";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
-import { Field, FieldError, FileField, PasswordField, SelectField } from "@/components/sign-up/fields";
+import {
+  Field,
+  FieldError,
+  FileField,
+  PasswordField,
+  SelectField,
+} from "@/components/sign-up/fields";
 import {
   PanelCard,
   PanelPoints,
   SignUpLayout,
 } from "@/components/sign-up/sign-up-layout";
 import {
-  FormAlert,
   StepNav,
   StepPanel,
   StepProgress,
@@ -30,11 +42,12 @@ const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
 const SOURCE_OPTIONS = SOURCING_CHANNELS.map((c) => ({ value: c, label: c }));
 
 export function CandidateSignUp() {
-  const { step, isLast, errors, values, pending, moved, goTo, formProps } = useStepForm({
-    steps: CANDIDATE_STEPS,
-    validate: validateCandidate,
-    action: registerCandidate,
-  });
+  const { step, isLast, errors, values, pending, moved, goTo, formProps } =
+    useStepForm({
+      steps: CANDIDATE_STEPS,
+      validate: validateCandidate,
+      action: registerCandidate,
+    });
   const [vertical, setVertical] = useState<string | null>("airlines");
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
@@ -62,9 +75,18 @@ export function CandidateSignUp() {
           />
           <PanelPoints
             points={[
-              { icon: FileText, text: "AI-built, ATS-approved resume on every plan" },
-              { icon: MapPin, text: "Openings matched to your city and pincode" },
-              { icon: ShieldCheck, text: "Your data is handled in line with the DPDP Act" },
+              {
+                icon: FileText,
+                text: "AI-built, ATS-approved resume on every plan",
+              },
+              {
+                icon: MapPin,
+                text: "Openings matched to your city and pincode",
+              },
+              {
+                icon: ShieldCheck,
+                text: "Your data is handled in line with the DPDP Act",
+              },
             ]}
           />
         </>
@@ -73,23 +95,93 @@ export function CandidateSignUp() {
       <StepProgress steps={CANDIDATE_STEPS} current={step} onJump={goTo} />
 
       <form {...formProps} className="mt-10">
-        <FormAlert errors={errors} />
-
-        <StepPanel index={0} current={step} total={3} animate={moved} step={CANDIDATE_STEPS[0]}>
+        <StepPanel
+          index={0}
+          current={step}
+          total={3}
+          animate={moved}
+          step={CANDIDATE_STEPS[0]}
+        >
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field id="firstName" label="First name" placeholder="Priya" autoComplete="given-name" required error={errors.firstName} />
-            <Field id="lastName" label="Last name" placeholder="Sharma" autoComplete="family-name" required error={errors.lastName} />
-            <Field id="email" label="Email" type="email" placeholder="you@example.com" autoComplete="email" required error={errors.email} className="sm:col-span-2" />
-            <Field id="phone" label="Mobile number" type="tel" placeholder="+91 90000 00000" autoComplete="tel" required error={errors.phone} className="sm:col-span-2" />
-            <PasswordField id="password" label="Password" placeholder="At least 8 characters" required error={errors.password} />
-            <PasswordField id="confirmPassword" label="Confirm password" placeholder="Re-enter password" required error={errors.confirmPassword} />
+            <Field
+              id="firstName"
+              label="First name"
+              placeholder="Priya"
+              autoComplete="given-name"
+              required
+              error={errors.firstName}
+            />
+            <Field
+              id="lastName"
+              label="Last name"
+              placeholder="Sharma"
+              autoComplete="family-name"
+              required
+              error={errors.lastName}
+            />
+            <Field
+              id="email"
+              label="Email"
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+              error={errors.email}
+              className="sm:col-span-2"
+            />
+            <Field
+              id="phone"
+              label="Mobile number"
+              type="tel"
+              placeholder="+91 90000 00000"
+              autoComplete="tel"
+              required
+              error={errors.phone}
+              className="sm:col-span-2"
+            />
+            <PasswordField
+              id="password"
+              label="Password"
+              placeholder="At least 8 characters"
+              required
+              error={errors.password}
+            />
+            <PasswordField
+              id="confirmPassword"
+              label="Confirm password"
+              placeholder="Re-enter password"
+              required
+              error={errors.confirmPassword}
+            />
           </div>
         </StepPanel>
 
-        <StepPanel index={1} current={step} total={3} animate={moved} step={CANDIDATE_STEPS[1]}>
+        <StepPanel
+          index={1}
+          current={step}
+          total={3}
+          animate={moved}
+          step={CANDIDATE_STEPS[1]}
+        >
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field id="city" label="City" placeholder="Kolkata" autoComplete="address-level2" required error={errors.city} />
-            <Field id="pincode" label="Pincode" placeholder="700001" inputMode="numeric" maxLength={6} autoComplete="postal-code" required error={errors.pincode} />
+            <Field
+              id="city"
+              label="City"
+              placeholder="Kolkata"
+              autoComplete="address-level2"
+              required
+              error={errors.city}
+            />
+            <Field
+              id="pincode"
+              label="Pincode"
+              placeholder="700001"
+              inputMode="numeric"
+              maxLength={6}
+              autoComplete="postal-code"
+              required
+              error={errors.pincode}
+            />
             <SelectField
               id="vertical"
               label="Preferred sector"
@@ -103,7 +195,13 @@ export function CandidateSignUp() {
           </div>
         </StepPanel>
 
-        <StepPanel index={2} current={step} total={3} animate={moved} step={CANDIDATE_STEPS[2]}>
+        <StepPanel
+          index={2}
+          current={step}
+          total={3}
+          animate={moved}
+          step={CANDIDATE_STEPS[2]}
+        >
           <div className="space-y-5">
             <SelectField
               id="source"
@@ -136,7 +234,11 @@ export function CandidateSignUp() {
 
             <div className="pt-2">
               <ScrollGatedTerms onRead={setHasRead} onAccept={setAccepted} />
-              <input type="hidden" name="acceptTerms" value={accepted ? "yes" : ""} />
+              <input
+                type="hidden"
+                name="acceptTerms"
+                value={accepted ? "yes" : ""}
+              />
               <FieldError message={errors.acceptTerms} />
             </div>
           </div>
@@ -161,7 +263,10 @@ export function CandidateSignUp() {
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/sign-in" className="font-semibold text-brand hover:underline">
+        <Link
+          href="/sign-in"
+          className="font-semibold text-brand hover:underline"
+        >
           Sign in
         </Link>
       </p>
@@ -169,7 +274,14 @@ export function CandidateSignUp() {
   );
 }
 
-const PREVIEW_FIELDS = ["firstName", "lastName", "email", "phone", "city", "pincode"];
+const PREVIEW_FIELDS = [
+  "firstName",
+  "lastName",
+  "email",
+  "phone",
+  "city",
+  "pincode",
+];
 
 function countFilled(values: Record<string, string>, vertical: string | null) {
   const filled = PREVIEW_FIELDS.filter((f) => values[f]?.trim()).length;
@@ -236,14 +348,16 @@ function ProfilePreview({
           Skills &amp; experience
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {(sector?.roles.slice(0, 3) ?? ["Skill", "Skill", "Skill"]).map((r, i) => (
-            <span
-              key={`${r}-${i}`}
-              className="rounded-full border border-dashed border-white/25 px-2.5 py-1 text-[11px] text-white/60"
-            >
-              {r}
-            </span>
-          ))}
+          {(sector?.roles.slice(0, 3) ?? ["Skill", "Skill", "Skill"]).map(
+            (r, i) => (
+              <span
+                key={`${r}-${i}`}
+                className="rounded-full border border-dashed border-white/25 px-2.5 py-1 text-[11px] text-white/60"
+              >
+                {r}
+              </span>
+            ),
+          )}
         </div>
         <p className="mt-3 text-[11px] leading-4 text-white/50">
           Filled in from your AI-built resume after sign-up.
@@ -253,7 +367,9 @@ function ProfilePreview({
       <div data-fit="8" className="mt-5">
         <div className="flex items-center justify-between text-[11px] text-white/60">
           <span>Profile basics</span>
-          <span className="font-head font-bold text-white">{Math.round(filled * 100)}%</span>
+          <span className="font-head font-bold text-white">
+            {Math.round(filled * 100)}%
+          </span>
         </div>
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
           <div

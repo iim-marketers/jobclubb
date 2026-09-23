@@ -15,10 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { JOBS } from "@/lib/jobs-data";
-import {
-  CHECKOUT_PATH,
-  getJobAccess,
-} from "@/server/auth/current-candidate";
+import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
 
 export const metadata = {
   title: "Jobs — JobClubb",
@@ -44,16 +41,16 @@ export default async function JobsPage() {
         }
       >
         <form className="mt-7 flex max-w-3xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative flex-1 border-b border-border sm:border-b-0 -mx-2 px-2">
+            <Search className="pointer-events-none absolute top-1/2 left-5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               aria-label="Role, skill or company"
               placeholder="Role, skill or company"
               className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
             />
           </div>
-          <div className="relative flex-1 sm:max-w-55">
-            <MapPin className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative flex-1 sm:max-w-55 border-b border-border sm:border-b-0 -mx-2 px-2">
+            <MapPin className="pointer-events-none absolute top-1/2 left-5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               aria-label="City or pincode"
               placeholder="City or pincode"
@@ -130,7 +127,9 @@ export default async function JobsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="recent">Most recent</SelectItem>
-                      <SelectItem value="salary">Salary: high to low</SelectItem>
+                      <SelectItem value="salary">
+                        Salary: high to low
+                      </SelectItem>
                       <SelectItem value="experience">
                         Experience: low to high
                       </SelectItem>
