@@ -98,7 +98,7 @@ function Hero({ locked }: { locked: boolean }) {
           </p>
 
           <form className="mt-7 flex max-w-xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row">
-            <div className="relative flex-1">
+            <div className="relative flex-1 border-b border-border sm:border-b-0 -mx-2 px-2">
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 aria-label="Job title, skill or company"
@@ -114,7 +114,7 @@ function Hero({ locked }: { locked: boolean }) {
             </Button>
           </form>
 
-          <ul className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
+          {/* <ul className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
             {["Verified employers", "3 guaranteed interviews"].map((item) => (
               <li
                 key={item}
@@ -124,7 +124,7 @@ function Hero({ locked }: { locked: boolean }) {
                 {item}
               </li>
             ))}
-          </ul>
+          </ul> */}
         </div>
 
         <div className="min-w-0 rounded-3xl border border-border bg-card p-6 shadow-lg">
@@ -196,26 +196,48 @@ function Hero({ locked }: { locked: boolean }) {
 function StatsBand() {
   return (
     <section className="bg-brand-surface px-4 py-12 text-white sm:px-6">
-      <div className="jc-hscroll -mx-4 flex max-w-6xl snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 sm:mx-auto sm:grid sm:snap-none sm:scroll-px-0 sm:gap-8 sm:overflow-visible sm:px-0 sm:grid-cols-3 lg:grid-cols-5">
-        {HERO_STATS.map((stat) => {
-          const Icon = STAT_ICONS[stat.icon];
-          return (
-            <div
-              key={stat.label}
-              className="w-[42%] flex-none snap-start text-center sm:w-auto"
-            >
-              <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-white/10">
-                <Icon className="size-5" />
-              </span>
-              <p className="mt-3 font-head text-xl font-extrabold tracking-tight">
-                {stat.value}
-              </p>
-              <p className="mt-1 text-sm text-white/75">{stat.label}</p>
-            </div>
-          );
-        })}
+      <div className="-mx-4 overflow-hidden sm:hidden">
+        <div
+          className="jc-marquee flex w-max gap-10"
+          style={{ animationDuration: "24s" }}
+        >
+          {[...HERO_STATS, ...HERO_STATS].map((stat, i) => (
+            <StatItem
+              key={`${stat.label}-${i}`}
+              stat={stat}
+              aria-hidden={i >= HERO_STATS.length || undefined}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="mx-auto hidden max-w-6xl gap-8 sm:grid sm:grid-cols-3 lg:grid-cols-5">
+        {HERO_STATS.map((stat) => (
+          <StatItem key={stat.label} stat={stat} />
+        ))}
       </div>
     </section>
+  );
+}
+
+function StatItem({
+  stat,
+  ...props
+}: {
+  stat: (typeof HERO_STATS)[number];
+} & React.HTMLAttributes<HTMLDivElement>) {
+  const Icon = STAT_ICONS[stat.icon];
+  return (
+    <div className="flex-none text-center" {...props}>
+      <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-white/10">
+        <Icon className="size-5" />
+      </span>
+      <p className="mt-3 font-head text-xl font-extrabold tracking-tight">
+        {stat.value}
+      </p>
+      <p className="mt-1 text-sm whitespace-nowrap text-white/75 sm:whitespace-normal">
+        {stat.label}
+      </p>
+    </div>
   );
 }
 

@@ -14,14 +14,18 @@ import {
 import { registerCompany } from "@/app/(auth)/sign-up/company/actions";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
-import { Field, FieldError, FileField, SelectField } from "@/components/sign-up/fields";
+import {
+  Field,
+  FieldError,
+  FileField,
+  SelectField,
+} from "@/components/sign-up/fields";
 import {
   PanelCard,
   PanelPoints,
   SignUpLayout,
 } from "@/components/sign-up/sign-up-layout";
 import {
-  FormAlert,
   StepNav,
   StepPanel,
   StepProgress,
@@ -63,11 +67,12 @@ const ROUTE_STYLES: Record<
 };
 
 export function CompanySignUp() {
-  const { step, isLast, errors, values, pending, moved, goTo, formProps } = useStepForm({
-    steps: COMPANY_STEPS,
-    validate: validateCompany,
-    action: registerCompany,
-  });
+  const { step, isLast, errors, values, pending, moved, goTo, formProps } =
+    useStepForm({
+      steps: COMPANY_STEPS,
+      validate: validateCompany,
+      action: registerCompany,
+    });
   const [sector, setSector] = useState<string | null>("hotels");
   const [size, setSize] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
@@ -105,9 +110,18 @@ export function CompanySignUp() {
           />
           <PanelPoints
             points={[
-              { icon: MailCheck, text: "Corporate email? Confirm one link and you're verified" },
-              { icon: UserCheck, text: "Personal email? Our team verifies you against your GSTIN or documents" },
-              { icon: EyeOff, text: "Candidate identity stays hidden until you unlock a profile" },
+              {
+                icon: MailCheck,
+                text: "Corporate email? Confirm one link and you're verified",
+              },
+              {
+                icon: UserCheck,
+                text: "Personal email? Our team verifies you against your GSTIN or documents",
+              },
+              {
+                icon: EyeOff,
+                text: "Candidate identity stays hidden until you unlock a profile",
+              },
             ]}
           />
         </>
@@ -116,26 +130,113 @@ export function CompanySignUp() {
       <StepProgress steps={COMPANY_STEPS} current={step} onJump={goTo} />
 
       <form {...formProps} className="mt-10">
-        <FormAlert errors={errors} />
-
-        <StepPanel index={0} current={step} total={3} animate={moved} step={COMPANY_STEPS[0]}>
+        <StepPanel
+          index={0}
+          current={step}
+          total={3}
+          animate={moved}
+          step={COMPANY_STEPS[0]}
+        >
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field id="companyName" label="Registered company name" placeholder="Taj Hotels Ltd." autoComplete="organization" required error={errors.companyName} className="sm:col-span-2" />
-            <SelectField id="sector" label="Sector" options={SECTOR_OPTIONS} value={sector} onValueChange={setSector} required error={errors.sector} />
-            <SelectField id="size" label="Company size" options={COMPANY_SIZES} placeholder="Select size" value={size} onValueChange={setSize} required error={errors.size} />
-            <Field id="website" label="Company website" placeholder="tajhotels.com" optional error={errors.website} />
-            <Field id="gstin" label="GSTIN" placeholder="19AABCT1234F1Z5" optional hint="Speeds up verification." error={errors.gstin} inputClassName="uppercase placeholder:normal-case" />
-            <Field id="city" label="City" placeholder="Kolkata" autoComplete="address-level2" required error={errors.city} />
-            <Field id="pincode" label="Pincode" placeholder="700001" inputMode="numeric" maxLength={6} autoComplete="postal-code" required error={errors.pincode} />
+            <Field
+              id="companyName"
+              label="Registered company name"
+              placeholder="Taj Hotels Ltd."
+              autoComplete="organization"
+              required
+              error={errors.companyName}
+              className="sm:col-span-2"
+            />
+            <SelectField
+              id="sector"
+              label="Sector"
+              options={SECTOR_OPTIONS}
+              value={sector}
+              onValueChange={setSector}
+              required
+              error={errors.sector}
+            />
+            <SelectField
+              id="size"
+              label="Company size"
+              options={COMPANY_SIZES}
+              placeholder="Select size"
+              value={size}
+              onValueChange={setSize}
+              required
+              error={errors.size}
+            />
+            <Field
+              id="website"
+              label="Company website"
+              placeholder="tajhotels.com"
+              optional
+              error={errors.website}
+            />
+            <Field
+              id="gstin"
+              label="GSTIN"
+              placeholder="19AABCT1234F1Z5"
+              optional
+              hint="Speeds up verification."
+              error={errors.gstin}
+              inputClassName="uppercase placeholder:normal-case"
+            />
+            <Field
+              id="city"
+              label="City"
+              placeholder="Kolkata"
+              autoComplete="address-level2"
+              required
+              error={errors.city}
+            />
+            <Field
+              id="pincode"
+              label="Pincode"
+              placeholder="700001"
+              inputMode="numeric"
+              maxLength={6}
+              autoComplete="postal-code"
+              required
+              error={errors.pincode}
+            />
           </div>
         </StepPanel>
 
-        <StepPanel index={1} current={step} total={3} animate={moved} step={COMPANY_STEPS[1]}>
+        <StepPanel
+          index={1}
+          current={step}
+          total={3}
+          animate={moved}
+          step={COMPANY_STEPS[1]}
+        >
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field id="contactName" label="Full name" placeholder="Rakesh Nair" autoComplete="name" required error={errors.contactName} />
-            <Field id="designation" label="Designation" placeholder="HR Manager" autoComplete="organization-title" required error={errors.designation} />
+            <Field
+              id="contactName"
+              label="Full name"
+              placeholder="Rakesh Nair"
+              autoComplete="name"
+              required
+              error={errors.contactName}
+            />
+            <Field
+              id="designation"
+              label="Designation"
+              placeholder="HR Manager"
+              autoComplete="organization-title"
+              required
+              error={errors.designation}
+            />
             <div className="space-y-2 sm:col-span-2">
-              <Field id="email" label="Work email" type="email" placeholder="you@yourcompany.com" autoComplete="email" required error={errors.email} />
+              <Field
+                id="email"
+                label="Work email"
+                type="email"
+                placeholder="you@yourcompany.com"
+                autoComplete="email"
+                required
+                error={errors.email}
+              />
               {assessment && !errors.email && (
                 <p
                   aria-live="polite"
@@ -149,13 +250,43 @@ export function CompanySignUp() {
                 </p>
               )}
             </div>
-            <Field id="phone" label="Mobile number" type="tel" placeholder="+91 90000 00000" autoComplete="tel" required error={errors.phone} className="sm:col-span-2" />
-            <Field id="password" label="Password" type="password" placeholder="At least 8 characters" autoComplete="new-password" required error={errors.password} />
-            <Field id="confirmPassword" label="Confirm password" type="password" autoComplete="new-password" required error={errors.confirmPassword} />
+            <Field
+              id="phone"
+              label="Mobile number"
+              type="tel"
+              placeholder="+91 90000 00000"
+              autoComplete="tel"
+              required
+              error={errors.phone}
+              className="sm:col-span-2"
+            />
+            <Field
+              id="password"
+              label="Password"
+              type="password"
+              placeholder="At least 8 characters"
+              autoComplete="new-password"
+              required
+              error={errors.password}
+            />
+            <Field
+              id="confirmPassword"
+              label="Confirm password"
+              type="password"
+              autoComplete="new-password"
+              required
+              error={errors.confirmPassword}
+            />
           </div>
         </StepPanel>
 
-        <StepPanel index={2} current={step} total={3} animate={moved} step={COMPANY_STEPS[2]}>
+        <StepPanel
+          index={2}
+          current={step}
+          total={3}
+          animate={moved}
+          step={COMPANY_STEPS[2]}
+        >
           <div className="space-y-8">
             <div>
               <p className="text-sm font-medium">
@@ -183,7 +314,9 @@ export function CompanySignUp() {
                     <span className="mt-3 font-head text-base font-extrabold tracking-tight">
                       {p.label}
                     </span>
-                    <span className="text-xs text-muted-foreground">{p.seats}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {p.seats}
+                    </span>
                     <span className="mt-2 text-[11px] font-semibold text-brand">
                       {p.note}
                     </span>
@@ -212,7 +345,11 @@ export function CompanySignUp() {
 
             <div>
               <ScrollGatedTerms onRead={setHasRead} onAccept={setAccepted} />
-              <input type="hidden" name="acceptTerms" value={accepted ? "yes" : ""} />
+              <input
+                type="hidden"
+                name="acceptTerms"
+                value={accepted ? "yes" : ""}
+              />
               <FieldError message={errors.acceptTerms} />
             </div>
           </div>
@@ -237,7 +374,10 @@ export function CompanySignUp() {
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Already registered?{" "}
-        <Link href="/sign-in" className="font-semibold text-brand hover:underline">
+        <Link
+          href="/sign-in"
+          className="font-semibold text-brand hover:underline"
+        >
           Sign in
         </Link>
       </p>
@@ -285,16 +425,23 @@ function EmployerBadge({
       }
     >
       <div className="flex items-center gap-3.5">
-        <CompanyAvatar name={companyName} className="size-12 rounded-2xl text-sm ring-2 ring-white/20" />
+        <CompanyAvatar
+          name={companyName}
+          className="size-12 rounded-2xl text-sm ring-2 ring-white/20"
+        />
         <div className="min-w-0">
           <p className="truncate font-head text-lg font-bold">{companyName}</p>
           <p className="truncate text-xs text-white/60">
-            {[sectorName, city?.trim()].filter(Boolean).join(" · ") || "Sector · City"}
+            {[sectorName, city?.trim()].filter(Boolean).join(" · ") ||
+              "Sector · City"}
           </p>
         </div>
       </div>
 
-      <dl data-fit="7" className="mt-5 divide-y divide-white/10 rounded-2xl bg-black/15 px-4 text-sm">
+      <dl
+        data-fit="7"
+        className="mt-5 divide-y divide-white/10 rounded-2xl bg-black/15 px-4 text-sm"
+      >
         <BadgeRow label="Company size" value={sizeLabel ?? "—"} />
         <BadgeRow label="Plan" value={planLabel ?? "—"} />
         <BadgeRow label="Candidate view" value="Skills & experience" />
