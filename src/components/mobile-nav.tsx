@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/sign-in/actions";
-import { CANDIDATE_HOME, CANDIDATE_NAV } from "@/components/candidate/nav";
+import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -37,12 +37,6 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/franchise": Store,
   "/about": Info,
 };
-
-const SHORTCUTS = CANDIDATE_NAV.flatMap((g) => g.items).filter((i) =>
-  ["applications", "saved", "interviews", "resume"].some(
-    (slug) => i.href === `${CANDIDATE_HOME}/${slug}`,
-  ),
-);
 
 type SessionCandidate = { firstName: string; lastName: string; email: string };
 
@@ -86,6 +80,7 @@ export function MobileNav({
                   alt="JobClubb"
                   width={142}
                   height={26}
+                  loading="eager"
                   className="h-5.5 w-auto object-contain dark:hidden"
                 />
                 <Image
@@ -94,6 +89,7 @@ export function MobileNav({
                   aria-hidden
                   width={142}
                   height={26}
+                  loading="eager"
                   className="hidden h-5.5 w-auto object-contain dark:block"
                 />
               </Link>
@@ -136,7 +132,7 @@ export function MobileNav({
             })}
           </ul>
 
-          {!candidate && (
+          {/* {!candidate && (
             <div className="mt-5 overflow-hidden rounded-2xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-5 text-white">
               <p className="font-head text-sm font-bold tracking-tight">
                 Unlock the full job board
@@ -158,7 +154,7 @@ export function MobileNav({
                 }
               />
             </div>
-          )}
+          )} */}
         </nav>
 
         <div className="border-t border-border px-5 py-4">

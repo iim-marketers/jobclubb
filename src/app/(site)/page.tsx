@@ -108,7 +108,7 @@ function Hero({ locked }: { locked: boolean }) {
             </div>
             <Button
               type="submit"
-              className="h-11 bg-brand px-6 font-head text-brand-foreground hover:bg-brand-dark"
+              className="h-11 bg-brand px-6 my-0.5 font-head text-brand-foreground hover:bg-brand-dark"
             >
               Search Jobs
             </Button>
@@ -545,7 +545,7 @@ function Membership({
     guest: {
       badge: "Most popular",
       cta: "Join JobClubb now",
-      href: "/membership",
+      href: "/sign-up",
       note: "One year of membership. Renewal reminder before it ends.",
     },
     unpaid: {
