@@ -201,3 +201,38 @@
     radial-gradient(100% 35% at 100% 100%, color-mix(in oklab, #38b6dd 14%, transparent), transparent 70%),
     #031a24;
 }
+
+/* "Download PDF" on the resume page prints only #resume-print: everything
+   else is hidden, and its ancestors are flattened so the dashboard shell
+   (sidebar, header, padding) doesn't shift or clip it. */
+@media print {
+  /* Zero page margin stops the browser drawing its date/title/URL/page-number
+     header and footer; the spacing lives on #resume-print instead, cloned
+     onto every page it breaks across. */
+  @page {
+    margin: 0;
+  }
+  #resume-print {
+    padding: 14mm !important;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  body:has(#resume-print) *:not(:has(#resume-print)):not(#resume-print, #resume-print *) {
+    display: none !important;
+  }
+  body:has(#resume-print),
+  body :has(#resume-print) {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    box-shadow: none !important;
+    position: static !important;
+  }
+}

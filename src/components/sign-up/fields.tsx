@@ -61,7 +61,7 @@ export function Field({
   inputClassName?: string;
 } & Pick<
     React.ComponentProps<"input">,
-    "autoComplete" | "inputMode" | "maxLength"
+    "autoComplete" | "inputMode" | "maxLength" | "defaultValue" | "list"
   >) {
   const { label, required, optional, hint, error, className, ...inputProps } = props;
   return (
@@ -168,12 +168,14 @@ export function FileField({
   description,
   error,
   required,
+  accept = "application/pdf,image/jpeg,image/png",
 }: {
   id: string;
   label: string;
   description: string;
   error?: string;
   required?: boolean;
+  accept?: string;
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
 
@@ -208,7 +210,7 @@ export function FileField({
           id={id}
           name={id}
           type="file"
-          accept="application/pdf,image/jpeg,image/png"
+          accept={accept}
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
           className="sr-only"
