@@ -40,7 +40,7 @@ With the Supabase CLI you can run `supabase link` and then `supabase db push` in
 3. **Restart `next dev`** so it picks up the new variables.
 
 Limits:
-- **Per address** (enforced by the app, in `src/server/auth/confirmation-email.ts` using the `email_sends` table): one confirmation email a minute, and at most 5 an hour. A resend cancels the previous link.
+- **Per address** (enforced by the app, in `src/server/auth/confirmation-email.ts` using the `email_sends` table): one confirmation email a minute, and at most 5 an hour, and the same again for password reset emails. A resend cancels the previous link.
 - **Gmail's own cap:** about 500 emails a day for a free Gmail account, or 2,000 for Google Workspace.
 
 For launch, send from a Google Workspace address on your own domain (e.g. `noreply@jobclubb.com`), with the same settings and its own app password. Mail sent from a `@gmail.com` address on behalf of a business is more likely to be marked as spam.
@@ -50,4 +50,5 @@ For launch, send from a Google Workspace address on your own domain (e.g. `norep
 The confirmation email is `src/lib/email/templates/confirm-signup.ts`: email-safe HTML plus a plain-text version, greeting the candidate by first name. The link confirms the email and opens the sign-in page with the email filled in; it doesn't sign the candidate in.
 
 - The logo is attached to the email as an inline image (`src/lib/email/assets/logo.ts`, a 284×52 copy of `public/brand/jobclubb-logo.png`). It shows on any Site URL, including localhost. If the logo changes, regenerate that file.
-- The email says the link expires in 1 hour, which is Supabase's default (**Authentication → Providers → Email → Email OTP Expiration**). If you change that setting, update the text too.
+- The password reset email is `src/lib/email/templates/reset-password.ts`. Its link opens `/reset-password`; the token is only used when the candidate submits a new password, so email scanners that open links can't use it up. Resetting signs the candidate out everywhere and opens the sign-in page with the email filled in.
+- The emails say the link expires in 1 hour, which is Supabase's default (**Authentication → Providers → Email → Email OTP Expiration**). If you change that setting, update the text too.

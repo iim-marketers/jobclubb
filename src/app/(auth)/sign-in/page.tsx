@@ -15,10 +15,10 @@ const ROLES = ["candidate", "company", "franchise"] as const;
 export default async function SignInPage({
   searchParams,
 }: PageProps<"/sign-in">) {
-  const { as, next, error, verified } = await searchParams;
+  const { as, next, error, verified, reset } = await searchParams;
   const initialRole = ROLES.find((r) => r === as) ?? "candidate";
   const verifiedEmail =
-    verified === "1"
+    verified === "1" || reset === "1"
       ? (await cookies()).get(PENDING_EMAIL_COOKIE)?.value
       : undefined;
   return (
@@ -27,6 +27,7 @@ export default async function SignInPage({
       next={typeof next === "string" ? next : undefined}
       linkExpired={error === "link-expired"}
       verified={verified === "1"}
+      passwordReset={reset === "1"}
       verifiedEmail={verifiedEmail}
       freshRoles={FRESH_JOBS.map((job) => job.role)}
     />

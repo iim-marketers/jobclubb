@@ -30,7 +30,7 @@ export async function sendConfirmationEmail(
     data?: Record<string, unknown>;
   },
 ): Promise<ConfirmationResult> {
-  if (await isRateLimited(admin, email)) return { error: "rate_limited" };
+  if (await isRateLimited(admin, email, "confirm_signup")) return { error: "rate_limited" };
 
   const { data: link, error } = await admin.auth.admin.generateLink(
     password
@@ -66,13 +66,17 @@ export async function sendConfirmationEmail(
   return { userId: link.user.id };
 }
 
-async function isRateLimited(admin: SupabaseClient, email: string) {
+export async function isRateLimited(
+  admin: SupabaseClient,
+  email: string,
+  kind: "confirm_signup" | "reset_password",
+) {
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { data, error } = await admin
     .from("email_sends")
     .select("sent_at")
     .eq("email", email)
-    .eq("kind", "confirm_signup")
+    .eq("kind", kind)
     .gte("sent_at", hourAgo)
     .order("sent_at", { ascending: false });
 

@@ -13,8 +13,10 @@ export function ResendConfirmation({
   justSent = false,
   variant = "inline",
   className = "",
+  send = resendConfirmation,
 }: {
   email: string;
+  send?: (email: string) => Promise<{ error?: string }>;
   justSent?: boolean;
   variant?: "inline" | "button";
   className?: string;
@@ -31,7 +33,7 @@ export function ResendConfirmation({
 
   function resend() {
     startTransition(async () => {
-      const { error } = await resendConfirmation(email);
+      const { error } = await send(email);
       setStatus(error ? { ok: false, message: error } : { ok: true, message: "Sent. Check your inbox and spam folder." });
       if (!error) setCooldown(COOLDOWN_SECONDS);
     });
