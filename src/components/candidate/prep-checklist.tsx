@@ -63,17 +63,6 @@ export function PrepChecklist({
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-good transition-[width] duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <span className="font-head text-xs font-bold text-muted-foreground">
-          {progress}% ready
-        </span>
-      </div>
       <ul className="space-y-1">
         {items.map((item) => {
           const checked = done.includes(item);
@@ -84,11 +73,11 @@ export function PrepChecklist({
                 role="checkbox"
                 aria-checked={checked}
                 onClick={() => toggle(item)}
-                className="flex w-full items-start gap-3 rounded-xl px-2 py-2 text-left text-sm transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="flex w-full items-start gap-2 rounded-xl px-2 py-2 text-left text-sm transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <span
                   className={cn(
-                    "mt-0.5 flex size-5 flex-none items-center justify-center rounded-md border transition-colors",
+                    "flex size-5 flex-none items-center justify-center rounded-md border transition-colors",
                     checked
                       ? "border-good bg-good text-white"
                       : "border-input bg-card",

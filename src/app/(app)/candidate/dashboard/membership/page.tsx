@@ -1,43 +1,30 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  BadgeCheck,
-  CalendarCheck,
   Check,
+  Eye,
   FileText,
-  GraduationCap,
   LifeBuoy,
   Mail,
   Receipt,
-  Send,
-  Sparkles,
 } from "lucide-react";
 
 import { DashboardHeader, Panel } from "@/components/candidate/dashboard-ui";
+import { MembershipOverview } from "@/components/candidate/membership-overview";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
-import { Button } from "@/components/ui/button";
-import {
-  APPLICATIONS,
-  GUARANTEED_INTERVIEWS,
-  INTERVIEWS,
-} from "@/lib/candidate-activity";
-import {
-  MEMBERSHIP_DAYS,
-  MEMBER_FEATURES,
-  PLAN_DETAILS,
-} from "@/lib/membership";
+import { MEMBERSHIP_DAYS, PLAN_DETAILS } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "Membership — JobClubb" };
 
-const RENEW_WINDOW_DAYS = 30;
+const SUPPORT_EMAIL = "contact@jobclubb.com";
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
-    month: "long",
+    month: "short",
     year: "numeric",
     timeZone: "Asia/Kolkata",
   }).format(d);
@@ -54,193 +41,104 @@ export default async function MembershipPage() {
     Math.ceil((expiresAt.getTime() - new Date().getTime()) / 86_400_000),
     0,
   );
-  const renewSoon = daysLeft <= RENEW_WINDOW_DAYS;
-  const interviewsUsed = INTERVIEWS.filter((i) => i.guaranteed).length;
-
-  const perks = [
-    {
-      icon: Send,
-      label: "One-click apply",
-      value: `${APPLICATIONS.length} sent`,
-      detail: "Unlimited",
-      href: `${CANDIDATE_HOME}/applications`,
-    },
-    {
-      icon: CalendarCheck,
-      label: "Guaranteed interviews",
-      value: `${interviewsUsed} of ${GUARANTEED_INTERVIEWS}`,
-      detail: `${GUARANTEED_INTERVIEWS - interviewsUsed} remaining`,
-      progress: interviewsUsed / GUARANTEED_INTERVIEWS,
-      href: `${CANDIDATE_HOME}/interviews`,
-    },
-    {
-      icon: FileText,
-      label: "ATS resume",
-      value: resume ? "Generated" : "Not yet",
-      detail: resume
-        ? `Targeting ${resume.targetRole}`
-        : "Build yours in 2 minutes",
-      href: `${CANDIDATE_HOME}/resume`,
-    },
-    {
-      icon: GraduationCap,
-      label: "Upskilling",
-      value: "Coming soon",
-      detail: "Certifications for your sector",
-    },
-  ];
 
   return (
     <div className="space-y-6">
       <DashboardHeader
         title="Membership"
-        description="Your plan, what it includes, and how much of it you've used."
+        description="Your plan, what it unlocks, and how much of it you've used."
       />
 
-      <section
-        aria-label="Your plan"
-        className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white sm:p-7"
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -bottom-28 size-80 rounded-full bg-brand-accent/20 blur-3xl"
-        />
-        <div className="relative flex flex-col gap-6 md:flex-row md:items-center">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-0.5 font-head text-[11px] font-bold">
-                <BadgeCheck className="size-3.5" /> Active
-              </span>
-              {candidate.code && (
-                <span className="rounded-full border border-white/20 px-2.5 py-0.5 font-head text-[11px] font-bold tracking-wide">
-                  Code {candidate.code}
-                </span>
+      <MembershipOverview
+        name={`${candidate.first_name} ${candidate.last_name}`}
+        planName={plan.name}
+        franchise={candidate.membership_plan === "franchise"}
+        price={plan.price}
+        code={candidate.code}
+        startedAt={startedAt}
+        expiresAt={expiresAt}
+        daysLeft={daysLeft}
+      />
+
+      <section aria-labelledby="benefits-heading">
+        <div className="mb-4">
+          <h2
+            id="benefits-heading"
+            className="font-head text-lg font-bold tracking-tight"
+          >
+            Your benefits
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Everything your membership unlocks, and where you stand on each.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <BenefitCard
+            icon={FileText}
+            title="AI-built ATS resume"
+            description={
+              resume
+                ? `Tailored for ${resume.targetRole}.`
+                : "Generate a resume that clears applicant tracking systems."
+            }
+            href={`${CANDIDATE_HOME}/resume`}
+            cta={resume ? "View resume" : "Build resume"}
+          >
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-head text-xs font-bold",
+                resume
+                  ? "bg-good/12 text-good"
+                  : "bg-muted text-muted-foreground",
               )}
-            </div>
-            <p className="mt-3 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-              {plan.name}
-            </p>
-            <p className="mt-1 text-sm text-white/80">
-              {plan.price} for {MEMBERSHIP_DAYS} days · Member since{" "}
-              {formatDate(startedAt)}
-            </p>
+            >
+              {resume && <Check className="size-3" strokeWidth={3} />}
+              {resume ? "Generated" : "Not generated yet"}
+            </span>
+          </BenefitCard>
 
-            <div className="mt-6 max-w-md">
-              <div className="flex items-baseline justify-between text-sm">
-                <p className="font-head font-bold">
-                  Valid till {formatDate(expiresAt)}
-                </p>
-                <p
-                  className={cn(renewSoon ? "text-amber-200" : "text-white/75")}
-                >
-                  {daysLeft} days left
-                </p>
-              </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
-                <div
-                  className="h-full rounded-full bg-white"
-                  style={{
-                    width: `${Math.min(daysLeft / MEMBERSHIP_DAYS, 1) * 100}%`,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+          <BenefitCard
+            icon={Eye}
+            title="Full job details"
+            description="Salary, employer info and contact details on every listing."
+            href="/jobs"
+            cta="Browse jobs"
+          >
+            <span className="inline-flex items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
+              <Check className="size-3" strokeWidth={3} /> Unlocked
+            </span>
+          </BenefitCard>
 
-          <div className="flex flex-col gap-3 rounded-2xl bg-white/10 p-5 md:w-72 md:flex-none">
-            <p className="font-head text-sm font-bold">
-              {renewSoon ? "Renew to keep applying" : "Renewal"}
+          <BenefitCard
+            icon={LifeBuoy}
+            title="Priority support"
+            description="Replies within 24 hours, until you're hired."
+            href={`mailto:${SUPPORT_EMAIL}`}
+            cta="Email support"
+          >
+            <p className="flex items-center gap-1.5 truncate text-sm font-medium">
+              <Mail className="size-3.5 flex-none text-muted-foreground" />
+              {SUPPORT_EMAIL}
             </p>
-            <p className="text-sm leading-6 text-white/80">
-              {renewSoon
-                ? `Your membership ends in ${daysLeft} days. Renew now so your applications and interviews aren't interrupted.`
-                : `Renewal opens ${RENEW_WINDOW_DAYS} days before your plan ends. We'll email you a reminder.`}
-            </p>
-            {renewSoon && (
-              <Button
-                className="w-full bg-white font-head text-brand hover:bg-white/90"
-                nativeButton={false}
-                render={<Link href="/membership" />}
-              >
-                Renew membership <ArrowRight className="size-4" />
-              </Button>
-            )}
-          </div>
+          </BenefitCard>
         </div>
       </section>
 
-      <section aria-label="Your perks">
-        <h2 className="mb-4 font-head text-lg font-bold tracking-tight">
-          Your perks
-        </h2>
-        <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
-          {perks.map(({ icon: Icon, label, value, detail, progress, href }) => {
-            const body = (
-              <>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex size-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                    <Icon className="size-4.5" />
-                  </span>
-                  {href && (
-                    <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
-                  )}
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground">{label}</p>
-                <p className="mt-0.5 font-head text-xl font-extrabold tracking-tight">
-                  {value}
-                </p>
-                {progress !== undefined && (
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-good"
-                      style={{ width: `${progress * 100}%` }}
-                    />
-                  </div>
-                )}
-                <p className="mt-2 truncate text-xs text-muted-foreground">
-                  {detail}
-                </p>
-              </>
-            );
-            const cls =
-              "group block h-full rounded-2xl border border-border bg-card p-5 transition-colors";
-            return (
-              <li key={label}>
-                {href ? (
-                  <Link
-                    href={href}
-                    className={cn(cls, "hover:border-brand/40")}
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <div className={cn(cls, "border-dashed")}>{body}</div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      <Panel title="Billing" description="Your plan and payment history">
+        <div className="grid gap-6 md:grid-cols-2">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
+            <Detail label="Plan" value={plan.name} />
+            <Detail label="Price" value={`${plan.price} / year`} />
+            <Detail label="Started" value={formatDate(startedAt)} />
+            <Detail label="Valid till" value={formatDate(expiresAt)} />
+            {candidate.code && (
+              <Detail label="Sign-up code" value={candidate.code} />
+            )}
+          </dl>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <Panel
-          title="What's included"
-          description="Everything your membership unlocks"
-        >
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {MEMBER_FEATURES.map((f) => (
-              <li key={f} className="flex items-start gap-2.5 text-sm">
-                <span className="mt-0.5 flex size-5 flex-none items-center justify-center rounded-full bg-good/12 text-good">
-                  <Check className="size-3" strokeWidth={3} />
-                </span>
-                {f}
-              </li>
-            ))}
-          </ul>
-        </Panel>
-
-        <div className="min-w-0 space-y-6">
-          <Panel title="Billing" description="Payments for your membership">
+          <div className="min-w-0">
+            <p className="mb-2 text-xs text-muted-foreground">Payments</p>
             <div className="flex items-center gap-3 rounded-2xl border border-border p-4">
               <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-muted text-muted-foreground">
                 <Receipt className="size-4.5" />
@@ -259,33 +157,73 @@ export default async function MembershipPage() {
               </div>
             </div>
             <p className="mt-3 text-xs leading-5 text-muted-foreground">
-              Need a GST invoice? Email us from your registered address and
-              we&apos;ll send it within one working day.
-            </p>
-          </Panel>
-
-          <section className="flex items-start gap-4 rounded-3xl border border-border bg-card p-5 sm:p-6">
-            <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-brand-accent/15 text-good">
-              <LifeBuoy className="size-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="flex items-center gap-1.5 font-head font-bold tracking-tight">
-                Priority support{" "}
-                <Sparkles className="size-3.5 text-brand-accent" />
-              </p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Members get replies within 24 hours, until you&apos;re hired.
-              </p>
+              Need a GST invoice? Email{" "}
               <a
-                href="mailto:contact@jobclubb.com"
-                className="mt-3 inline-flex items-center gap-1.5 font-head text-sm font-bold text-brand hover:text-brand-dark"
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="font-semibold text-brand hover:text-brand-dark"
               >
-                <Mail className="size-3.5" /> contact@jobclubb.com
-              </a>
-            </div>
-          </section>
+                {SUPPORT_EMAIL}
+              </a>{" "}
+              from your registered address and we&apos;ll send it within one
+              working day.
+            </p>
+          </div>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function BenefitCard({
+  icon: Icon,
+  title,
+  description,
+  href,
+  cta,
+  className,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  href: string;
+  cta: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <article
+      className={cn(
+        "flex min-w-0 flex-col rounded-3xl border border-border bg-card p-5 sm:p-6",
+        className,
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-brand/10 text-brand">
+          <Icon className="size-4.5" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="font-head font-bold tracking-tight">{title}</h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
+      <div className="mt-5 flex-1">{children}</div>
+      <Link
+        href={href}
+        className="group mt-4 inline-flex items-center gap-1 self-start font-head text-sm font-bold text-brand hover:text-brand-dark"
+      >
+        {cta}
+        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+      </Link>
+    </article>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 truncate font-head font-bold">{value}</dd>
     </div>
   );
 }

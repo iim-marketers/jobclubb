@@ -21,12 +21,12 @@ import { Button } from "@/components/ui/button";
 import {
   APPLICATIONS,
   GUARANTEED_INTERVIEWS,
-  INTERVIEWS,
   SAVED_JOBS,
   STAGES,
   formatInterviewDate,
   formatInterviewTime,
   formatShortDate,
+  guaranteeSlots,
   upcomingInterviews,
   type Interview,
 } from "@/lib/candidate-activity";
@@ -504,33 +504,6 @@ function ProfileSummary({
       </div>
     </section>
   );
-}
-
-type GuaranteeSlot = {
-  company: string | null;
-  state: "done" | "scheduled" | "open";
-  note: string;
-};
-
-function guaranteeSlots(now: Date): GuaranteeSlot[] {
-  const slots: GuaranteeSlot[] = INTERVIEWS.filter((i) => i.guaranteed)
-    .sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt))
-    .map((i) =>
-      new Date(i.startsAt) < now
-        ? {
-            company: i.company,
-            state: "done",
-            note: `Completed ${formatShortDate(i.startsAt)}`,
-          }
-        : {
-            company: i.company,
-            state: "scheduled",
-            note: formatInterviewDate(i.startsAt),
-          },
-    );
-  while (slots.length < GUARANTEED_INTERVIEWS)
-    slots.push({ company: null, state: "open", note: "Still yours to use" });
-  return slots;
 }
 
 function InterviewGuarantee() {

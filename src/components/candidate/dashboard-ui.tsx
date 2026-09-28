@@ -52,7 +52,7 @@ export function Panel({
         className,
       )}
     >
-      <div className="mb-5 flex items-start justify-between gap-3">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-head font-bold tracking-tight">{title}</h2>
           {description && (
