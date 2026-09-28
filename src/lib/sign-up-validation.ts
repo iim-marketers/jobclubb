@@ -121,6 +121,39 @@ export function validateCandidate(formData: FormData): FieldErrors {
   return errors;
 }
 
+export function validateCandidateProfile(formData: FormData) {
+  const values = {
+    firstName: readText(formData, "firstName"),
+    lastName: readText(formData, "lastName"),
+    phone: readText(formData, "phone"),
+    city: readText(formData, "city"),
+    pincode: readText(formData, "pincode"),
+    vertical: readText(formData, "vertical"),
+  };
+  const errors: FieldErrors = {};
+
+  if (!values.firstName) errors.firstName = "Enter your first name.";
+  else if (values.firstName.length > 80) errors.firstName = "Use 80 characters or fewer.";
+  if (!values.lastName) errors.lastName = "Enter your last name.";
+  else if (values.lastName.length > 80) errors.lastName = "Use 80 characters or fewer.";
+  if (!PHONE_PATTERN.test(values.phone)) errors.phone = "Enter a valid 10-digit Indian mobile number.";
+  if (!values.city) errors.city = "Enter your city.";
+  else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
+  if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
+  if (!VERTICALS.some((s) => s.slug === values.vertical)) errors.vertical = "Choose a sector.";
+
+  return { values, errors };
+}
+
+export function validateNewPassword(formData: FormData): FieldErrors {
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  if (password.length < 8) return { password: "Use at least 8 characters." };
+  if (new TextEncoder().encode(password).length > 72) return { password: "Use 72 characters or fewer." };
+  if (password !== confirmPassword) return { confirmPassword: "Passwords don't match." };
+  return {};
+}
+
 // ------------------------------------------------------------------ Company
 
 export const COMPANY_STEPS: SignUpStep[] = [

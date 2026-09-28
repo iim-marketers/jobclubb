@@ -1,0 +1,77 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import {
+  validateCandidateProfile,
+  validateNewPassword,
+  type FieldErrors,
+} from "@/lib/sign-up-validation";
+import { createClient } from "@/lib/supabase/server";
+import { requireCandidate } from "@/server/auth/current-candidate";
+
+const SETTINGS_PATH = `${CANDIDATE_HOME}/settings`;
+
+export type SettingsActionState = {
+  ok?: boolean;
+  error?: string;
+  errors?: FieldErrors;
+};
+
+export async function updateProfile(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const candidate = await requireCandidate(SETTINGS_PATH);
+  const { values, errors } = validateCandidateProfile(formData);
+  if (Object.keys(errors).length > 0) return { errors };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("candidates")
+    .update({
+      first_name: values.firstName,
+      last_name: values.lastName,
+      phone: values.phone,
+      city: values.city,
+      pincode: values.pincode,
+      vertical: values.vertical,
+    })
+    .eq("id", candidate.id);
+
+  if (error) {
+    console.error("Updating candidate profile failed", error);
+    return { error: "We couldn't save your changes. Please try again." };
+  }
+
+  revalidatePath("/candidate", "layout");
+  return { ok: true };
+}
+
+export async function changePassword(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  await requireCandidate(SETTINGS_PATH);
+  const errors = validateNewPassword(formData);
+  if (Object.keys(errors).length > 0) return { errors };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({
+    password: String(formData.get("password")),
+  });
+
+  if (error) {
+    if (error.code === "same_password")
+      return { errors: { password: "Choose a password you haven't used here before." } };
+    if (error.code === "weak_password")
+      return { errors: { password: "That password is too weak. Try a longer one." } };
+    if (error.code === "reauthentication_needed")
+      return { error: "For security, sign out and back in, then change your password." };
+    console.error("Changing password failed", error);
+    return { error: "We couldn't change your password. Please try again." };
+  }
+
+  return { ok: true };
+}
