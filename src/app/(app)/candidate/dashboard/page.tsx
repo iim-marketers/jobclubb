@@ -14,7 +14,8 @@ import {
   Video,
 } from "lucide-react";
 
-import { Chip, Panel, StageMeter } from "@/components/candidate/dashboard-ui";
+import { ApplicationJourney } from "@/components/candidate/application-journey";
+import { Chip, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,6 @@ import {
   STAGES,
   formatInterviewDate,
   formatInterviewTime,
-  formatShortDate,
   guaranteeSlots,
   upcomingInterviews,
   type Interview,
@@ -183,65 +183,11 @@ export default async function CandidateDashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Panel
-          title="Application journey"
-          description="Where each of your applications stands"
-          action={
-            <Link
-              href={`${CANDIDATE_HOME}/applications`}
-              className="inline-flex flex-none items-center gap-1 font-head text-sm font-bold whitespace-nowrap text-brand hover:text-brand-dark"
-            >
-              View all <ArrowRight className="size-3.5" />
-            </Link>
-          }
-        >
-          <Pipeline />
-
-          <ul className="mt-6 divide-y divide-border border-t border-border">
-            {recent.map(({ id, job, stage, appliedOn, status }) => {
-              const closed = status !== "active";
-              return (
-                <li
-                  key={id}
-                  className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5 last:pb-0"
-                >
-                  <CompanyAvatar name={job.company} />
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`${CANDIDATE_HOME}/applications/${id}`}
-                      className="block truncate font-head text-sm font-bold hover:text-brand"
-                    >
-                      {job.designation}
-                    </Link>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {job.company} · {job.location} · Applied{" "}
-                      {formatShortDate(appliedOn)}
-                    </p>
-                  </div>
-                  <div className="flex w-full items-center gap-3 pl-14 sm:w-auto sm:pl-0">
-                    <StageMeter stage={stage} closed={closed} />
-                    <span
-                      className={cn(
-                        "w-20 text-right font-head text-xs font-bold",
-                        closed
-                          ? "text-muted-foreground"
-                          : stage >= 3
-                            ? "text-good"
-                            : "text-brand",
-                      )}
-                    >
-                      {status === "rejected"
-                        ? "Not selected"
-                        : closed
-                          ? "Closed"
-                          : STAGES[stage]}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </Panel>
+        <ApplicationJourney
+          applications={recent}
+          sector={sector}
+          matchingRoles={JOBS.filter((j) => j.vertical === sector).length}
+        />
 
         <div className="min-w-0 space-y-6">
           <Panel
@@ -291,30 +237,31 @@ export default async function CandidateDashboard() {
             </Button>
           </Panel>
 
-          <Panel title="Your location" description="Matching jobs within 25 km">
-            <div className="flex items-start gap-3">
+          <Panel
+            title="Your location"
+            description="Matching jobs within 25 km"
+            action={
+              <Link
+                href={`${CANDIDATE_HOME}/settings`}
+                className="flex-none font-head text-sm font-bold text-brand hover:text-brand-dark"
+              >
+                Change
+              </Link>
+            }
+          >
+            <div className="flex items-center gap-3 rounded-2xl bg-muted/50 p-3">
               <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-brand-accent/15 text-good">
                 <MapPin className="size-5" />
               </span>
               <div className="min-w-0">
-                <p className="font-head text-sm font-bold">
+                <p className="truncate font-head text-sm font-bold">
                   {candidate.city}, {candidate.pincode}
                 </p>
-                <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                  {sector ? `${sector} roles` : "Roles"} near your saved address
-                  show up first.
+                <p className="text-xs leading-5 text-muted-foreground">
+                  {sector ? `${sector} roles` : "Roles"} near you show up first.
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mt-3 w-full font-head text-brand"
-              nativeButton={false}
-              render={<Link href={`${CANDIDATE_HOME}/settings`} />}
-            >
-              Change location
-            </Button>
           </Panel>
         </div>
       </div>

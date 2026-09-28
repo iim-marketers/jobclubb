@@ -7,8 +7,16 @@ import { Tooltip } from "@base-ui/react/tooltip";
 import { ArrowUpRight, LogOut, Sparkles } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/sign-in/actions";
-import { CANDIDATE_HOME, CANDIDATE_NAV, isActive } from "@/components/candidate/nav";
-import { MEMBERSHIP_DAYS, PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
+import {
+  CANDIDATE_HOME,
+  CANDIDATE_NAV,
+  isActive,
+} from "@/components/candidate/nav";
+import {
+  MEMBERSHIP_DAYS,
+  PLAN_DETAILS,
+  type MembershipPlan,
+} from "@/lib/membership";
 import { cn } from "@/lib/utils";
 
 export type CandidateProfile = {
@@ -110,7 +118,10 @@ export function SidebarContent({
         )}
       </div>
 
-      <nav aria-label="Dashboard" className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pt-4 pb-6">
+      <nav
+        aria-label="Dashboard"
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pt-4 pb-6"
+      >
         {CANDIDATE_NAV.map((group) => (
           <div key={group.title} className="mb-6 last:mb-0">
             {collapsed ? (
@@ -132,9 +143,10 @@ export function SidebarContent({
                         aria-current={active ? "page" : undefined}
                         aria-label={collapsed ? label : undefined}
                         className={cn(
-                          "group relative flex items-center gap-3 rounded-xl py-2.5 font-head text-sm font-semibold text-white/70 transition-colors outline-none hover:bg-white/8 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40",
-                          collapsed ? "justify-center px-0" : "px-3",
-                          active && "bg-white/12 text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)]",
+                          "group relative flex items-center gap-2 rounded-xl py-2.5 font-head text-sm font-semibold text-white/70 transition-colors outline-none hover:bg-white/8 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40",
+                          collapsed ? "justify-center px-0" : "px-2",
+                          active &&
+                            "bg-white/12 text-white shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)]",
                         )}
                       >
                         {active && (
@@ -143,10 +155,16 @@ export function SidebarContent({
                         <Icon
                           className={cn(
                             "size-4.5 flex-none transition-colors",
-                            active ? "text-brand-accent" : "text-white/55 group-hover:text-white",
+                            active
+                              ? "text-brand-accent"
+                              : "text-white/55 group-hover:text-white",
                           )}
                         />
-                        {!collapsed && <span className="flex-1 whitespace-nowrap">{label}</span>}
+                        {!collapsed && (
+                          <span className="flex-1 whitespace-nowrap">
+                            {label}
+                          </span>
+                        )}
                         {badge ? (
                           collapsed ? (
                             <span className="absolute top-1.5 right-2.5 size-2 rounded-full bg-brand-accent ring-2 ring-[#023b50]" />
@@ -180,7 +198,10 @@ export function SidebarContent({
               )}
             </Link>
           </RailTooltip>
-          <RailTooltip label={`${candidate.firstName} ${candidate.lastName}`} enabled>
+          <RailTooltip
+            label={`${candidate.firstName} ${candidate.lastName}`}
+            enabled
+          >
             <span className="flex size-9 items-center justify-center rounded-full bg-linear-to-br from-brand-accent to-[#38b6dd] font-head text-xs font-extrabold text-[#032a36]">
               {candidate.firstName[0]}
               {candidate.lastName[0]}
@@ -190,7 +211,9 @@ export function SidebarContent({
       ) : (
         <div className="flex-none space-y-3 px-3 pb-4">
           <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-            <p className="truncate font-head text-sm font-bold">{PLAN_DETAILS[candidate.plan].name}</p>
+            <p className="truncate font-head text-sm font-bold">
+              {PLAN_DETAILS[candidate.plan].name}
+            </p>
             <div
               className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"
               role="meter"
@@ -205,8 +228,15 @@ export function SidebarContent({
               />
             </div>
             <div className="mt-2 flex items-baseline justify-between gap-2 text-xs">
-              <p className="truncate text-white/60">Valid till {candidate.validUntil}</p>
-              <p className={cn("flex-none", expiringSoon ? "text-amber-300" : "text-white/60")}>
+              <p className="truncate text-white/60">
+                Valid till {candidate.validUntil}
+              </p>
+              <p
+                className={cn(
+                  "flex-none",
+                  expiringSoon ? "text-amber-300" : "text-white/60",
+                )}
+              >
                 {candidate.daysLeft} days left
               </p>
             </div>
@@ -231,7 +261,9 @@ export function SidebarContent({
               <p className="truncate font-head text-sm font-bold">
                 {candidate.firstName} {candidate.lastName}
               </p>
-              <p className="truncate text-xs text-white/55">{candidate.email}</p>
+              <p className="truncate text-xs text-white/55">
+                {candidate.email}
+              </p>
             </div>
             <form action={signOut}>
               <button

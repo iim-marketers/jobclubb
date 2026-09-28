@@ -48,7 +48,7 @@ export function Panel({
     <section
       id={id}
       className={cn(
-        "min-w-0 scroll-mt-24 rounded-3xl border border-border bg-card p-5 sm:p-6",
+        "min-w-0 scroll-mt-24 rounded-3xl border border-border bg-card p-5",
         className,
       )}
     >
@@ -65,7 +65,7 @@ export function Panel({
       </div>
       {children}
       {footer && (
-        <div className="-mx-5 mt-6 -mb-5 flex flex-col-reverse gap-3 rounded-b-3xl border-t border-border bg-muted/40 px-5 py-4 sm:-mx-6 sm:-mb-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="-mx-5 mt-4 -mb-5 flex flex-col-reverse gap-3 rounded-b-3xl border-t border-border bg-muted/40 px-5 py-4 sm:-mx-5 sm:-mb-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           {footer}
         </div>
       )}

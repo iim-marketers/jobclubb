@@ -1,7 +1,14 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useRef, useState } from "react";
-import { CheckCircle2, Loader2, Lock } from "lucide-react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { Loader2, Lock } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   changePassword,
@@ -37,8 +44,6 @@ const SECTION_KEYS = {
 function submitManually(
   action: (data: FormData) => void,
 ): React.FormEventHandler<HTMLFormElement> {
-  // Submitting manually skips React's automatic form reset, so a failed
-  // attempt doesn't wipe what the candidate typed.
   return (e) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
@@ -46,23 +51,11 @@ function submitManually(
   };
 }
 
-function FormStatus({
-  error,
-  success,
-  pending,
-}: {
-  error?: string;
-  success?: string;
-  pending?: string;
-}) {
+function FormStatus({ error, pending }: { error?: string; pending?: string }) {
   return (
     <p role="status" className="min-h-5 text-sm">
       {error ? (
         <span className="text-destructive">{error}</span>
-      ) : success ? (
-        <span className="flex items-center gap-1.5 font-medium text-good">
-          <CheckCircle2 className="size-4" /> {success}
-        </span>
       ) : pending ? (
         <span className="text-muted-foreground">{pending}</span>
       ) : null}
@@ -91,31 +84,35 @@ function SubmitButton({
   );
 }
 
-// Personal details and job preferences save independently, but the action
-// validates the whole profile, so each form carries the other section's
-// saved values as hidden inputs.
 function ProfileSectionForm({
   section,
   defaults,
   title,
   description,
+  successMessage,
   children,
 }: {
   section: keyof typeof SECTION_KEYS;
   defaults: ProfileDefaults;
   title: string;
   description: string;
+  successMessage: string;
   children: (
     errors: Record<string, string | undefined>,
     markDirty: () => void,
   ) => React.ReactNode;
 }) {
-  const [state, formAction, pending] = useActionState<SettingsActionState, FormData>(
-    updateProfile,
-    {},
-  );
+  const [state, formAction, pending] = useActionState<
+    SettingsActionState,
+    FormData
+  >(updateProfile, {});
   const [dirty, setDirty] = useState(false);
   const errors = state.errors ?? {};
+
+  useEffect(() => {
+    if (state.ok) toast.success(successMessage);
+  }, [state, successMessage]);
+
   const own: ProfileKey[] = SECTION_KEYS[section];
   const hidden = (Object.keys(defaults) as (keyof ProfileDefaults)[]).filter(
     (k): k is ProfileKey => k !== "email" && !own.includes(k as ProfileKey),
@@ -145,11 +142,10 @@ function ProfileSectionForm({
           <>
             <FormStatus
               error={state.error ?? otherError}
-              success={state.ok && !dirty ? "Changes saved" : undefined}
               pending={dirty ? "You have unsaved changes" : undefined}
             />
             <SubmitButton pending={pending} disabled={!dirty && !hasErrors}>
-              Save changes
+              {pending ? "Saving..." : "Save changes"}
             </SubmitButton>
           </>
         }
@@ -160,13 +156,19 @@ function ProfileSectionForm({
   );
 }
 
-export function PersonalDetailsForm({ defaults }: { defaults: ProfileDefaults }) {
+export function PersonalDetailsForm({
+  defaults,
+}: {
+  defaults: ProfileDefaults;
+}) {
+  const [initial] = useState(defaults);
   return (
     <ProfileSectionForm
       section="personal"
       defaults={defaults}
       title="Personal details"
       description="How employers see and reach you."
+      successMessage="Personal details saved"
     >
       {(errors) => (
         <div className="grid gap-5 sm:grid-cols-2">
@@ -174,7 +176,7 @@ export function PersonalDetailsForm({ defaults }: { defaults: ProfileDefaults })
             id="firstName"
             label="First name"
             autoComplete="given-name"
-            defaultValue={defaults.firstName}
+            defaultValue={initial.firstName}
             maxLength={80}
             error={errors.firstName}
           />
@@ -182,7 +184,7 @@ export function PersonalDetailsForm({ defaults }: { defaults: ProfileDefaults })
             id="lastName"
             label="Last name"
             autoComplete="family-name"
-            defaultValue={defaults.lastName}
+            defaultValue={initial.lastName}
             maxLength={80}
             error={errors.lastName}
           />
@@ -209,7 +211,7 @@ export function PersonalDetailsForm({ defaults }: { defaults: ProfileDefaults })
             type="tel"
             inputMode="tel"
             autoComplete="tel-national"
-            defaultValue={defaults.phone}
+            defaultValue={initial.phone}
             maxLength={16}
             hint="10-digit Indian mobile number."
             error={errors.phone}
@@ -221,12 +223,14 @@ export function PersonalDetailsForm({ defaults }: { defaults: ProfileDefaults })
 }
 
 export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
+  const [initial] = useState(defaults);
   return (
     <ProfileSectionForm
       section="preferences"
       defaults={defaults}
       title="Job preferences"
       description="We match you to roles in this sector near this location."
+      successMessage="Job preferences saved"
     >
       {(errors, markDirty) => (
         <div className="grid gap-5 sm:grid-cols-2">
@@ -235,7 +239,7 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
             label="Sector"
             className="sm:col-span-2"
             options={SECTOR_OPTIONS}
-            defaultValue={defaults.vertical}
+            defaultValue={initial.vertical}
             onValueChange={markDirty}
             error={errors.vertical}
           />
@@ -243,7 +247,7 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
             id="city"
             label="City"
             autoComplete="address-level2"
-            defaultValue={defaults.city}
+            defaultValue={initial.city}
             maxLength={80}
             error={errors.city}
           />
@@ -252,7 +256,7 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
             label="Pincode"
             inputMode="numeric"
             autoComplete="postal-code"
-            defaultValue={defaults.pincode}
+            defaultValue={initial.pincode}
             maxLength={6}
             error={errors.pincode}
           />
@@ -263,15 +267,17 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
 }
 
 export function PasswordForm() {
-  const [state, formAction, pending] = useActionState<SettingsActionState, FormData>(
-    changePassword,
-    {},
-  );
+  const [state, formAction, pending] = useActionState<
+    SettingsActionState,
+    FormData
+  >(changePassword, {});
   const formRef = useRef<HTMLFormElement>(null);
   const errors = state.errors ?? {};
 
   useEffect(() => {
-    if (state.ok) formRef.current?.reset();
+    if (!state.ok) return;
+    formRef.current?.reset();
+    toast.success("Password updated");
   }, [state]);
 
   return (
@@ -282,11 +288,10 @@ export function PasswordForm() {
         description="Choose a new password for signing in to JobClubb."
         footer={
           <>
-            <FormStatus
-              error={state.error}
-              success={state.ok ? "Password updated" : undefined}
-            />
-            <SubmitButton pending={pending}>Update password</SubmitButton>
+            <FormStatus error={state.error} />
+            <SubmitButton pending={pending}>
+              {pending ? "Updating..." : "Update password"}
+            </SubmitButton>
           </>
         }
       >

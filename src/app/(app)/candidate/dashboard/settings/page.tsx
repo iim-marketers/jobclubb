@@ -48,11 +48,11 @@ export default async function SettingsPage() {
             title="Account"
             description="Session and account controls."
           >
-            <ul className="divide-y divide-border">
+            <ul className="divide-y divide-border -mx-5">
               <AccountRow
                 title="Sign out"
                 description={`You're signed in as ${candidate.email}.`}
-                className="pb-5"
+                className="pb-5 px-5"
               >
                 <form action={signOut}>
                   <Button
@@ -68,7 +68,7 @@ export default async function SettingsPage() {
                 title="Delete account"
                 description="Permanently remove your profile, resume and applications. Our team will confirm with you before anything is deleted."
                 destructive
-                className="pt-5"
+                className="pt-4 px-5"
               >
                 <Button
                   variant="destructive"

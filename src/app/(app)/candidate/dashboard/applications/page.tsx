@@ -76,39 +76,6 @@ export default async function ApplicationsPage() {
         />
       </div>
 
-      <section
-        aria-label="Active pipeline"
-        className="rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-5 text-white sm:p-6"
-      >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-head font-bold tracking-tight">
-            Active pipeline
-          </h2>
-          <p className="text-xs text-white/70">
-            How far your {active.length} open applications have reached
-          </p>
-        </div>
-        <ol className="mt-5 grid grid-cols-5 gap-2 sm:gap-3">
-          {STAGES.map((stage, i) => (
-            <li key={stage} className="relative min-w-0">
-              <div
-                className={cn(
-                  "h-1.5 rounded-full",
-                  pipeline[i] > 0 ? "bg-white" : "bg-white/20",
-                )}
-                style={pipeline[i] > 0 ? { opacity: 1 - i * 0.12 } : undefined}
-              />
-              <p className="mt-3 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-                {pipeline[i]}
-              </p>
-              <p className="truncate text-[11px] text-white/75 sm:text-xs">
-                {stage}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </section>
-
       <ApplicationsTable applications={APPLICATIONS} />
     </div>
   );

@@ -57,7 +57,11 @@ const features = tableFeatures({
   sortedRowModel: createSortedRowModel(),
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text, basic: sortFn_basic },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+    basic: sortFn_basic,
+  },
   filterFns: { includesString: filterFn_includesString },
 });
 
@@ -136,7 +140,9 @@ const columns = helper.columns([
     sortFn: "alphanumeric",
     sortDescFirst: true,
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{formatShortDate(getValue())}</span>
+      <span className="text-muted-foreground">
+        {formatShortDate(getValue())}
+      </span>
     ),
   }),
   helper.accessor((a) => (a.status === "active" ? a.stage : -1), {
@@ -149,7 +155,11 @@ const columns = helper.columns([
       const archived = a.status !== "active";
       return (
         <div className="flex items-center gap-3">
-          <StageMeter stage={a.stage} closed={archived} className="w-20 flex-none sm:w-20" />
+          <StageMeter
+            stage={a.stage}
+            closed={archived}
+            className="w-20 flex-none sm:w-20"
+          />
           <span
             className={cn(
               "rounded-full px-2 py-0.5 font-head text-[11px] font-bold",
@@ -232,7 +242,6 @@ export function ApplicationsTable({
           className="flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1"
         >
           {TABS.map((t) => {
-            const count = applications.filter((a) => inTab(a, t.key)).length;
             const selected = tab === t.key;
             return (
               <button
@@ -252,14 +261,6 @@ export function ApplicationsTable({
                 )}
               >
                 {t.label}
-                <span
-                  className={cn(
-                    "min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5",
-                    selected ? "bg-white/20" : "bg-muted",
-                  )}
-                >
-                  {count}
-                </span>
               </button>
             );
           })}
@@ -351,7 +352,10 @@ export function ApplicationsTable({
                   {row.getAllCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className={cn("px-3 py-3.5", COLUMN_CLASS[cell.column.id])}
+                      className={cn(
+                        "px-3 py-3.5",
+                        COLUMN_CLASS[cell.column.id],
+                      )}
                     >
                       <table.FlexRender cell={cell} />
                     </TableCell>
@@ -400,12 +404,17 @@ type AppColumn = Column<typeof features, Application, unknown>;
 function ariaSort(column: AppColumn) {
   const sorted = column.getIsSorted();
   if (!column.getCanSort()) return undefined;
-  return sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none";
+  return sorted === "asc"
+    ? "ascending"
+    : sorted === "desc"
+      ? "descending"
+      : "none";
 }
 
 function SortIcon({ column }: { column: AppColumn }) {
   const sorted = column.getIsSorted();
   if (sorted === "asc") return <ArrowUp className="size-3.5 text-foreground" />;
-  if (sorted === "desc") return <ArrowDown className="size-3.5 text-foreground" />;
+  if (sorted === "desc")
+    return <ArrowDown className="size-3.5 text-foreground" />;
   return <ArrowUpDown className="size-3.5 opacity-50" />;
 }
