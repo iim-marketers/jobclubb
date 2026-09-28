@@ -2,40 +2,38 @@ import "server-only";
 
 import { EMAIL_LOGO_CID, EMAIL_LOGO_PNG } from "@/lib/email/assets/logo";
 
-
 const escape = (value: string) =>
   value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-export function confirmSignupEmail({
+export function resetPasswordEmail({
   firstName,
   email,
-  confirmUrl,
+  resetUrl,
   siteUrl,
 }: {
   firstName?: string;
   email: string;
-  confirmUrl: string;
+  resetUrl: string;
   siteUrl: string;
 }) {
   const name = firstName?.trim();
-  const heading = name ? `Welcome to JobClubb, ${escape(name)}!` : "Welcome to JobClubb!";
+  const heading = name ? `Hi ${escape(name)}, let's get you back in` : "Let's get you back in";
   const address = escape(email);
-  const url = escape(confirmUrl);
+  const url = escape(resetUrl);
   const site = escape(siteUrl);
 
-  const subject = "Confirm your email to activate your JobClubb account";
+  const subject = "Reset your JobClubb password";
 
   const text = [
-    name ? `Welcome to JobClubb, ${name}!` : "Welcome to JobClubb!",
+    name ? `Hi ${name},` : "Hi,",
     "",
-    `You're one step away. Confirm ${email} to activate your account, then sign in:`,
-    confirmUrl,
+    `We got a request to reset the password for ${email}. Choose a new one here:`,
+    resetUrl,
     "",
     "For your security, this link expires in 1 hour and works only once.",
-    "If it has expired, sign in and we'll send you a new one.",
+    "If it has expired, request a new one from the sign-in page.",
     "",
-    `You're receiving this because ${email} was used to create a JobClubb account.`,
-    "If this wasn't you, you can safely ignore this email. No account will be activated.",
+    "If you didn't ask to reset your password, you can safely ignore this email. Your password won't change.",
   ].join("\n");
 
   const html = `<!DOCTYPE html>
@@ -45,7 +43,7 @@ export function confirmSignupEmail({
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
-  <title>Confirm your email</title>
+  <title>Reset your password</title>
   <style>
     @media only screen and (max-width: 480px) {
       .px { padding-left: 24px !important; padding-right: 24px !important; }
@@ -57,7 +55,7 @@ export function confirmSignupEmail({
 </head>
 <body style="margin:0; padding:0; background-color:#f2f6f8; -webkit-text-size-adjust:100%;">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#f2f6f8;">
-    One click to activate your JobClubb account and start applying to verified openings.
+    Choose a new password for your JobClubb account. The link expires in 1 hour.
   </div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f6f8;">
@@ -84,14 +82,14 @@ export function confirmSignupEmail({
                 <tr>
                   <td class="px pt" style="padding:40px 40px 8px; font-family:Arial, Helvetica, sans-serif;">
                     <p style="margin:0 0 8px; font-size:12px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:#00789f;">
-                      Confirm your email
+                      Reset your password
                     </p>
                     <h1 class="h1" style="margin:0 0 16px; font-size:26px; line-height:1.25; font-weight:800; color:#0f1d24;">
                       ${heading}
                     </h1>
                     <p style="margin:0 0 28px; font-size:16px; line-height:1.6; color:#4a5a63;">
-                      You're one step away. Confirm <strong style="color:#0f1d24;">${address}</strong> to activate your account.
-                      Then sign in to get started.
+                      We got a request to reset the password for <strong style="color:#0f1d24;">${address}</strong>.
+                      Click below to choose a new one.
                     </p>
                   </td>
                 </tr>
@@ -104,34 +102,8 @@ export function confirmSignupEmail({
                           <a href="${url}"
                             target="_blank" class="btn"
                             style="display:inline-block; padding:15px 36px; font-family:Arial, Helvetica, sans-serif; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:12px;">
-                            Confirm my email
+                            Choose a new password
                           </a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td class="px" style="padding:0 40px 32px; font-family:Arial, Helvetica, sans-serif;">
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f8fa; border-radius:14px;">
-                      <tr>
-                        <td style="padding:20px 24px;">
-                          <p style="margin:0 0 12px; font-size:13px; font-weight:700; color:#0f1d24;">Once you're in, you can:</p>
-                          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                            <tr>
-                              <td valign="top" style="padding:0 10px 8px 0; font-size:14px; color:#00bea2; font-weight:700;">&#10003;</td>
-                              <td style="padding:0 0 8px; font-size:14px; line-height:1.5; color:#4a5a63;">Build your AI-powered, ATS-ready resume</td>
-                            </tr>
-                            <tr>
-                              <td valign="top" style="padding:0 10px 8px 0; font-size:14px; color:#00bea2; font-weight:700;">&#10003;</td>
-                              <td style="padding:0 0 8px; font-size:14px; line-height:1.5; color:#4a5a63;">Browse verified openings matched to your city</td>
-                            </tr>
-                            <tr>
-                              <td valign="top" style="padding:0 10px 0 0; font-size:14px; color:#00bea2; font-weight:700;">&#10003;</td>
-                              <td style="font-size:14px; line-height:1.5; color:#4a5a63;">Apply with your identity hidden until you choose to reveal it</td>
-                            </tr>
-                          </table>
                         </td>
                       </tr>
                     </table>
@@ -148,7 +120,7 @@ export function confirmSignupEmail({
                     </p>
                     <p style="margin:0; font-size:13px; line-height:1.5; color:#6b7a82;">
                       For your security, this link expires in 1 hour and works only once.
-                      If it has expired, sign in and we'll send you a new one.
+                      If it has expired, request a new one from the sign-in page.
                     </p>
                   </td>
                 </tr>
@@ -158,8 +130,7 @@ export function confirmSignupEmail({
 
           <tr>
             <td align="center" style="padding:24px 24px 0; font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:1.6; color:#8a979e;">
-              You're receiving this because ${address} was used to create a JobClubb account.
-              If this wasn't you, you can safely ignore this email. No account will be activated.
+              If you didn't ask to reset your password, you can safely ignore this email. Your password won't change.
               <br><br>
               &copy; JobClubb &middot; <a href="${site}/terms" style="color:#8a979e; text-decoration:underline;">Terms &amp; Conditions</a>
             </td>

@@ -68,6 +68,7 @@ export function SignIn({
   next,
   linkExpired,
   verified,
+  passwordReset,
   verifiedEmail,
   freshRoles,
 }: {
@@ -76,6 +77,7 @@ export function SignIn({
   next?: string;
   linkExpired?: boolean;
   verified?: boolean;
+  passwordReset?: boolean;
   verifiedEmail?: string;
 }) {
   const [role, setRole] = useState<SignInRole>(initialRole);
@@ -179,6 +181,15 @@ export function SignIn({
                   >
                     <CircleCheck className="mt-0.5 size-4 flex-none" />
                     Email confirmed. Sign in with your password to get started.
+                  </p>
+                )}
+                {passwordReset && (
+                  <p
+                    role="status"
+                    className="flex items-start gap-2 rounded-xl bg-good/10 px-4 py-3 text-sm text-good"
+                  >
+                    <CircleCheck className="mt-0.5 size-4 flex-none" />
+                    Password updated. Sign in with your new password.
                   </p>
                 )}
                 <div
