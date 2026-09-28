@@ -49,7 +49,7 @@ export default async function ResumePage() {
 
   if (!saved || !report) {
     return (
-      <div className="space-y-6 lg:space-y-8">
+      <div className="space-y-6 ">
         <PageHeader />
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
           <ResumeCard
@@ -73,7 +73,7 @@ export default async function ResumePage() {
   }).format(new Date(saved.generatedAt));
 
   return (
-    <div className="space-y-6 lg:space-y-8">
+    <div className="space-y-6 ">
       <PageHeader
         action={
           <div className="flex items-center lg:pb-6 gap-2 print:hidden">

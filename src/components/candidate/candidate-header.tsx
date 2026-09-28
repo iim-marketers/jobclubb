@@ -36,7 +36,7 @@ import {
 const NOTIFICATIONS = [
   {
     title: "Interview scheduled with Taj",
-    body: "Thu, 25 Sep · 11:00 AM · Video call",
+    body: "Thu, 1 Oct · 11:00 AM · Video call",
     time: "1h",
     unread: true,
   },
