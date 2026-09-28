@@ -35,18 +35,25 @@ import { JOBS } from "@/lib/jobs-data";
 import { VERTICALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
+import type { Resume } from "@/lib/resume";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
+import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "Dashboard — JobClubb" };
 
-// TODO: replace the rest of the mock checklist with real profile completeness.
-function profileChecklist(hasPhoto: boolean) {
+// Email and location are required at sign-up (requireMember only lets
+// verified candidates through), so they always count as done.
+function profileChecklist(resume: Resume | undefined, hasPhoto: boolean) {
   return [
     { label: "Verify email address", done: true },
     { label: "Add home location", done: true },
-    { label: "Generate ATS resume", done: true },
-    { label: "Add work experience", done: false },
+    { label: "Generate ATS resume", done: !!resume },
+    // Freshers have no work history, so education counts too.
+    {
+      label: "Add experience or education",
+      done: !!resume && resume.experience.length + resume.education.length > 0,
+    },
     { label: "Upload a profile photo", done: hasPhoto },
   ];
 }
@@ -77,8 +84,11 @@ export default async function CandidateDashboard() {
     ...JOBS.filter((j) => j.vertical !== sector && j.featured),
   ].slice(0, 3);
 
-  const photoUrl = await getCandidatePhotoUrl(candidate.photo_path);
-  const checklist = profileChecklist(!!candidate.photo_path);
+  const [photoUrl, saved] = await Promise.all([
+    getCandidatePhotoUrl(candidate.photo_path),
+    getSavedResume(candidate.id),
+  ]);
+  const checklist = profileChecklist(saved?.resume, !!candidate.photo_path);
   const completed = checklist.filter((c) => c.done).length;
   const strength = Math.round((completed / checklist.length) * 100);
 
@@ -280,10 +290,6 @@ export default async function CandidateDashboard() {
             <h2 className="font-head text-lg font-bold tracking-tight">
               Picked for you
             </h2>
-            {/* <p className="text-sm text-muted-foreground">
-              {sector ? `Fresh ${sector} openings` : "Fresh openings"} matched
-              to your profile
-            </p> */}
           </div>
           <Link
             href="/jobs"
@@ -351,7 +357,6 @@ function ProfileSummary({
   plan: MembershipPlan;
   nextInterview?: Interview;
 }) {
-
   return (
     <section
       aria-label="Your profile"
