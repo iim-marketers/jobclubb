@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { KeyRound, Mail, SlidersHorizontal, User } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Camera, KeyRound, Mail, SlidersHorizontal, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const SECTIONS = [
+  { id: "photo", label: "Profile photo", icon: Camera },
   { id: "profile", label: "Personal details", icon: User },
   { id: "preferences", label: "Job preferences", icon: SlidersHorizontal },
   { id: "security", label: "Password", icon: KeyRound },
@@ -15,11 +16,21 @@ const SECTIONS = [
 // Matches the Panel's scroll-mt-24 plus a little slack.
 const ACTIVE_OFFSET = 120;
 
+type Indicator = { x: number; y: number; w: number; h: number };
+
 export function SettingsNav() {
   const [active, setActive] = useState(SECTIONS[0].id);
+  const [indicator, setIndicator] = useState<Indicator | null>(null);
+  const [animate, setAnimate] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  const lockRef = useRef(false);
 
   useEffect(() => {
-    const onScroll = () => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (lockRef.current) return;
       const atBottom =
         window.innerHeight + window.scrollY >=
         document.documentElement.scrollHeight - 4;
@@ -30,27 +41,114 @@ export function SettingsNav() {
       }
       setActive(atBottom ? SECTIONS[SECTIONS.length - 1].id : current);
     };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const unlock = () => {
+      lockRef.current = false;
+    };
+    const unlockEvents = ["wheel", "touchstart", "keydown", "pointerdown"];
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    for (const type of unlockEvents) {
+      window.addEventListener(type, unlock, { passive: true });
+    }
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      for (const type of unlockEvents) {
+        window.removeEventListener(type, unlock);
+      }
+    };
   }, []);
+
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const measure = () => {
+      const link = linkRefs.current[active];
+      if (!link) return;
+      setIndicator({
+        x: link.offsetLeft,
+        y: link.offsetTop,
+        w: link.offsetWidth,
+        h: link.offsetHeight,
+      });
+      if (nav.scrollWidth > nav.clientWidth) {
+        nav.scrollTo({
+          left: link.offsetLeft - (nav.clientWidth - link.offsetWidth) / 2,
+          behavior: "smooth",
+        });
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [active]);
+
+  // Skip the transition on the first placement so the pill doesn't fly in from 0,0.
+  useEffect(() => {
+    if (!indicator || animate) return;
+    const frame = requestAnimationFrame(() => setAnimate(true));
+    return () => cancelAnimationFrame(frame);
+  }, [indicator, animate]);
+
+  const onClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    lockRef.current = true;
+    setActive(id);
+    el.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "start",
+    });
+    history.replaceState(null, "", `#${id}`);
+  };
 
   return (
     <nav
+      ref={navRef}
       aria-label="Settings sections"
-      className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:sticky lg:top-24 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:rounded-3xl lg:border lg:border-border lg:bg-card lg:p-2"
+      className="relative -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:sticky lg:top-24 lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:rounded-3xl lg:border lg:border-border lg:bg-card lg:p-2"
     >
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute top-0 left-0 rounded-full bg-brand lg:rounded-2xl lg:bg-brand/10",
+          animate &&
+            "transition-[transform,width,height] duration-300 ease-out motion-reduce:transition-none",
+          !indicator && "opacity-0",
+        )}
+        style={
+          indicator
+            ? {
+                width: indicator.w,
+                height: indicator.h,
+                transform: `translate(${indicator.x}px, ${indicator.y}px)`,
+              }
+            : undefined
+        }
+      />
       {SECTIONS.map(({ id, label, icon: Icon }) => {
         const current = active === id;
         return (
           <a
             key={id}
+            ref={(el) => {
+              linkRefs.current[id] = el;
+            }}
             href={`#${id}`}
-            onClick={() => setActive(id)}
+            onClick={(e) => onClick(e, id)}
             aria-current={current ? "location" : undefined}
             className={cn(
-              "flex flex-none items-center gap-2.5 rounded-full border px-3.5 py-2 font-head text-sm font-semibold whitespace-nowrap transition-colors lg:rounded-2xl lg:border-transparent lg:px-3 lg:py-2.5",
+              "relative flex flex-none items-center gap-1.5 rounded-full border px-3.5 py-2 font-head text-sm font-semibold whitespace-nowrap transition-colors duration-300 lg:rounded-2xl lg:border-transparent lg:px-3 lg:py-2.5",
               current
-                ? "border-brand bg-brand text-brand-foreground lg:border-transparent lg:bg-brand/10 lg:text-brand"
+                ? "border-transparent text-brand-foreground lg:text-brand"
                 : "border-border bg-card text-muted-foreground hover:text-foreground lg:bg-transparent lg:hover:bg-muted",
             )}
           >

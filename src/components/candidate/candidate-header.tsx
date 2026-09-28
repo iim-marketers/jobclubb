@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/sign-in/actions";
+import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import {
   SidebarContent,
   type CandidateProfile,
@@ -260,10 +261,12 @@ export function CandidateHeader({
               className="ml-1 flex items-center gap-2 rounded-full border border-border bg-card py-1 pr-2 pl-1 transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 data-popup-open:bg-muted"
               aria-label="Account menu"
             >
-              <span className="flex size-7 items-center justify-center rounded-full bg-linear-to-br from-brand to-brand-accent font-head text-[11px] font-extrabold text-white">
-                {candidate.firstName[0]}
-                {candidate.lastName[0]}
-              </span>
+              <CandidateAvatar
+                firstName={candidate.firstName}
+                lastName={candidate.lastName}
+                photoUrl={candidate.photoUrl}
+                className="size-7 bg-linear-to-br from-brand to-brand-accent text-[11px] text-white"
+              />
               <span className="hidden font-head text-sm font-semibold sm:inline">
                 {candidate.firstName}
               </span>

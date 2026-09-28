@@ -165,8 +165,16 @@
    with a faint dot grid that fades out toward the bottom. */
 .jc-auth-panel {
   background:
-    radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, var(--brand-accent) 32%, transparent), transparent 70%),
-    radial-gradient(80% 60% at 100% 100%, color-mix(in oklab, #38b6dd 38%, transparent), transparent 70%),
+    radial-gradient(
+      90% 60% at 0% 0%,
+      color-mix(in oklab, var(--brand-accent) 32%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      80% 60% at 100% 100%,
+      color-mix(in oklab, #38b6dd 38%, transparent),
+      transparent 70%
+    ),
     #02506b;
 }
 
@@ -175,49 +183,72 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: radial-gradient(rgb(255 255 255 / 0.14) 1px, transparent 1px);
+  background-image: radial-gradient(
+    rgb(255 255 255 / 0.14) 1px,
+    transparent 1px
+  );
   background-size: 22px 22px;
   mask-image: linear-gradient(to bottom, black, transparent 75%);
 }
 
 .dark .jc-auth-panel {
   background:
-    radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, var(--brand-accent) 22%, transparent), transparent 70%),
-    radial-gradient(80% 60% at 100% 100%, color-mix(in oklab, #38b6dd 22%, transparent), transparent 70%),
+    radial-gradient(
+      90% 60% at 0% 0%,
+      color-mix(in oklab, var(--brand-accent) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      80% 60% at 100% 100%,
+      color-mix(in oklab, #38b6dd 22%, transparent),
+      transparent 70%
+    ),
     #021f2b;
 }
 
 /* Candidate dashboard sidebar: deep brand surface with a soft accent glow. */
 .jc-sidebar {
   background:
-    radial-gradient(120% 40% at 0% 0%, color-mix(in oklab, var(--brand-accent) 22%, transparent), transparent 70%),
-    radial-gradient(100% 35% at 100% 100%, color-mix(in oklab, #38b6dd 24%, transparent), transparent 70%),
+    radial-gradient(
+      120% 40% at 0% 0%,
+      color-mix(in oklab, var(--brand-accent) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      100% 35% at 100% 100%,
+      color-mix(in oklab, #38b6dd 24%, transparent),
+      transparent 70%
+    ),
     #023b50;
 }
 
 .dark .jc-sidebar {
   background:
-    radial-gradient(120% 40% at 0% 0%, color-mix(in oklab, var(--brand-accent) 14%, transparent), transparent 70%),
-    radial-gradient(100% 35% at 100% 100%, color-mix(in oklab, #38b6dd 14%, transparent), transparent 70%),
+    radial-gradient(
+      120% 40% at 0% 0%,
+      color-mix(in oklab, var(--brand-accent) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      100% 35% at 100% 100%,
+      color-mix(in oklab, #38b6dd 14%, transparent),
+      transparent 70%
+    ),
     #031a24;
 }
 
-/* "Download PDF" on the resume page prints only #resume-print: everything
-   else is hidden, and its ancestors are flattened so the dashboard shell
-   (sidebar, header, padding) doesn't shift or clip it. */
 @media print {
-  /* Zero page margin stops the browser drawing its date/title/URL/page-number
-     header and footer; the spacing lives on #resume-print instead, cloned
-     onto every page it breaks across. */
   @page {
+    size: A4;
     margin: 0;
   }
+
   #resume-print {
-    padding: 14mm !important;
-    -webkit-box-decoration-break: clone;
-    box-decoration-break: clone;
+    zoom: var(--print-scale, 1);
+    padding: calc(14mm / var(--print-scale, 1)) !important;
   }
-  body:has(#resume-print) *:not(:has(#resume-print)):not(#resume-print, #resume-print *) {
+  body:has(#resume-print)
+    *:not(:has(#resume-print)):not(#resume-print, #resume-print *) {
     display: none !important;
   }
   body:has(#resume-print),

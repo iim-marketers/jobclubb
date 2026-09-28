@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { ApplicationJourney } from "@/components/candidate/application-journey";
+import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { Chip, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
@@ -34,18 +35,28 @@ import { JOBS } from "@/lib/jobs-data";
 import { VERTICALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
+import type { Resume } from "@/lib/resume";
 import { requireMember } from "@/server/auth/current-candidate";
+import { getCandidatePhotoUrl } from "@/server/candidates/photo";
+import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "Dashboard — JobClubb" };
 
-// TODO: replace the mock checklist with real profile completeness.
-const CHECKLIST = [
-  { label: "Verify email address", done: true },
-  { label: "Add home location", done: true },
-  { label: "Generate ATS resume", done: true },
-  { label: "Add work experience", done: false },
-  { label: "Upload a profile photo", done: false },
-];
+// Email and location are required at sign-up (requireMember only lets
+// verified candidates through), so they always count as done.
+function profileChecklist(resume: Resume | undefined, hasPhoto: boolean) {
+  return [
+    { label: "Verify email address", done: true },
+    { label: "Add home location", done: true },
+    { label: "Generate ATS resume", done: !!resume },
+    // Freshers have no work history, so education counts too.
+    {
+      label: "Add experience or education",
+      done: !!resume && resume.experience.length + resume.education.length > 0,
+    },
+    { label: "Upload a profile photo", done: hasPhoto },
+  ];
+}
 
 const IST = "Asia/Kolkata";
 
@@ -73,8 +84,13 @@ export default async function CandidateDashboard() {
     ...JOBS.filter((j) => j.vertical !== sector && j.featured),
   ].slice(0, 3);
 
-  const completed = CHECKLIST.filter((c) => c.done).length;
-  const strength = Math.round((completed / CHECKLIST.length) * 100);
+  const [photoUrl, saved] = await Promise.all([
+    getCandidatePhotoUrl(candidate.photo_path),
+    getSavedResume(candidate.id),
+  ]);
+  const checklist = profileChecklist(saved?.resume, !!candidate.photo_path);
+  const completed = checklist.filter((c) => c.done).length;
+  const strength = Math.round((completed / checklist.length) * 100);
 
   const inReview = APPLICATIONS.filter((a) => a.status === "active").length;
   const upcoming = upcomingInterviews(now);
@@ -149,10 +165,12 @@ export default async function CandidateDashboard() {
           plan={candidate.membership_plan}
           firstName={candidate.first_name}
           lastName={candidate.last_name}
+          photoUrl={photoUrl}
           city={candidate.city}
           sector={sector}
           roles={vertical?.roles.slice(0, 4) ?? []}
           strength={strength}
+          nextStep={checklist.find((c) => !c.done)?.label}
           nextInterview={upcoming[0]}
         />
         <InterviewGuarantee />
@@ -197,7 +215,7 @@ export default async function CandidateDashboard() {
             <div className="flex items-center gap-5">
               <Ring value={strength} />
               <ul className="min-w-0 flex-1 space-y-2">
-                {CHECKLIST.map((item) => (
+                {checklist.map((item) => (
                   <li
                     key={item.label}
                     className="flex items-center gap-2 text-sm"
@@ -272,10 +290,6 @@ export default async function CandidateDashboard() {
             <h2 className="font-head text-lg font-bold tracking-tight">
               Picked for you
             </h2>
-            {/* <p className="text-sm text-muted-foreground">
-              {sector ? `Fresh ${sector} openings` : "Fresh openings"} matched
-              to your profile
-            </p> */}
           </div>
           <Link
             href="/jobs"
@@ -323,24 +337,26 @@ export default async function CandidateDashboard() {
 function ProfileSummary({
   firstName,
   lastName,
+  photoUrl,
   city,
   sector,
   roles,
   strength,
+  nextStep,
   plan,
   nextInterview,
 }: {
   firstName: string;
   lastName: string;
+  photoUrl: string | null;
   city: string;
   sector?: string;
   roles: string[];
   strength: number;
+  nextStep?: string;
   plan: MembershipPlan;
   nextInterview?: Interview;
 }) {
-  const nextStep = CHECKLIST.find((c) => !c.done);
-
   return (
     <section
       aria-label="Your profile"
@@ -348,10 +364,12 @@ function ProfileSummary({
     >
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start gap-4">
-          <span className="flex size-14 flex-none items-center justify-center rounded-2xl bg-white/15 font-head text-lg font-extrabold">
-            {firstName[0]}
-            {lastName[0]}
-          </span>
+          <CandidateAvatar
+            firstName={firstName}
+            lastName={lastName}
+            photoUrl={photoUrl}
+            className="size-14 rounded-2xl bg-white/15 text-lg"
+          />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <p className="truncate font-head text-xl font-extrabold tracking-tight">
@@ -408,7 +426,7 @@ function ProfileSummary({
           </div>
           {nextStep && (
             <p className="mt-2 text-xs text-white/70">
-              Next: {nextStep.label.toLowerCase()} to stand out to employers.
+              Next: {nextStep.toLowerCase()} to stand out to employers.
             </p>
           )}
         </div>

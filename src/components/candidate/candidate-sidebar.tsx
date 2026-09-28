@@ -7,6 +7,7 @@ import { Tooltip } from "@base-ui/react/tooltip";
 import { ArrowUpRight, LogOut, Sparkles } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/sign-in/actions";
+import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import {
   CANDIDATE_HOME,
   CANDIDATE_NAV,
@@ -23,6 +24,7 @@ export type CandidateProfile = {
   firstName: string;
   lastName: string;
   email: string;
+  photoUrl: string | null;
   sector?: string;
   plan: MembershipPlan;
   validUntil: string;
@@ -202,10 +204,12 @@ export function SidebarContent({
             label={`${candidate.firstName} ${candidate.lastName}`}
             enabled
           >
-            <span className="flex size-9 items-center justify-center rounded-full bg-linear-to-br from-brand-accent to-[#38b6dd] font-head text-xs font-extrabold text-[#032a36]">
-              {candidate.firstName[0]}
-              {candidate.lastName[0]}
-            </span>
+            <CandidateAvatar
+              firstName={candidate.firstName}
+              lastName={candidate.lastName}
+              photoUrl={candidate.photoUrl}
+              className="size-9 bg-linear-to-br from-brand-accent to-[#38b6dd] text-xs text-[#032a36]"
+            />
           </RailTooltip>
         </div>
       ) : (
@@ -253,10 +257,12 @@ export function SidebarContent({
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl px-2 py-1.5">
-            <span className="flex size-9 flex-none items-center justify-center rounded-full bg-linear-to-br from-brand-accent to-[#38b6dd] font-head text-xs font-extrabold text-[#032a36]">
-              {candidate.firstName[0]}
-              {candidate.lastName[0]}
-            </span>
+            <CandidateAvatar
+              firstName={candidate.firstName}
+              lastName={candidate.lastName}
+              photoUrl={candidate.photoUrl}
+              className="size-9 bg-linear-to-br from-brand-accent to-[#38b6dd] text-xs text-[#032a36]"
+            />
             <div className="min-w-0 flex-1">
               <p className="truncate font-head text-sm font-bold">
                 {candidate.firstName} {candidate.lastName}

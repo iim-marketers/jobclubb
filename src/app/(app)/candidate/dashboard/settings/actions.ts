@@ -10,6 +10,11 @@ import {
 } from "@/lib/sign-up-validation";
 import { createClient } from "@/lib/supabase/server";
 import { requireCandidate } from "@/server/auth/current-candidate";
+import {
+  deleteCandidatePhoto,
+  isAcceptedPhoto,
+  uploadCandidatePhoto,
+} from "@/server/candidates/photo";
 
 const SETTINGS_PATH = `${CANDIDATE_HOME}/settings`;
 
@@ -73,5 +78,54 @@ export async function changePassword(
     return { error: "We couldn't change your password. Please try again." };
   }
 
+  return { ok: true };
+}
+
+async function savePhotoPath(candidateId: string, photoPath: string | null) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("candidates")
+    .update({ photo_path: photoPath })
+    .eq("id", candidateId);
+  if (error) throw error;
+}
+
+export async function updatePhoto(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const candidate = await requireCandidate(SETTINGS_PATH);
+  const file = formData.get("photo");
+  if (!isAcceptedPhoto(file))
+    return { error: "Choose a JPG, PNG or WebP image." };
+
+  let path: string | undefined;
+  try {
+    path = await uploadCandidatePhoto(candidate.id, file);
+    await savePhotoPath(candidate.id, path);
+  } catch (error) {
+    console.error("Updating candidate photo failed", error);
+    if (path) await deleteCandidatePhoto(path);
+    return { error: "We couldn't upload your photo. Please try again." };
+  }
+
+  if (candidate.photo_path) await deleteCandidatePhoto(candidate.photo_path);
+  revalidatePath("/candidate", "layout");
+  return { ok: true };
+}
+
+export async function removePhoto(): Promise<SettingsActionState> {
+  const candidate = await requireCandidate(SETTINGS_PATH);
+  if (!candidate.photo_path) return { ok: true };
+
+  try {
+    await savePhotoPath(candidate.id, null);
+  } catch (error) {
+    console.error("Removing candidate photo failed", error);
+    return { error: "We couldn't remove your photo. Please try again." };
+  }
+
+  await deleteCandidatePhoto(candidate.photo_path);
+  revalidatePath("/candidate", "layout");
   return { ok: true };
 }
