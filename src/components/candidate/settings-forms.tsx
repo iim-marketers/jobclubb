@@ -4,22 +4,27 @@ import {
   startTransition,
   useActionState,
   useEffect,
+  useOptimistic,
   useRef,
   useState,
 } from "react";
-import { Loader2, Lock } from "lucide-react";
+import { Camera, Loader2, Lock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   changePassword,
+  removePhoto,
+  updatePhoto,
   updateProfile,
   type SettingsActionState,
 } from "@/app/(app)/candidate/dashboard/settings/actions";
+import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { Panel } from "@/components/candidate/dashboard-ui";
 import { Field, PasswordField, SelectField } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toSquarePhoto } from "@/lib/square-photo";
 import { VERTICALS } from "@/lib/taxonomy";
 
 const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
@@ -153,6 +158,136 @@ function ProfileSectionForm({
         {children(errors, () => setDirty(true))}
       </Panel>
     </form>
+  );
+}
+
+const PHOTO_TYPES = "image/jpeg,image/png,image/webp";
+const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
+
+export function PhotoForm({
+  firstName,
+  lastName,
+  photoUrl,
+}: {
+  firstName: string;
+  lastName: string;
+  photoUrl: string | null;
+}) {
+  const [uploadState, uploadAction, uploading] = useActionState<
+    SettingsActionState,
+    FormData
+  >(updatePhoto, {});
+  const [removeState, removeAction, removing] = useActionState<
+    SettingsActionState,
+    FormData
+  >(removePhoto, {});
+  const [preview, setPreview] = useOptimistic<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const busy = uploading || removing;
+
+  useEffect(() => {
+    if (uploadState.ok) toast.success("Profile photo updated");
+    if (uploadState.error) toast.error(uploadState.error);
+  }, [uploadState]);
+
+  useEffect(() => {
+    if (removeState.ok) toast.success("Profile photo removed");
+    if (removeState.error) toast.error(removeState.error);
+  }, [removeState]);
+
+  useEffect(() => {
+    if (preview) return () => URL.revokeObjectURL(preview);
+  }, [preview]);
+
+  async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!PHOTO_TYPES.split(",").includes(file.type))
+      return toast.error("Choose a JPG, PNG or WebP image.");
+    if (file.size > MAX_SOURCE_BYTES)
+      return toast.error("That image is too large. Choose one under 20 MB.");
+
+    let photo: File;
+    try {
+      photo = await toSquarePhoto(file);
+    } catch {
+      return toast.error("We couldn't read that image. Try a different one.");
+    }
+
+    const data = new FormData();
+    data.set("photo", photo);
+    startTransition(() => {
+      setPreview(URL.createObjectURL(photo));
+      uploadAction(data);
+    });
+  }
+
+  return (
+    <Panel
+      id="photo"
+      title="Profile photo"
+      description="Employers only see your photo after you agree to reveal your profile."
+    >
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+        <div className="relative size-20 flex-none">
+          <CandidateAvatar
+            firstName={firstName}
+            lastName={lastName}
+            photoUrl={preview ?? photoUrl}
+            className="size-20 bg-linear-to-br from-brand to-brand-accent text-2xl text-white"
+          />
+          {busy && (
+            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+              <Loader2 className="size-5 animate-spin text-white" />
+            </span>
+          )}
+        </div>
+        <div className="min-w-0 space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={inputRef}
+              type="file"
+              accept={PHOTO_TYPES}
+              className="sr-only"
+              tabIndex={-1}
+              aria-hidden
+              onChange={onFileChange}
+            />
+            <Button
+              type="button"
+              disabled={busy}
+              onClick={() => inputRef.current?.click()}
+              className="h-10 bg-brand px-3 font-head text-brand-foreground hover:bg-brand-dark"
+            >
+              <Camera className="size-4" />
+              {uploading
+                ? "Uploading..."
+                : photoUrl
+                  ? "Change photo"
+                  : "Upload photo"}
+            </Button>
+            {photoUrl && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() =>
+                  startTransition(() => removeAction(new FormData()))
+                }
+                className="h-10 font-head px-3"
+              >
+                <Trash2 className="size-4" />
+                {removing ? "Removing..." : "Remove"}
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            JPG, PNG or WebP. We crop it to a square from the centre.
+          </p>
+        </div>
+      </div>
+    </Panel>
   );
 }
 

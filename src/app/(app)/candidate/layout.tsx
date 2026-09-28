@@ -7,6 +7,7 @@ import {
 import type { CandidateProfile } from "@/components/candidate/candidate-sidebar";
 import { VERTICALS } from "@/lib/taxonomy";
 import { requireMember } from "@/server/auth/current-candidate";
+import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 
 export default async function CandidateLayout({
   children,
@@ -20,6 +21,7 @@ export default async function CandidateLayout({
     firstName: candidate.first_name,
     lastName: candidate.last_name,
     email: candidate.email,
+    photoUrl: await getCandidatePhotoUrl(candidate.photo_path),
     sector: VERTICALS.find((v) => v.slug === candidate.vertical)?.name,
     plan: candidate.membership_plan,
     validUntil: new Intl.DateTimeFormat("en-IN", {

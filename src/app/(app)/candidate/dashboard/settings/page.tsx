@@ -6,6 +6,7 @@ import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import {
   PasswordForm,
   PersonalDetailsForm,
+  PhotoForm,
   PreferencesForm,
   type ProfileDefaults,
 } from "@/components/candidate/settings-forms";
@@ -13,6 +14,7 @@ import { SettingsNav } from "@/components/candidate/settings-nav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
+import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 
 export const metadata = { title: "Settings — JobClubb" };
 
@@ -39,6 +41,11 @@ export default async function SettingsPage() {
         <SettingsNav />
 
         <div className="min-w-0 space-y-6">
+          <PhotoForm
+            firstName={candidate.first_name}
+            lastName={candidate.last_name}
+            photoUrl={await getCandidatePhotoUrl(candidate.photo_path)}
+          />
           <PersonalDetailsForm defaults={defaults} />
           <PreferencesForm defaults={defaults} />
           <PasswordForm />
