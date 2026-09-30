@@ -60,8 +60,6 @@ function formatAmount(amount: number, currency: string) {
   }).format(amount / 100);
 }
 
-// Razorpay's own description is often just "Payment failed", so explain the
-// failure from its reason/source/step fields where we can.
 function explainFailure(error: RazorpayFailure) {
   const reason = error.reason ?? "";
   if (reason.includes("insufficient"))

@@ -46,8 +46,7 @@ export type ConfirmedPayment = {
 
 export type ConfirmPaymentResult = ConfirmedPayment | "unknown-order" | "failed";
 
-// Call only after the Razorpay signature has been verified. Safe to repeat for
-// the same payment: activation is derived from the stored paid_at.
+// Call only after the Razorpay signature has been verified.
 export async function confirmMembershipPayment({
   candidateId,
   orderId,
@@ -103,6 +102,30 @@ export async function confirmMembershipPayment({
         expiresAt: expiresAt.toISOString(),
       }
     : "failed";
+}
+
+export async function confirmMembershipPaymentForOrder({
+  orderId,
+  paymentId,
+}: {
+  orderId: string;
+  paymentId: string;
+}): Promise<ConfirmPaymentResult> {
+  const { data: order, error } = await createAdminClient()
+    .from("membership_payments")
+    .select("candidate_id")
+    .eq("order_id", orderId)
+    .maybeSingle();
+  if (error) {
+    console.error("Loading membership order failed", error);
+    return "failed";
+  }
+  if (!order) return "unknown-order";
+  return confirmMembershipPayment({
+    candidateId: order.candidate_id,
+    orderId,
+    paymentId,
+  });
 }
 
 async function activateMembership(

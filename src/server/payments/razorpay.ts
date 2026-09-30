@@ -48,6 +48,17 @@ export async function createRazorpayOrder(order: {
   }
 }
 
+function signaturesMatch(expected: Buffer, signature: string) {
+  const received = Buffer.from(signature, "hex");
+  return received.length === expected.length && timingSafeEqual(received, expected);
+}
+
+export function isValidWebhookSignature(body: string, signature: string) {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  if (!secret) throw new Error("RAZORPAY_WEBHOOK_SECRET must be set.");
+  return signaturesMatch(createHmac("sha256", secret).update(body).digest(), signature);
+}
+
 export function isValidPaymentSignature({
   orderId,
   paymentId,
@@ -60,6 +71,5 @@ export function isValidPaymentSignature({
   const expected = createHmac("sha256", credentials().keySecret)
     .update(`${orderId}|${paymentId}`)
     .digest();
-  const received = Buffer.from(signature, "hex");
-  return received.length === expected.length && timingSafeEqual(received, expected);
+  return signaturesMatch(expected, signature);
 }
