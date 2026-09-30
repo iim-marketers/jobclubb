@@ -41,6 +41,17 @@ pnpm db migration repair --status applied 20260922000000 20260922010000 20260922
 
 To add a migration, create `migrations/<YYYYMMDDHHMMSS>_<name>.sql` (or run `pnpm exec supabase migration new <name>`).
 
+### Deleting candidates
+
+Deleting a candidate (from `public.candidates` or **Authentication → Users**) also deletes their photo, resume PDFs and student ID from Storage. A trigger does this through the Storage API, so it needs the project URL and secret key in Vault. Run this once per project in the SQL Editor:
+
+```sql
+select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
+select vault.create_secret('<SUPABASE_SECRET_KEY>', 'storage_secret_key');
+```
+
+Without these secrets, deletes still work but the files stay in Storage. The database logs a warning each time this happens.
+
 ## 3. Auth settings (dashboard → Authentication)
 
 - **URL Configuration:** set **Site URL** to `http://localhost:3000` for now and to the live domain later. Add `http://localhost:3000/auth/confirm` (and the live equivalent) to **Redirect URLs**.

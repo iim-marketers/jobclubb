@@ -5,6 +5,7 @@ import { extractText, getDocumentProxy } from "unpdf";
 
 import { RESUME_JSON_SCHEMA, type Resume, type SavedResume } from "@/lib/resume";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { deleteResumePdfs } from "@/server/resume/resume-files";
 
 const MODEL = process.env.OPENAI_MODEL || "gpt-5-mini";
 
@@ -103,7 +104,9 @@ export async function getSavedResume(candidateId: string): Promise<SavedResume |
   const supabase = await createClient();
   const { data } = await supabase
     .from("candidate_resumes")
-    .select("target_role, job_description, keywords, resume, original_score, generated_at")
+    .select(
+      "target_role, job_description, keywords, resume, original_score, uploaded_pdf_path, generated_pdf_path, generated_at",
+    )
     .eq("candidate_id", candidateId)
     .maybeSingle();
   if (!data) return null;
@@ -113,6 +116,8 @@ export async function getSavedResume(candidateId: string): Promise<SavedResume |
     keywords: data.keywords,
     resume: data.resume as Resume,
     originalScore: data.original_score,
+    uploadedPdfPath: data.uploaded_pdf_path,
+    generatedPdfPath: data.generated_pdf_path,
     generatedAt: data.generated_at,
   };
 }
@@ -127,6 +132,8 @@ export async function saveResume(candidateId: string, saved: Omit<SavedResume, "
       keywords: saved.keywords,
       resume: saved.resume,
       original_score: saved.originalScore,
+      uploaded_pdf_path: saved.uploadedPdfPath,
+      generated_pdf_path: saved.generatedPdfPath,
       generated_at: new Date().toISOString(),
     });
   if (error) console.error("Saving resume failed", error);
@@ -134,10 +141,13 @@ export async function saveResume(candidateId: string, saved: Omit<SavedResume, "
 }
 
 export async function deleteResume(candidateId: string) {
-  const { error } = await createAdminClient()
+  const { data, error } = await createAdminClient()
     .from("candidate_resumes")
     .delete()
-    .eq("candidate_id", candidateId);
+    .eq("candidate_id", candidateId)
+    .select("uploaded_pdf_path, generated_pdf_path")
+    .maybeSingle();
   if (error) console.error("Deleting resume failed", error);
+  else await deleteResumePdfs([data?.uploaded_pdf_path, data?.generated_pdf_path]);
   return !error;
 }

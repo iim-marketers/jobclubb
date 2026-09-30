@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { CandidateHeader } from "@/components/candidate/candidate-header";
-import { CandidateSidebar, type CandidateProfile } from "@/components/candidate/candidate-sidebar";
+import {
+  CandidateSidebar,
+  type CandidateProfile,
+} from "@/components/candidate/candidate-sidebar";
 
 export const SIDEBAR_COOKIE = "jc-sidebar";
 
@@ -27,7 +30,12 @@ export function CandidateShell({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "b" && (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey) {
+      if (
+        e.key?.toLowerCase() === "b" &&
+        (e.metaKey || e.ctrlKey) &&
+        !e.altKey &&
+        !e.shiftKey
+      ) {
         e.preventDefault();
         toggle();
       }
@@ -40,7 +48,11 @@ export function CandidateShell({
     <div className="flex min-h-dvh flex-1 bg-background">
       <CandidateSidebar candidate={candidate} collapsed={collapsed} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <CandidateHeader candidate={candidate} sidebarCollapsed={collapsed} onToggleSidebar={toggle} />
+        <CandidateHeader
+          candidate={candidate}
+          sidebarCollapsed={collapsed}
+          onToggleSidebar={toggle}
+        />
         {children}
       </div>
     </div>

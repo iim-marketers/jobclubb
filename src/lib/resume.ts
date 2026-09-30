@@ -28,6 +28,8 @@ export type SavedResume = {
   keywords: string[];
   resume: Resume;
   originalScore: number | null;
+  uploadedPdfPath: string | null;
+  generatedPdfPath: string | null;
   generatedAt: string;
 };
 
@@ -129,8 +131,6 @@ export function keywordScore(text: string, keywords: string[]) {
   return Math.round((matchKeywords(text, keywords).matched.length / keywords.length) * 100);
 }
 
-// 70% keyword coverage, 30% structure — the two things applicant tracking
-// systems actually parse for.
 export function atsReport(resume: Resume, contact: ResumeContact, keywords: string[]): AtsReport {
   const { matched, missing } = matchKeywords(resumeToText(resume), keywords);
   const bullets = resume.experience.flatMap((e) => e.bullets);
