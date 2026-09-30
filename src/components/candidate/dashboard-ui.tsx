@@ -56,7 +56,7 @@ export function Panel({
         <div className="min-w-0">
           <h2 className="font-head font-bold tracking-tight">{title}</h2>
           {description && (
-            <p className="mt-0.5 text-sm text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {description}
             </p>
           )}

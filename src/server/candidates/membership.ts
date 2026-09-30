@@ -1,19 +1,98 @@
 import "server-only";
 
-import { MEMBERSHIP_DAYS, type MembershipPlan } from "@/lib/membership";
+import {
+  MEMBERSHIP_DAYS,
+  PLAN_DETAILS,
+  isMembershipPlan,
+  type MembershipPlan,
+} from "@/lib/membership";
 import { createAdminClient } from "@/lib/supabase/server";
+import { createRazorpayOrder } from "@/server/payments/razorpay";
 
-// TODO: replace with Razorpay (create an order, verify the payment signature
-// and webhook) and record each payment in its own table.
-export const paymentsTestMode =
-  process.env.NODE_ENV === "development" ||
-  process.env.PAYMENTS_TEST_MODE === "true";
+const CURRENCY = "INR";
 
-export async function activateMembership(
+export async function createMembershipOrder(candidate: {
+  id: string;
+  plan: MembershipPlan;
+}) {
+  const amount = PLAN_DETAILS[candidate.plan].amount * 100;
+  const order = await createRazorpayOrder({
+    amount,
+    currency: CURRENCY,
+    receipt: `membership_${Date.now()}`,
+    notes: { candidate_id: candidate.id, plan: candidate.plan },
+  });
+
+  const { error } = await createAdminClient().from("membership_payments").insert({
+    order_id: order.id,
+    candidate_id: candidate.id,
+    plan: candidate.plan,
+    amount,
+    currency: CURRENCY,
+  });
+  if (error) {
+    console.error("Recording Razorpay order failed", error);
+    return null;
+  }
+
+  return { orderId: order.id, amount, currency: CURRENCY };
+}
+
+export type ConfirmPaymentResult = "paid" | "unknown-order" | "failed";
+
+// Call only after the Razorpay signature has been verified. Safe to repeat for
+// the same payment: activation is derived from the stored paid_at.
+export async function confirmMembershipPayment({
+  candidateId,
+  orderId,
+  paymentId,
+}: {
+  candidateId: string;
+  orderId: string;
+  paymentId: string;
+}): Promise<ConfirmPaymentResult> {
+  const admin = createAdminClient();
+
+  const { data: marked, error: markError } = await admin
+    .rpc("mark_membership_paid", {
+      p_order_id: orderId,
+      p_candidate_id: candidateId,
+      p_payment_id: paymentId,
+    })
+    .select("plan, paid_at")
+    .maybeSingle();
+  if (markError) {
+    console.error("Recording Razorpay payment failed", markError);
+    return "failed";
+  }
+
+  let payment = marked;
+  if (!payment) {
+    const { data: existing } = await admin
+      .from("membership_payments")
+      .select("plan, paid_at, payment_id")
+      .eq("order_id", orderId)
+      .eq("candidate_id", candidateId)
+      .eq("status", "paid")
+      .maybeSingle();
+    if (existing?.payment_id !== paymentId) return "unknown-order";
+    payment = existing;
+  }
+
+  if (!isMembershipPlan(payment.plan) || !payment.paid_at) return "failed";
+  const activated = await activateMembership(
+    candidateId,
+    payment.plan,
+    new Date(payment.paid_at),
+  );
+  return activated ? "paid" : "failed";
+}
+
+async function activateMembership(
   candidateId: string,
   plan: MembershipPlan,
+  paidAt: Date,
 ) {
-  const paidAt = new Date();
   const expiresAt = new Date(paidAt);
   expiresAt.setDate(expiresAt.getDate() + MEMBERSHIP_DAYS);
 
@@ -28,4 +107,40 @@ export async function activateMembership(
 
   if (error) console.error("Activating membership failed", error);
   return !error;
+}
+
+export type MembershipPayment = {
+  invoiceNumber: string;
+  paymentId: string;
+  plan: MembershipPlan;
+  amount: number;
+  currency: string;
+  paidAt: string;
+};
+
+export async function getMembershipPayments(
+  candidateId: string,
+): Promise<MembershipPayment[]> {
+  const { data, error } = await createAdminClient()
+    .from("membership_payments")
+    .select("invoice_number, payment_id, plan, amount, currency, paid_at")
+    .eq("candidate_id", candidateId)
+    .eq("status", "paid")
+    .order("paid_at", { ascending: false });
+  if (error) console.error("Loading membership payments failed", error);
+
+  return (data ?? []).flatMap((row) =>
+    isMembershipPlan(row.plan) && row.invoice_number && row.payment_id && row.paid_at
+      ? [
+          {
+            invoiceNumber: row.invoice_number,
+            paymentId: row.payment_id,
+            plan: row.plan,
+            amount: row.amount,
+            currency: row.currency,
+            paidAt: row.paid_at,
+          },
+        ]
+      : [],
+  );
 }

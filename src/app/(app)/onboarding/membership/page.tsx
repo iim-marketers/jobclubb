@@ -1,10 +1,9 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { Check, FlaskConical, LogOut, ShieldCheck } from "lucide-react";
+import { Check, LogOut } from "lucide-react";
 
 import { signOut } from "@/app/(auth)/sign-in/actions";
-import { payForMembership } from "@/app/(app)/onboarding/membership/actions";
-import { PlanSubmit } from "@/components/plan-submit";
+import { MembershipCheckout } from "@/components/membership-checkout";
 import {
   MEMBER_FEATURES,
   PLAN_DETAILS,
@@ -15,24 +14,14 @@ import {
   CHECKOUT_PATH,
   requireCandidate,
 } from "@/server/auth/current-candidate";
-import { paymentsTestMode } from "@/server/candidates/membership";
 
 export const metadata = { title: "Complete your membership — JobClubb" };
 
-const ERRORS: Record<string, string> = {
-  unavailable:
-    "Online payment isn't available yet. Please try again soon or contact us.",
-  failed: "We couldn't activate your membership. Please try again.",
-};
-
-export default async function CheckoutPage({
-  searchParams,
-}: PageProps<"/onboarding/membership">) {
+export default async function CheckoutPage() {
   const candidate = await requireCandidate(CHECKOUT_PATH);
   if (isMembershipActive(candidate.membership_expires_at))
     redirect("/candidate/dashboard");
 
-  const { error } = await searchParams;
   const plan = planFor(candidate.code);
   const details = PLAN_DETAILS[plan];
   const franchise = plan === "franchise";
@@ -80,15 +69,6 @@ export default async function CheckoutPage({
             and get your guaranteed interviews.
           </p>
         </div>
-
-        {typeof error === "string" && ERRORS[error] && (
-          <p
-            role="alert"
-            className="mt-6 rounded-xl bg-destructive/10 px-4 py-2.5 text-sm text-destructive"
-          >
-            {ERRORS[error]}
-          </p>
-        )}
 
         <div className="mt-10 grid w-full max-w-4xl gap-5 md:grid-cols-[minmax(0,1fr)_20rem]">
           <section className="rounded-3xl border border-border bg-card p-7 sm:p-8">
@@ -154,23 +134,24 @@ export default async function CheckoutPage({
               </div>
             </dl>
 
-            <form action={payForMembership} className="mt-auto pt-5">
-              <PlanSubmit highlighted>Pay {details.price}</PlanSubmit>
-            </form>
+            <div className="mt-auto pt-5">
+              <MembershipCheckout
+                label={`Pay ${details.price}`}
+                planName={details.name}
+                prefill={{
+                  name: `${candidate.first_name} ${candidate.last_name}`,
+                  email: candidate.email,
+                  contact: candidate.phone,
+                }}
+              />
+            </div>
           </aside>
         </div>
 
-        {paymentsTestMode ? (
-          <p className="mt-5 flex max-w-4xl items-start gap-2 rounded-xl bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-800 dark:text-amber-200">
-            Test mode: no money is charged. Paying activates the membership
-            straight away.
-          </p>
-        ) : (
-          <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
-            Paid securely via Razorpay. We&apos;ll remind you 15 days before it
-            renews.
-          </p>
-        )}
+        <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
+          Paid securely via Razorpay. We&apos;ll remind you 15 days before it
+          renews.
+        </p>
       </main>
     </div>
   );
