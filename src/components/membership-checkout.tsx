@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 
 import {
   PaymentStatusDialog,
+  type PaymentFailure,
   type PaymentStatus,
 } from "@/components/payment-status-dialog";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,19 @@ type RazorpayResponse = {
   razorpay_signature: string;
 };
 
+type RazorpayFailure = {
+  description?: string;
+  source?: string;
+  step?: string;
+  reason?: string;
+  metadata?: { payment_id?: string; order_id?: string };
+};
+
 type RazorpayInstance = {
   open(): void;
   on(
     event: "payment.failed",
-    handler: (response: { error: { description?: string } }) => void,
+    handler: (response: { error: RazorpayFailure }) => void,
   ): void;
 };
 
@@ -43,6 +52,34 @@ async function postJson<T>(url: string, body?: unknown) {
   return data as T;
 }
 
+function formatAmount(amount: number, currency: string) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: amount % 100 ? 2 : 0,
+  }).format(amount / 100);
+}
+
+// Razorpay's own description is often just "Payment failed", so explain the
+// failure from its reason/source/step fields where we can.
+function explainFailure(error: RazorpayFailure) {
+  const reason = error.reason ?? "";
+  if (reason.includes("insufficient"))
+    return "Your account doesn't have enough balance for this payment.";
+  if (reason.includes("timed_out") || reason.includes("timeout"))
+    return "The payment timed out before your bank confirmed it.";
+  if (reason.includes("cancelled"))
+    return "The payment was cancelled before it completed.";
+  if (error.step === "payment_authentication" || reason.includes("authentication"))
+    return "The OTP or bank verification wasn't completed.";
+  if (error.source === "bank" || error.source === "issuer" || reason.includes("declined"))
+    return "Your bank declined this payment.";
+  const description = error.description?.trim().replace(/\.?$/, ".");
+  return description && !/^payment failed\.$/i.test(description)
+    ? description
+    : "Your payment didn't go through.";
+}
+
 export function MembershipCheckout({
   label,
   planName,
@@ -59,20 +96,34 @@ export function MembershipCheckout({
   const [status, setStatus] = useState<PaymentStatus | null>(null);
   // Razorpay keeps its modal open after a failed attempt so the candidate can
   // retry; the failure is only reported once they close it.
-  const lastFailure = useRef<string | null>(null);
+  const lastFailure = useRef<PaymentFailure | null>(null);
   const lastPayment = useRef<RazorpayResponse | null>(null);
+  const amount = useRef<string | undefined>(undefined);
 
   async function verify(response: RazorpayResponse) {
     lastPayment.current = response;
     setStatus({ kind: "verifying" });
     try {
-      await postJson("/api/verify-payment", response);
-      setStatus({ kind: "success" });
+      const receipt = await postJson<{
+        invoice_number: string;
+        paid_at: string;
+        expires_at: string;
+      }>("/api/verify-payment", response);
+      setStatus({
+        kind: "success",
+        invoiceNumber: receipt.invoice_number,
+        paymentId: response.razorpay_payment_id,
+        amount: amount.current,
+        paidAt: receipt.paid_at,
+        expiresAt: receipt.expires_at,
+      });
     } catch (err) {
       setStatus({
         kind: "failed",
         stage: "verification",
         message: (err as Error).message,
+        amount: amount.current,
+        paymentId: response.razorpay_payment_id,
       });
     }
   }
@@ -103,6 +154,7 @@ export function MembershipCheckout({
         amount: number;
         currency: string;
       }>("/api/create-order");
+      amount.current = formatAmount(order.amount, order.currency);
 
       const checkout = new window.Razorpay({
         key: keyId,
@@ -118,20 +170,18 @@ export function MembershipCheckout({
           ondismiss: () => {
             setBusy(false);
             if (lastFailure.current)
-              setStatus({
-                kind: "failed",
-                stage: "payment",
-                message: lastFailure.current,
-              });
+              setStatus({ kind: "failed", stage: "payment", ...lastFailure.current });
             else
               setError("Payment cancelled. You can try again whenever you're ready.");
           },
         },
       });
       checkout.on("payment.failed", ({ error }) => {
-        lastFailure.current = `${
-          error.description ?? "Your payment didn't go through."
-        } If any amount was debited, your bank will refund it automatically.`;
+        lastFailure.current = {
+          message: explainFailure(error),
+          amount: amount.current,
+          paymentId: error.metadata?.payment_id,
+        };
       });
       checkout.open();
     } catch (err) {

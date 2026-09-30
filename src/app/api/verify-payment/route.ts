@@ -47,5 +47,10 @@ export async function POST(request: Request) {
       { status: 500 },
     );
 
-  return Response.json({ success: true });
+  return Response.json({
+    success: true,
+    invoice_number: result.invoiceNumber,
+    paid_at: result.paidAt,
+    expires_at: result.expiresAt,
+  });
 }

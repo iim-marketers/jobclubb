@@ -38,7 +38,13 @@ export async function createMembershipOrder(candidate: {
   return { orderId: order.id, amount, currency: CURRENCY };
 }
 
-export type ConfirmPaymentResult = "paid" | "unknown-order" | "failed";
+export type ConfirmedPayment = {
+  invoiceNumber: string;
+  paidAt: string;
+  expiresAt: string;
+};
+
+export type ConfirmPaymentResult = ConfirmedPayment | "unknown-order" | "failed";
 
 // Call only after the Razorpay signature has been verified. Safe to repeat for
 // the same payment: activation is derived from the stored paid_at.
@@ -59,7 +65,7 @@ export async function confirmMembershipPayment({
       p_candidate_id: candidateId,
       p_payment_id: paymentId,
     })
-    .select("plan, paid_at")
+    .select("plan, paid_at, invoice_number")
     .maybeSingle();
   if (markError) {
     console.error("Recording Razorpay payment failed", markError);
@@ -70,7 +76,7 @@ export async function confirmMembershipPayment({
   if (!payment) {
     const { data: existing } = await admin
       .from("membership_payments")
-      .select("plan, paid_at, payment_id")
+      .select("plan, paid_at, payment_id, invoice_number")
       .eq("order_id", orderId)
       .eq("candidate_id", candidateId)
       .eq("status", "paid")
@@ -79,13 +85,24 @@ export async function confirmMembershipPayment({
     payment = existing;
   }
 
-  if (!isMembershipPlan(payment.plan) || !payment.paid_at) return "failed";
-  const activated = await activateMembership(
+  if (
+    !isMembershipPlan(payment.plan) ||
+    !payment.paid_at ||
+    !payment.invoice_number
+  )
+    return "failed";
+  const expiresAt = await activateMembership(
     candidateId,
     payment.plan,
     new Date(payment.paid_at),
   );
-  return activated ? "paid" : "failed";
+  return expiresAt
+    ? {
+        invoiceNumber: payment.invoice_number,
+        paidAt: payment.paid_at,
+        expiresAt: expiresAt.toISOString(),
+      }
+    : "failed";
 }
 
 async function activateMembership(
@@ -105,8 +122,11 @@ async function activateMembership(
     })
     .eq("id", candidateId);
 
-  if (error) console.error("Activating membership failed", error);
-  return !error;
+  if (error) {
+    console.error("Activating membership failed", error);
+    return null;
+  }
+  return expiresAt;
 }
 
 export type MembershipPayment = {

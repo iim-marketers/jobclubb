@@ -149,7 +149,7 @@ export default async function CheckoutPage() {
         </div>
 
         <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
-          Paid securely via Razorpay. We&apos;ll remind you 15 days before it
+          Pay securely via Razorpay. We&apos;ll remind you 15 days before it
           renews.
         </p>
       </main>
