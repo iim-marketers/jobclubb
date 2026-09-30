@@ -7,7 +7,12 @@ import {
   buildAtsResume,
   type ResumeActionState,
 } from "@/app/(app)/candidate/dashboard/resume/actions";
-import { Field, FieldError, FileField } from "@/components/sign-up/fields";
+import {
+  Field,
+  FieldError,
+  FileField,
+  SelectField,
+} from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,7 +50,9 @@ function TextareaField({
         aria-describedby={error ? `${id}-error` : undefined}
         className="max-h-60 bg-card"
       />
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && !error && (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      )}
       <FieldError id={`${id}-error`} message={error} />
     </div>
   );
@@ -83,11 +90,16 @@ export function ResumeBuilder({
   roleSuggestions: string[];
   hasResume: boolean;
 }) {
-  const [state, formAction, pending] = useActionState<ResumeActionState, FormData>(
-    buildAtsResume,
-    {},
-  );
+  const [state, formAction, pending] = useActionState<
+    ResumeActionState,
+    FormData
+  >(buildAtsResume, {});
   const errors = state.fieldErrors ?? {};
+  const roleOptions = (
+    targetRole && !roleSuggestions.includes(targetRole)
+      ? [targetRole, ...roleSuggestions]
+      : roleSuggestions
+  ).map((role) => ({ value: role, label: role }));
 
   const jobDescriptionField = (
     <TextareaField
@@ -111,8 +123,6 @@ export function ResumeBuilder({
 
   return (
     <form
-      // Submitting manually skips React's automatic form reset, so a failed
-      // attempt doesn't wipe what the candidate typed.
       onSubmit={(e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
@@ -120,21 +130,27 @@ export function ResumeBuilder({
       }}
       className="space-y-5"
     >
-      <Field
-        id="targetRole"
-        label="Role you're applying for"
-        required
-        defaultValue={targetRole}
-        list="role-suggestions"
-        maxLength={120}
-        placeholder="e.g. Front Office Executive"
-        error={errors.targetRole}
-      />
-      <datalist id="role-suggestions">
-        {roleSuggestions.map((role) => (
-          <option key={role} value={role} />
-        ))}
-      </datalist>
+      {roleOptions.length > 0 ? (
+        <SelectField
+          id="targetRole"
+          label="Role you're applying for"
+          required
+          options={roleOptions}
+          defaultValue={targetRole || undefined}
+          placeholder="Select a role"
+          error={errors.targetRole}
+        />
+      ) : (
+        <Field
+          id="targetRole"
+          label="Role you're applying for"
+          required
+          defaultValue={targetRole}
+          maxLength={120}
+          placeholder="e.g. Front Office Executive"
+          error={errors.targetRole}
+        />
+      )}
 
       {hasResume ? (
         <>
@@ -152,10 +168,16 @@ export function ResumeBuilder({
             error={errors.additions}
           />
           <div className="divide-y divide-border rounded-2xl border border-border">
-            <MoreOptions title="Tailor to a job post" defaultOpen={!!jobDescription}>
+            <MoreOptions
+              title="Tailor to a job post"
+              defaultOpen={!!jobDescription}
+            >
               {jobDescriptionField}
             </MoreOptions>
-            <MoreOptions title="Rebuild from a different resume" defaultOpen={!!errors.oldResume}>
+            <MoreOptions
+              title="Rebuild from a different resume"
+              defaultOpen={!!errors.oldResume}
+            >
               {resumeField}
             </MoreOptions>
           </div>
@@ -176,7 +198,10 @@ export function ResumeBuilder({
       )}
 
       {state.error && (
-        <p role="alert" className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <p
+          role="alert"
+          className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
           {state.error}
         </p>
       )}
@@ -188,13 +213,25 @@ export function ResumeBuilder({
           disabled={pending}
           className="w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
         >
-          {pending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-          {pending ? "Building your resume…" : hasResume ? "Regenerate resume" : "Generate ATS resume"}
+          {pending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Sparkles className="size-4" />
+          )}
+          {pending
+            ? "Building your resume…"
+            : hasResume
+              ? "Regenerate resume"
+              : "Generate ATS resume"}
         </Button>
-        <p aria-live="polite" className="text-center text-xs text-muted-foreground">
+        <p
+          aria-live="polite"
+          className="text-center text-xs text-muted-foreground"
+        >
           {pending
             ? "This usually takes 20–40 seconds. Keep this tab open."
-            : !hasResume && "We only use what you give us. Check every detail before you apply."}
+            : !hasResume &&
+              "We only use what you give us. Check every detail before you apply."}
         </p>
       </div>
     </form>

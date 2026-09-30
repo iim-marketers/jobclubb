@@ -12,9 +12,18 @@ import {
 import { DashboardHeader, Panel } from "@/components/candidate/dashboard-ui";
 import { MembershipOverview } from "@/components/candidate/membership-overview";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { MEMBERSHIP_DAYS, PLAN_DETAILS } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
+import { getMembershipPayments } from "@/server/candidates/membership";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "Membership — JobClubb" };
@@ -29,9 +38,19 @@ const formatDate = (d: Date) =>
     timeZone: "Asia/Kolkata",
   }).format(d);
 
+const formatAmount = (paise: number, currency: string) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(paise / 100);
+
 export default async function MembershipPage() {
   const candidate = await requireMember(`${CANDIDATE_HOME}/membership`);
-  const resume = await getSavedResume(candidate.id);
+  const [resume, payments] = await Promise.all([
+    getSavedResume(candidate.id),
+    getMembershipPayments(candidate.id),
+  ]);
 
   const plan = PLAN_DETAILS[candidate.membership_plan];
   const expiresAt = new Date(candidate.membership_expires_at);
@@ -125,50 +144,82 @@ export default async function MembershipPage() {
         </div>
       </section>
 
-      <Panel title="Billing" description="Your plan and payment history">
-        <div className="grid gap-6 md:grid-cols-2">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm">
-            <Detail label="Plan" value={plan.name} />
-            <Detail label="Price" value={`${plan.price} / year`} />
-            <Detail label="Started" value={formatDate(startedAt)} />
-            <Detail label="Valid till" value={formatDate(expiresAt)} />
-            {candidate.code && (
-              <Detail label="Sign-up code" value={candidate.code} />
-            )}
-          </dl>
-
-          <div className="min-w-0">
-            <p className="mb-2 text-xs text-muted-foreground">Payments</p>
-            <div className="flex items-center gap-3 rounded-2xl border border-border p-4">
-              <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                <Receipt className="size-4.5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-head text-sm font-bold">
-                  {plan.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatDate(startedAt)}
-                </p>
-              </div>
-              <div className="flex-none text-right">
-                <p className="font-head text-sm font-bold">{plan.price}</p>
-                <p className="text-xs font-semibold text-good">Paid</p>
-              </div>
-            </div>
-            <p className="mt-3 text-xs leading-5 text-muted-foreground">
-              Need a GST invoice? Email{" "}
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-semibold text-brand hover:text-brand-dark"
-              >
-                {SUPPORT_EMAIL}
-              </a>{" "}
-              from your registered address and we&apos;ll send it within one
-              working day.
+      <Panel title="Billing" description="Your payment history">
+        {payments.length === 0 ? (
+          <div className="flex flex-col items-center rounded-2xl border border-dashed border-border px-4 py-10 text-center">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+              <Receipt className="size-4.5" />
+            </span>
+            <p className="mt-3 font-head text-sm font-bold">No payments yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Membership payments you make will show up here.
             </p>
           </div>
-        </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-border">
+            <Table>
+              <TableHeader className="bg-muted/40">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="h-11 px-3 text-xs font-semibold text-muted-foreground">
+                    Invoice no.
+                  </TableHead>
+                  <TableHead className="h-11 px-3 text-xs font-semibold text-muted-foreground">
+                    Date
+                  </TableHead>
+                  <TableHead className="hidden h-11 px-3 text-xs font-semibold text-muted-foreground md:table-cell">
+                    Plan
+                  </TableHead>
+                  <TableHead className="hidden h-11 px-3 text-xs font-semibold text-muted-foreground lg:table-cell">
+                    Payment ID
+                  </TableHead>
+                  <TableHead className="h-11 px-3 text-right text-xs font-semibold text-muted-foreground">
+                    Amount
+                  </TableHead>
+                  <TableHead className="h-11 px-3 text-right text-xs font-semibold text-muted-foreground">
+                    Status
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map((payment) => (
+                  <TableRow key={payment.invoiceNumber}>
+                    <TableCell className="px-3 py-3.5 font-mono text-xs font-semibold whitespace-nowrap">
+                      {payment.invoiceNumber}
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 whitespace-nowrap">
+                      {formatDate(new Date(payment.paidAt))}
+                    </TableCell>
+                    <TableCell className="hidden px-3 py-3.5 font-head font-bold md:table-cell">
+                      {PLAN_DETAILS[payment.plan].name}
+                    </TableCell>
+                    <TableCell className="hidden px-3 py-3.5 font-mono text-xs text-muted-foreground lg:table-cell">
+                      {payment.paymentId}
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 text-right font-head font-bold">
+                      {formatAmount(payment.amount, payment.currency)}
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 text-right">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
+                        <Check className="size-3" strokeWidth={3} /> Paid
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        {/* <p className="mt-3 text-xs leading-5 text-muted-foreground">
+          Need a GST invoice? Email{" "}
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="font-semibold text-brand hover:text-brand-dark"
+          >
+            {SUPPORT_EMAIL}
+          </a>{" "}
+          from your registered address and we&apos;ll send it within one
+          working day.
+        </p> */}
       </Panel>
     </div>
   );
@@ -216,14 +267,5 @@ function BenefitCard({
         <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
       </Link>
     </article>
-  );
-}
-
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 truncate font-head font-bold">{value}</dd>
-    </div>
   );
 }

@@ -106,7 +106,7 @@ export function CandidateSignUp() {
             <Field
               id="firstName"
               label="First name"
-              placeholder="Priya"
+              placeholder="e.g. Priya"
               autoComplete="given-name"
               required
               error={errors.firstName}
@@ -114,7 +114,7 @@ export function CandidateSignUp() {
             <Field
               id="lastName"
               label="Last name"
-              placeholder="Sharma"
+              placeholder="e.g. Sharma"
               autoComplete="family-name"
               required
               error={errors.lastName}
@@ -133,7 +133,7 @@ export function CandidateSignUp() {
               id="phone"
               label="Mobile number"
               type="tel"
-              placeholder="+91 90000 00000"
+              placeholder="e.g. 7987654321"
               autoComplete="tel"
               required
               error={errors.phone}
@@ -167,7 +167,7 @@ export function CandidateSignUp() {
             <Field
               id="city"
               label="City"
-              placeholder="Kolkata"
+              placeholder="e.g. Kolkata"
               autoComplete="address-level2"
               required
               error={errors.city}
@@ -175,7 +175,7 @@ export function CandidateSignUp() {
             <Field
               id="pincode"
               label="Pincode"
-              placeholder="700001"
+              placeholder="e.g. 700001"
               inputMode="numeric"
               maxLength={6}
               autoComplete="postal-code"

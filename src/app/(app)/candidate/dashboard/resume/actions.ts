@@ -14,6 +14,8 @@ import {
   pdfToText,
   saveResume,
 } from "@/server/resume/ats-resume";
+import { deleteResumePdfs, uploadResumePdf } from "@/server/resume/resume-files";
+import { renderResumePdf } from "@/server/resume/resume-pdf";
 
 const RESUME_PATH = `${CANDIDATE_HOME}/resume`;
 const MAX_PDF_BYTES = 5 * 1024 * 1024;
@@ -27,6 +29,13 @@ export type ResumeActionState = {
 
 function text(formData: FormData, key: string, max: number) {
   return String(formData.get(key) ?? "").trim().slice(0, max);
+}
+
+function storePdf(upload: Promise<string>) {
+  return upload.catch((error) => {
+    console.error("Storing resume PDF failed", error);
+    return null;
+  });
 }
 
 export async function buildAtsResume(
@@ -81,6 +90,20 @@ export async function buildAtsResume(
       previous: oldResume ? undefined : previous?.resume,
     });
 
+    const [uploadedPdfPath, generatedPdfPath] = await Promise.all([
+      pdf
+        ? storePdf(uploadResumePdf(candidate.id, "uploaded", pdf))
+        : (previous?.uploadedPdfPath ?? null),
+      storePdf(
+        renderResumePdf(resume, {
+          name: `${candidate.first_name} ${candidate.last_name}`,
+          email: candidate.email,
+          phone: candidate.phone,
+          city: candidate.city,
+        }).then((buffer) => uploadResumePdf(candidate.id, "generated", buffer)),
+      ),
+    ]);
+
     const saved = await saveResume(candidate.id, {
       targetRole,
       jobDescription: jobDescription || null,
@@ -91,8 +114,14 @@ export async function buildAtsResume(
         : reuseKeywords
           ? previous.originalScore
           : null,
+      uploadedPdfPath,
+      generatedPdfPath,
     });
-    if (!saved) return { error: "Your resume was generated but couldn't be saved. Please try again." };
+    if (!saved) {
+      await deleteResumePdfs([pdf && uploadedPdfPath, generatedPdfPath]);
+      return { error: "Your resume was generated but couldn't be saved. Please try again." };
+    }
+    await deleteResumePdfs([pdf && previous?.uploadedPdfPath, previous?.generatedPdfPath]);
   } catch (error) {
     console.error("ATS resume generation failed", error);
     return { error: "We couldn't generate your resume right now. Please try again in a minute." };

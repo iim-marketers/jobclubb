@@ -19,7 +19,6 @@ import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "My resume — JobClubb" };
 
-// Keyword extraction and resume generation are two model calls in one action.
 export const maxDuration = 60;
 
 export default async function ResumePage() {
