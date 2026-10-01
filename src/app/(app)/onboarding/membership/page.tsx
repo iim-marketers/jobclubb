@@ -2,8 +2,8 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Check, LogOut } from "lucide-react";
 
-import { signOut } from "@/app/(auth)/sign-in/actions";
 import { MembershipCheckout } from "@/components/membership-checkout";
+import { SignOutDialog } from "@/components/sign-out-dialog";
 import {
   MEMBER_FEATURES,
   PLAN_DETAILS,
@@ -45,15 +45,17 @@ export default async function CheckoutPage() {
           priority
           className="hidden h-5.5 w-auto object-contain dark:block"
         />
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-head text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <LogOut className="size-4" />
-            Sign out
-          </button>
-        </form>
+        <SignOutDialog
+          render={
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-head text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            />
+          }
+        >
+          <LogOut className="size-4" />
+          Sign out
+        </SignOutDialog>
       </header>
 
       <main className="flex flex-1 flex-col items-center px-4 pt-6 pb-16 sm:px-6 sm:pt-10">

@@ -18,8 +18,8 @@ import {
   Store,
 } from "lucide-react";
 
-import { signOut } from "@/app/(auth)/sign-in/actions";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -174,16 +174,14 @@ export function MobileNav({
                   </Button>
                 }
               />
-              <form action={signOut} className="flex-1">
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  className="w-full font-head"
-                >
-                  <LogOut className="size-4" />
-                  Sign out
-                </Button>
-              </form>
+              <SignOutDialog
+                render={
+                  <Button variant="destructive" className="flex-1 font-head" />
+                }
+              >
+                <LogOut className="size-4" />
+                Sign out
+              </SignOutDialog>
             </div>
           ) : (
             <SheetClose

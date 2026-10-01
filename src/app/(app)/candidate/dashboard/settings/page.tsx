@@ -1,6 +1,5 @@
 import { LogOut, Trash2 } from "lucide-react";
 
-import { signOut } from "@/app/(auth)/sign-in/actions";
 import { DashboardHeader, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import {
@@ -11,6 +10,7 @@ import {
   type ProfileDefaults,
 } from "@/components/candidate/settings-forms";
 import { SettingsNav } from "@/components/candidate/settings-nav";
+import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
@@ -61,15 +61,16 @@ export default async function SettingsPage() {
                 description={`You're signed in as ${candidate.email}.`}
                 className="pb-5 px-5"
               >
-                <form action={signOut}>
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    className="h-10 w-full font-head sm:w-44"
-                  >
-                    <LogOut className="size-4" /> Sign out
-                  </Button>
-                </form>
+                <SignOutDialog
+                  render={
+                    <Button
+                      variant="outline"
+                      className="h-10 w-full font-head sm:w-44"
+                    />
+                  }
+                >
+                  <LogOut className="size-4" /> Sign out
+                </SignOutDialog>
               </AccountRow>
               <AccountRow
                 title="Delete account"

@@ -4,11 +4,10 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-import { SESSION_ONLY_COOKIE, sessionCookieOptions } from "@/lib/supabase/session";
+import { authCookieOptions } from "@/lib/supabase/session";
 
-export async function createClient({ sessionOnly }: { sessionOnly?: boolean } = {}) {
+export async function createClient() {
   const cookieStore = await cookies();
-  const expireOnClose = sessionOnly ?? cookieStore.has(SESSION_ONLY_COOKIE);
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +18,7 @@ export async function createClient({ sessionOnly }: { sessionOnly?: boolean } = 
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, sessionCookieOptions(expireOnClose, options)),
+              cookieStore.set(name, value, authCookieOptions(options)),
             );
           } catch {
             // Server Components can't set cookies; the proxy refreshes the session.

@@ -19,13 +19,13 @@ import {
   User,
 } from "lucide-react";
 
-import { signOut } from "@/app/(auth)/sign-in/actions";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import {
   SidebarContent,
   type CandidateProfile,
 } from "@/components/candidate/candidate-sidebar";
 import { CANDIDATE_HOME, activeNavItem } from "@/components/candidate/nav";
+import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -59,6 +59,7 @@ export function CandidateHeader({
 }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const current = activeNavItem(pathname);
   const unread = NOTIFICATIONS.filter((n) => n.unread).length;
 
@@ -258,6 +259,7 @@ export function CandidateHeader({
               </MenuPrimitive.Positioner>
             </MenuPrimitive.Portal>
           </MenuPrimitive.Root>
+          <SignOutDialog open={signOutOpen} onOpenChange={setSignOutOpen} />
 
           <MenuPrimitive.Root>
             <MenuPrimitive.Trigger
@@ -318,7 +320,7 @@ export function CandidateHeader({
                   <MenuPrimitive.Separator className="-mx-1.5 my-1 h-px bg-border" />
                   <MenuPrimitive.Item
                     className={`${menuItemClass} text-destructive data-highlighted:bg-destructive/10`}
-                    onClick={() => signOut()}
+                    onClick={() => setSignOutOpen(true)}
                   >
                     <LogOut className="size-4" /> Sign out
                   </MenuPrimitive.Item>

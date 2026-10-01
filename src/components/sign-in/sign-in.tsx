@@ -33,6 +33,7 @@ const ROLES: {
   eyebrow: string;
   title: [string, string, string];
   description: string;
+  disabled?: boolean;
 }[] = [
   {
     id: "candidate",
@@ -42,6 +43,7 @@ const ROLES: {
     title: ["Pick up ", "where you left", " off."],
     description:
       "Your matched openings, applications and ATS-ready resume are waiting for you.",
+    disabled: false,
   },
   {
     id: "company",
@@ -51,6 +53,7 @@ const ROLES: {
     title: ["Your next hire is ", "already here", "."],
     description:
       "Review candidates by skills and experience, and manage your postings and HR seats.",
+    disabled: true,
   },
   {
     id: "franchise",
@@ -60,6 +63,7 @@ const ROLES: {
     title: ["Track every lead, ", "sent to placed", "."],
     description:
       "Add leads, follow up on payments and see your conversions in one dashboard.",
+    disabled: true,
   },
 ];
 
@@ -70,6 +74,7 @@ export function SignIn({
   verified,
   passwordReset,
   verifiedEmail,
+  rememberedEmail,
   freshRoles,
 }: {
   initialRole: SignInRole;
@@ -79,6 +84,7 @@ export function SignIn({
   verified?: boolean;
   passwordReset?: boolean;
   verifiedEmail?: string;
+  rememberedEmail?: string;
 }) {
   const [role, setRole] = useState<SignInRole>(initialRole);
   const [showPassword, setShowPassword] = useState(false);
@@ -228,7 +234,7 @@ export function SignIn({
                       : "you@yourcompany.com"
                   }
                   autoComplete="email"
-                  defaultValue={verifiedEmail}
+                  defaultValue={verifiedEmail ?? rememberedEmail}
                   error={errors.email}
                   onEdit={() => clearError("email")}
                 />
@@ -241,9 +247,9 @@ export function SignIn({
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Password"
                       autoComplete="current-password"
-                      autoFocus={!!verifiedEmail}
+                      autoFocus={!!(verifiedEmail ?? rememberedEmail)}
                       aria-invalid={!!errors.password}
                       onChange={() => clearError("password")}
                       className="h-11 bg-card pr-11 pl-10"
@@ -269,8 +275,12 @@ export function SignIn({
 
                 <div className="flex items-center justify-between gap-3">
                   <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
-                    <Checkbox name="remember" value="yes" />
-                    Keep me signed in
+                    <Checkbox
+                      name="remember"
+                      value="yes"
+                      defaultChecked={!!rememberedEmail}
+                    />
+                    Remember me
                   </label>
                   <Link
                     href="/forgot-password"

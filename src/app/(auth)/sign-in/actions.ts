@@ -8,7 +8,8 @@ import type { FieldErrors } from "@/lib/sign-up-validation";
 import { createClient } from "@/lib/supabase/server";
 import {
   PENDING_EMAIL_COOKIE,
-  SESSION_ONLY_COOKIE,
+  REMEMBERED_EMAIL_COOKIE,
+  REMEMBERED_EMAIL_MAX_AGE,
 } from "@/lib/supabase/session";
 import { signInCandidate } from "@/server/auth/sign-in";
 
@@ -38,17 +39,8 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
     redirect(DASHBOARDS[role as SignInRole]);
   }
 
-  const cookieStore = await cookies();
-  if (remember) cookieStore.delete(SESSION_ONLY_COOKIE);
-  else
-    cookieStore.set(SESSION_ONLY_COOKIE, "1", {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-    });
-
   const result = await signInCandidate(
-    await createClient({ sessionOnly: !remember }),
+    await createClient(),
     {
       email: String(formData.get("email") ?? ""),
       password: String(formData.get("password") ?? ""),
@@ -57,6 +49,15 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
   if (!result.ok)
     return { errors: result.errors, unconfirmedEmail: result.unconfirmedEmail };
 
+  const cookieStore = await cookies();
+  if (remember)
+    cookieStore.set(REMEMBERED_EMAIL_COOKIE, result.user.email ?? "", {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: REMEMBERED_EMAIL_MAX_AGE,
+    });
+  else cookieStore.delete(REMEMBERED_EMAIL_COOKIE);
   cookieStore.delete(PENDING_EMAIL_COOKIE);
   redirect(safeRedirectPath(formData.get("next"), DASHBOARDS.candidate));
 }
@@ -64,6 +65,5 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  (await cookies()).delete(SESSION_ONLY_COOKIE);
   redirect("/sign-in");
 }
