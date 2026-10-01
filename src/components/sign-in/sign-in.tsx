@@ -247,7 +247,7 @@ export function SignIn({
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="Password"
                       autoComplete="current-password"
                       autoFocus={!!(verifiedEmail ?? rememberedEmail)}
                       aria-invalid={!!errors.password}

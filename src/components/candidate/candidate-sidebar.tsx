@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { ArrowUpRight, LogOut, Sparkles } from "lucide-react";
 
-import { signOut } from "@/app/(auth)/sign-in/actions";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import {
   CANDIDATE_HOME,
@@ -18,6 +17,7 @@ import {
   PLAN_DETAILS,
   type MembershipPlan,
 } from "@/lib/membership";
+import { SignOutDialog } from "@/components/sign-out-dialog";
 import { cn } from "@/lib/utils";
 
 export type CandidateProfile = {
@@ -271,15 +271,17 @@ export function SidebarContent({
                 {candidate.email}
               </p>
             </div>
-            <form action={signOut}>
-              <button
-                type="submit"
-                aria-label="Sign out"
-                className="flex size-8 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
-              >
-                <LogOut className="size-4" />
-              </button>
-            </form>
+            <SignOutDialog
+              render={
+                <button
+                  type="button"
+                  aria-label="Sign out"
+                  className="flex size-8 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:outline-none"
+                />
+              }
+            >
+              <LogOut className="size-4" />
+            </SignOutDialog>
           </div>
         </div>
       )}
