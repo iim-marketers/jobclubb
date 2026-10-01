@@ -2,7 +2,10 @@ import { cookies } from "next/headers";
 
 import { SignIn } from "@/components/sign-in/sign-in";
 import { FRESH_JOBS } from "@/lib/home-data";
-import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
+import {
+  PENDING_EMAIL_COOKIE,
+  REMEMBERED_EMAIL_COOKIE,
+} from "@/lib/supabase/session";
 
 export const metadata = {
   title: "Sign in — JobClubb",
@@ -17,10 +20,12 @@ export default async function SignInPage({
 }: PageProps<"/sign-in">) {
   const { as, next, error, verified, reset } = await searchParams;
   const initialRole = ROLES.find((r) => r === as) ?? "candidate";
+  const cookieStore = await cookies();
   const verifiedEmail =
     verified === "1" || reset === "1"
-      ? (await cookies()).get(PENDING_EMAIL_COOKIE)?.value
+      ? cookieStore.get(PENDING_EMAIL_COOKIE)?.value
       : undefined;
+  const rememberedEmail = cookieStore.get(REMEMBERED_EMAIL_COOKIE)?.value;
   return (
     <SignIn
       initialRole={initialRole}
@@ -29,6 +34,7 @@ export default async function SignInPage({
       verified={verified === "1"}
       passwordReset={reset === "1"}
       verifiedEmail={verifiedEmail}
+      rememberedEmail={rememberedEmail}
       freshRoles={FRESH_JOBS.map((job) => job.role)}
     />
   );
