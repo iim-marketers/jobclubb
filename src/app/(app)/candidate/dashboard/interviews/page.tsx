@@ -228,11 +228,12 @@ export default async function InterviewsPage() {
         />
       </div>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
-        <div className="min-w-0 space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-6">
           <Panel
             title="Schedule"
             description="Every round, in order. Times are in IST."
+            className={cn("flex flex-col", !next && "flex-1")}
           >
             <Agenda title="Upcoming" interviews={upcoming} now={now} />
             {past.length > 0 && (
@@ -246,40 +247,42 @@ export default async function InterviewsPage() {
             <Panel
               title="Prep checklist"
               description={`Get ready for ${next.company} · ${next.round}`}
+              className="flex-1"
             >
               <PrepChecklist interviewId={next.id} mode={next.mode} />
             </Panel>
           )}
         </div>
 
-        <div className="min-w-0 space-y-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <MonthCalendar
             interviews={INTERVIEWS}
             focus={next ? new Date(next.startsAt) : now}
             now={now}
           />
 
-          <GuaranteeTracker used={guaranteedUsed} />
-
-          <Panel
-            title="Interview tips"
-            description={
-              sector
-                ? `What ${sector} recruiters look for`
-                : "What recruiters look for"
-            }
-          >
-            <ol className="space-y-4">
-              {tips.map((tip, i) => (
-                <li key={tip} className="flex gap-3 text-sm leading-6">
-                  <span className="flex size-6 flex-none items-center justify-center rounded-full bg-brand/10 font-head text-xs font-extrabold text-brand">
-                    {i + 1}
-                  </span>
-                  {tip}
-                </li>
-              ))}
-            </ol>
-          </Panel>
+          {next && (
+            <Panel
+              title="Interview tips"
+              description={
+                sector
+                  ? `What ${sector} recruiters look for`
+                  : "What recruiters look for"
+              }
+              className="flex-1"
+            >
+              <ol className="space-y-4">
+                {tips.map((tip, i) => (
+                  <li key={tip} className="flex gap-3 text-sm leading-6">
+                    <span className="flex size-6 flex-none items-center justify-center rounded-full bg-brand/10 font-head text-xs font-extrabold text-brand">
+                      {i + 1}
+                    </span>
+                    {tip}
+                  </li>
+                ))}
+              </ol>
+            </Panel>
+          )}
         </div>
       </div>
     </div>
@@ -463,12 +466,12 @@ function Agenda({
   past?: boolean;
 }) {
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       <p className="mb-3 font-head text-[11px] font-bold tracking-[0.16em] text-muted-foreground uppercase">
         {title} · {interviews.length}
       </p>
       {interviews.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
+        <p className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
           Nothing scheduled right now.
         </p>
       ) : (

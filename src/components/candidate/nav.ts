@@ -22,7 +22,7 @@ export const CANDIDATE_NAV: { title: string; items: CandidateNavItem[] }[] = [
     title: "Job search",
     items: [
       { label: "Overview", href: CANDIDATE_HOME, icon: LayoutDashboard },
-      { label: "Applications", href: `${CANDIDATE_HOME}/applications`, icon: Briefcase, badge: 4 },
+      { label: "Applications", href: `${CANDIDATE_HOME}/applications`, icon: Briefcase },
       { label: "Saved jobs", href: `${CANDIDATE_HOME}/saved`, icon: Heart },
       { label: "Interviews", href: `${CANDIDATE_HOME}/interviews`, icon: CalendarCheck },
     ],
