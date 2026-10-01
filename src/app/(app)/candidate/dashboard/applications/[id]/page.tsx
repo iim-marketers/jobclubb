@@ -149,8 +149,8 @@ export default async function ApplicationDetailPage({
         </div>
       </section>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <div className="min-w-0 space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-6">
           {interviews.length > 0 && (
             <Panel
               title="Interviews for this role"
@@ -195,7 +195,11 @@ export default async function ApplicationDetailPage({
             </Panel>
           )}
 
-          <Panel title="About the role" description={job.description}>
+          <Panel
+            title="About the role"
+            description={job.description}
+            className="flex-1"
+          >
             <div className="grid gap-6 sm:grid-cols-2">
               <DetailList
                 title="Responsibilities"
@@ -221,7 +225,7 @@ export default async function ApplicationDetailPage({
           </Panel>
         </div>
 
-        <div className="min-w-0 space-y-6">
+        <div className="flex min-w-0 flex-col gap-6">
           {!archived && (
             <section className="rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-5 text-white sm:p-6">
               <p className="font-head text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
@@ -254,7 +258,7 @@ export default async function ApplicationDetailPage({
             </dl>
           </Panel>
 
-          <Panel title="Activity">
+          <Panel title="Activity" className="flex-1">
             <ol className="relative space-y-4 pl-5">
               <span className="absolute top-1.5 bottom-1.5 left-1.25 w-px bg-border" />
               {[...application.history].reverse().map((h, i) => (

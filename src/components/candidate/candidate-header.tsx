@@ -34,26 +34,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const NOTIFICATIONS = [
-  {
-    title: "Interview scheduled with Taj",
-    body: "Thu, 1 Oct · 11:00 AM · Video call",
-    time: "1h",
-    unread: true,
-  },
-  {
-    title: "IndiGo viewed your application",
-    body: "Cabin Crew Member · Kolkata",
-    time: "5h",
-    unread: true,
-  },
-  {
-    title: "3 new Airlines roles near you",
-    body: "Matched to your saved location",
-    time: "1d",
-    unread: false,
-  },
-];
+// TODO: replace with the candidate's real notifications.
+const NOTIFICATIONS: {
+  title: string;
+  body: string;
+  time: string;
+  unread: boolean;
+}[] = [];
 
 const menuItemClass =
   "flex w-full cursor-default items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none select-none data-highlighted:bg-muted";
@@ -200,7 +187,7 @@ export function CandidateHeader({
           </Button>
 
           <MenuPrimitive.Root>
-            <MenuPrimitive.Trigger
+            {/* <MenuPrimitive.Trigger
               render={
                 <Button
                   variant="ghost"
@@ -214,7 +201,7 @@ export function CandidateHeader({
               {unread > 0 && (
                 <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
               )}
-            </MenuPrimitive.Trigger>
+            </MenuPrimitive.Trigger> */}
             <MenuPrimitive.Portal>
               <MenuPrimitive.Positioner
                 align="end"
@@ -226,10 +213,26 @@ export function CandidateHeader({
                 >
                   <div className="flex items-center justify-between px-2.5 pt-1.5 pb-2">
                     <p className="font-head text-sm font-bold">Notifications</p>
-                    <span className="rounded-full bg-brand/10 px-2 py-0.5 font-head text-[11px] font-bold text-brand">
-                      {unread} new
-                    </span>
+                    {unread > 0 && (
+                      <span className="rounded-full bg-brand/10 px-2 py-0.5 font-head text-[11px] font-bold text-brand">
+                        {unread} new
+                      </span>
+                    )}
                   </div>
+                  {NOTIFICATIONS.length === 0 && (
+                    <div className="flex flex-col items-center px-4 py-8 text-center">
+                      <span className="flex size-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                        <Bell className="size-4.5" />
+                      </span>
+                      <p className="mt-3 font-head text-sm font-bold">
+                        You&apos;re all caught up
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Updates on your applications and interviews will show up
+                        here.
+                      </p>
+                    </div>
+                  )}
                   {NOTIFICATIONS.map((n) => (
                     <MenuPrimitive.Item
                       key={n.title}
@@ -287,7 +290,7 @@ export function CandidateHeader({
                       {candidate.email}
                     </p>
                   </div>
-                  <MenuPrimitive.Separator className="mx-1 my-1 h-px bg-border" />
+                  <MenuPrimitive.Separator className="-mx-1.5 my-1 h-px bg-border" />
                   <MenuPrimitive.LinkItem
                     className={menuItemClass}
                     closeOnClick
@@ -312,7 +315,7 @@ export function CandidateHeader({
                     <Settings className="size-4 text-muted-foreground" />{" "}
                     Settings
                   </MenuPrimitive.LinkItem>
-                  <MenuPrimitive.Separator className="mx-1 my-1 h-px bg-border" />
+                  <MenuPrimitive.Separator className="-mx-1.5 my-1 h-px bg-border" />
                   <MenuPrimitive.Item
                     className={`${menuItemClass} text-destructive data-highlighted:bg-destructive/10`}
                     onClick={() => signOut()}

@@ -50,7 +50,7 @@ export default async function ResumePage() {
     return (
       <div className="space-y-6 ">
         <PageHeader />
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] xl:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
           <ResumeCard
             title="Build your ATS resume"
             description="Upload your current resume, describe your experience, or both."

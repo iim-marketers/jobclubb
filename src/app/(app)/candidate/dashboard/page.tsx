@@ -1,37 +1,33 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  ArrowUpRight,
   Briefcase,
   CalendarClock,
   Check,
   Eye,
   FileText,
   Heart,
-  IndianRupee,
   MapPin,
+  Sparkles,
   Send,
   Video,
 } from "lucide-react";
 
 import { ApplicationJourney } from "@/components/candidate/application-journey";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
-import { Chip, Panel } from "@/components/candidate/dashboard-ui";
+import { EmptyState, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
-import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import {
   APPLICATIONS,
   GUARANTEED_INTERVIEWS,
   SAVED_JOBS,
-  STAGES,
   formatInterviewDate,
   formatInterviewTime,
   guaranteeSlots,
   upcomingInterviews,
   type Interview,
 } from "@/lib/candidate-activity";
-import { JOBS } from "@/lib/jobs-data";
 import { VERTICALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
@@ -79,11 +75,6 @@ export default async function CandidateDashboard() {
   const sector = vertical?.name;
   const now = new Date();
 
-  const recommended = [
-    ...JOBS.filter((j) => j.vertical === sector),
-    ...JOBS.filter((j) => j.vertical !== sector && j.featured),
-  ].slice(0, 3);
-
   const [photoUrl, saved] = await Promise.all([
     getCandidatePhotoUrl(candidate.photo_path),
     getSavedResume(candidate.id),
@@ -102,14 +93,19 @@ export default async function CandidateDashboard() {
     {
       label: "Applications sent",
       value: APPLICATIONS.length,
-      note: "+3 this week",
+      note: "Since you joined",
       icon: Send,
     },
-    { label: "Profile views", value: 38, note: "+12% vs last week", icon: Eye },
+    {
+      label: "Profile views",
+      value: "—",
+      note: "Shows once employers view you",
+      icon: Eye,
+    },
     {
       label: "In review",
       value: inReview,
-      note: "Avg. reply in 3 days",
+      note: "Awaiting employer reply",
       icon: Briefcase,
     },
     {
@@ -128,15 +124,21 @@ export default async function CandidateDashboard() {
             {greeting(now)}, {candidate.first_name}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            You have{" "}
-            <span className="font-semibold text-foreground">
-              {weekAhead} {weekAhead === 1 ? "interview" : "interviews"}
-            </span>{" "}
-            this week and{" "}
-            <span className="font-semibold text-foreground">
-              {inReview} {inReview === 1 ? "application" : "applications"}
-            </span>{" "}
-            in review.
+            {weekAhead + inReview === 0 ? (
+              "Apply to roles you like and track every step right here."
+            ) : (
+              <>
+                You have{" "}
+                <span className="font-semibold text-foreground">
+                  {weekAhead} {weekAhead === 1 ? "interview" : "interviews"}
+                </span>{" "}
+                this week and{" "}
+                <span className="font-semibold text-foreground">
+                  {inReview} {inReview === 1 ? "application" : "applications"}
+                </span>{" "}
+                in review.
+              </>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -204,10 +206,10 @@ export default async function CandidateDashboard() {
         <ApplicationJourney
           applications={recent}
           sector={sector}
-          matchingRoles={JOBS.filter((j) => j.vertical === sector).length}
+          matchingRoles={0}
         />
 
-        <div className="min-w-0 space-y-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <Panel
             title="Profile strength"
             description="Stronger profiles get shortlisted faster"
@@ -258,6 +260,7 @@ export default async function CandidateDashboard() {
           <Panel
             title="Your location"
             description="Matching jobs within 25 km"
+            className="flex-1"
             action={
               <Link
                 href={`${CANDIDATE_HOME}/settings`}
@@ -298,37 +301,22 @@ export default async function CandidateDashboard() {
             All jobs <ArrowRight className="size-3.5" />
           </Link>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          {recommended.map((job) => (
-            <Link
-              key={job.slug}
-              href={`/jobs/${job.slug}`}
-              className="group flex min-w-0 flex-col rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg hover:shadow-brand/5"
+        <EmptyState
+          icon={Sparkles}
+          title="No recommendations yet"
+          action={
+            <Button
+              className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+              nativeButton={false}
+              render={<Link href="/jobs" />}
             >
-              <div className="flex items-start gap-3">
-                <CompanyAvatar name={job.company} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-head font-bold tracking-tight group-hover:text-brand">
-                    {job.designation}
-                  </p>
-                  <p className="truncate text-sm text-muted-foreground">
-                    {job.company}
-                  </p>
-                </div>
-                <ArrowUpRight className="size-4 flex-none text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-brand" />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-1.5 text-xs">
-                <Chip icon={MapPin}>{job.location}</Chip>
-                <Chip icon={IndianRupee}>
-                  {job.salaryRange.replace(/₹/g, "")}
-                </Chip>
-              </div>
-              <p className="mt-auto pt-4 text-xs text-muted-foreground">
-                {job.jobType} · {job.workMode} · {job.postedAgo}
-              </p>
-            </Link>
-          ))}
-        </div>
+              Browse jobs
+            </Button>
+          }
+        >
+          {sector ? `${sector} roles` : "Roles"} matched to your profile and
+          location will show up here.
+        </EmptyState>
       </section>
     </div>
   );
@@ -524,48 +512,6 @@ function InterviewGuarantee() {
         ))}
       </ol>
     </section>
-  );
-}
-
-function Pipeline() {
-  const active = APPLICATIONS.filter((a) => a.status === "active");
-  const PIPELINE = STAGES.map(
-    (_, i) => active.filter((a) => a.stage === i).length,
-  );
-  const max = Math.max(...PIPELINE, 1);
-  return (
-    <ol className="grid grid-cols-5 gap-1.5 sm:gap-2">
-      {STAGES.map((stage, i) => (
-        <li key={stage} className="min-w-0">
-          <div className="flex h-20 items-end rounded-xl bg-muted/60 p-1 sm:h-24">
-            <div
-              className={cn(
-                "w-full rounded-lg transition-all",
-                PIPELINE[i] === 0
-                  ? "h-1 bg-border"
-                  : i >= 3
-                    ? "bg-good/80"
-                    : "bg-brand",
-              )}
-              style={
-                PIPELINE[i]
-                  ? {
-                      height: `${Math.max((PIPELINE[i] / max) * 100, 12)}%`,
-                      opacity: 1 - i * 0.12,
-                    }
-                  : undefined
-              }
-            />
-          </div>
-          <p className="mt-2 font-head text-lg font-extrabold tracking-tight sm:text-xl">
-            {PIPELINE[i]}
-          </p>
-          <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
-            {stage}
-          </p>
-        </li>
-      ))}
-    </ol>
   );
 }
 

@@ -65,11 +65,15 @@ export default async function ApplicationsPage() {
         />
         <StatTile
           label="Response rate"
-          value={`${Math.round(
-            (APPLICATIONS.filter((a) => a.stage >= 1).length /
-              APPLICATIONS.length) *
-              100,
-          )}%`}
+          value={
+            APPLICATIONS.length
+              ? `${Math.round(
+                  (APPLICATIONS.filter((a) => a.stage >= 1).length /
+                    APPLICATIONS.length) *
+                    100,
+                )}%`
+              : "—"
+          }
           note="Viewed by employers"
           icon={Briefcase}
           tone="muted"

@@ -107,7 +107,6 @@ export function SettingsNav() {
       behavior: reduceMotion ? "auto" : "smooth",
       block: "start",
     });
-    history.replaceState(null, "", `#${id}`);
   };
 
   return (
