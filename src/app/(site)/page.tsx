@@ -101,8 +101,8 @@ function Hero({ locked }: { locked: boolean }) {
             <div className="relative flex-1 border-b border-border sm:border-b-0 -mx-2 px-2">
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                aria-label="Job title, skill or company"
-                placeholder="Job title, skill or company"
+                aria-label="Job title or company"
+                placeholder="Job title or company"
                 className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
               />
             </div>
@@ -248,12 +248,11 @@ function EmployerShowcase() {
         <div>
           <SectionEyebrow>Where our members work</SectionEyebrow>
           <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Hired by {Math.floor(RECRUITER_LOGOS.length / 10) * 10}+ top
-            brands
+            Hired by {Math.floor(RECRUITER_LOGOS.length / 10) * 10}+ top brands
           </h2>
           <p className="mt-4 max-w-md text-base leading-7 text-muted-foreground">
-            Luxury hotels, airlines and more. JobClubb puts you in front of
-            the employers who are actively hiring today.
+            Luxury hotels, airlines and more. JobClubb puts you in front of the
+            employers who are actively hiring today.
           </p>
         </div>
 
