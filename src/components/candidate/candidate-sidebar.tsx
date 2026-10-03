@@ -100,9 +100,9 @@ export function SidebarContent({
         )}
       >
         <Link
-          href={CANDIDATE_HOME}
+          href="/"
           onClick={onNavigate}
-          aria-label="JobClubb — dashboard"
+          aria-label="JobClubb — home"
           className={cn("block overflow-hidden", collapsed && "w-5.5")}
         >
           <Image

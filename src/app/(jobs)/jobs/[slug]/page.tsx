@@ -3,21 +3,23 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   Briefcase,
-  Building2,
+  Check,
   Clock,
   IndianRupee,
   Lock,
   MapPin,
   Monitor,
+  ShieldCheck,
 } from "lucide-react";
 
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import { JOBS, getJob, type JobListing } from "@/lib/jobs-data";
-import {
-  CHECKOUT_PATH,
-  getJobAccess,
-} from "@/server/auth/current-candidate";
+import { cn } from "@/lib/utils";
+import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
+
+const BRAND_BUTTON =
+  "bg-brand font-head text-brand-foreground hover:bg-brand-dark";
 
 export function generateStaticParams() {
   return JOBS.map((job) => ({ slug: job.slug }));
@@ -31,127 +33,179 @@ export default async function JobDetailPage({
   if (!job) notFound();
 
   const access = await getJobAccess();
+  const unlock = access.signedIn
+    ? { href: CHECKOUT_PATH, label: "Complete payment to apply" }
+    : { href: "/sign-up", label: "Join to apply" };
 
   return (
-    <>
-      <div className="border-b border-border bg-linear-to-b from-muted/60 to-background px-6 py-10">
-        <div className="mx-auto max-w-4xl">
-          <Link
-            href="/jobs"
-            className="inline-flex items-center gap-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-brand"
-          >
-            <ArrowLeft className="size-4" />
-            All jobs
-          </Link>
+    <section className="px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
+      <div className="mx-auto max-w-5xl">
+        <Link
+          href="/jobs"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-brand"
+        >
+          <ArrowLeft className="size-4" />
+          All jobs
+        </Link>
 
-          {access.member ? (
-            <MemberHeader job={job} />
-          ) : (
-            <h1 className="mt-5 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-              {job.title}
-            </h1>
-          )}
-        </div>
-      </div>
+        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_300px]">
+          <div className="min-w-0 space-y-6">
+            <JobHeader job={job} member={access.member} />
+            {access.member ? (
+              <JobBody job={job} />
+            ) : (
+              <LockedDetails unlock={unlock} />
+            )}
+          </div>
 
-      <div className="px-4 py-12 sm:px-6">
-        <div className="mx-auto grid max-w-4xl gap-8 lg:grid-cols-[1fr_300px]">
-          {access.member ? (
-            <div className="space-y-6 rounded-3xl border border-border bg-card p-7">
-              <Block title="About the role" body={job.description} />
-              <ListBlock title="Responsibilities" items={job.responsibilities} />
-              <ListBlock title="Requirements" items={job.requirements} />
-              <ListBlock title="Benefits" items={job.benefits} />
-            </div>
-          ) : (
-            <LockedDetails signedIn={access.signedIn} />
-          )}
-
-          <aside className="space-y-4">
+          <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block lg:self-start">
             <div className="rounded-2xl border border-border bg-card p-5">
-              <h3 className="font-head font-bold tracking-tight">
-                Apply directly
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                JobClubb is a direct application platform — your application
-                goes straight to the employer, with no intermediaries.
-              </p>
-              {access.member ? (
-                // TODO: wire up one-click apply once applications are stored.
-                <Button
-                  className="mt-4 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                  disabled
-                >
-                  Apply — coming soon
-                </Button>
-              ) : (
-                <Button
-                  className="mt-4 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                  nativeButton={false}
-                  render={
-                    <Link href={access.signedIn ? CHECKOUT_PATH : "/sign-up"} />
-                  }
-                >
-                  {access.signedIn ? "Complete payment to apply" : "Join to apply"}
-                </Button>
+              {access.member && (
+                <div className="mb-4 border-b border-border pb-4">
+                  <p className="text-xs text-muted-foreground">Salary</p>
+                  <p className="mt-0.5 font-head text-lg font-bold tracking-tight">
+                    {job.salaryRange}
+                  </p>
+                </div>
               )}
-            </div>
-
-            <div className="rounded-2xl border border-border bg-muted/40 p-5">
-              <h3 className="font-head text-sm font-bold tracking-tight">
-                Your privacy
-              </h3>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                Employers see only your skills and experience. Your name and
-                contact details stay hidden until you choose to reveal them.
+              <ApplyButton member={access.member} unlock={unlock} />
+              <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                Your application goes straight to the employer, with no
+                intermediaries.
               </p>
             </div>
+            <PrivacyNote />
           </aside>
         </div>
       </div>
-    </>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-md lg:hidden">
+        <div className="mx-auto flex max-w-5xl items-center gap-3">
+          {access.member && (
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-muted-foreground">Salary</p>
+              <p className="truncate font-head text-sm font-bold">
+                {job.salaryRange}
+              </p>
+            </div>
+          )}
+          <ApplyButton
+            member={access.member}
+            unlock={unlock}
+            className={access.member ? "w-auto" : "w-full"}
+          />
+        </div>
+      </div>
+    </section>
   );
 }
 
-function MemberHeader({ job }: { job: JobListing }) {
+function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
+  if (!member) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-start gap-4">
+          <span
+            aria-hidden
+            className="size-14 flex-none rounded-xl bg-muted blur-[5px]"
+          />
+          <div className="min-w-0 flex-1">
+            <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
+              {job.title}
+            </h1>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Lock className="size-3.5 text-brand" />
+              Company and details visible to members
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <div className="mt-5 flex flex-wrap items-start gap-4">
-        <CompanyAvatar name={job.company} className="size-14 text-base" />
+    <div className="rounded-2xl border border-border bg-card p-5 ">
+      <div className="flex items-start gap-4">
+        <CompanyAvatar
+          name={job.company}
+          className="size-14 rounded-xl text-base"
+        />
         <div className="min-w-0 flex-1">
-          <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {job.designation}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            {job.company} · {job.vertical}
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
+              {job.designation}
+            </h1>
+            {job.featured && (
+              <span className="rounded-full bg-brand-accent/15 px-2 py-0.5 font-head text-[10px] font-bold tracking-wide text-good uppercase">
+                Featured
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {job.company} · {job.vertical} · Posted {job.postedAgo}
           </p>
         </div>
       </div>
 
-      <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="mt-5 -mx-5 px-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-border pt-5 sm:grid-cols-4">
         <Fact icon={MapPin} label="Location" value={job.location} />
         <Fact icon={Briefcase} label="Experience" value={job.experience} />
-        <Fact icon={IndianRupee} label="Salary range" value={job.salaryRange} />
-        <Fact icon={Building2} label="Position" value={job.title} />
+        <Fact icon={IndianRupee} label="Salary" value={job.salaryRange} />
+        <Fact
+          icon={job.workMode === "WFH" ? Monitor : Clock}
+          label="Job type"
+          value={`${job.jobType} · ${job.workMode}`}
+        />
       </dl>
+    </div>
+  );
+}
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        <Tag icon={Clock}>{job.jobType}</Tag>
-        <Tag icon={Monitor}>{job.workMode}</Tag>
-        <Tag>Posted {job.postedAgo}</Tag>
+function JobBody({ job }: { job: JobListing }) {
+  return (
+    <div className="divide-y divide-border rounded-2xl border border-border bg-card">
+      <Section title="About the role">
+        <p className="leading-7 text-sm text-muted-foreground">
+          {job.description}
+        </p>
+      </Section>
+      <Section title="Responsibilities">
+        <CheckList items={job.responsibilities} />
+      </Section>
+      <Section title="Requirements">
+        <CheckList items={job.requirements} />
+      </Section>
+      <Section title="Benefits">
+        <ul className="flex flex-wrap gap-2">
+          {job.benefits.map((benefit) => (
+            <li
+              key={benefit}
+              className="rounded-lg bg-muted px-3 py-1.5 text-sm text-foreground"
+            >
+              {benefit}
+            </li>
+          ))}
+        </ul>
+      </Section>
+      <div className="p-5 sm:p-6 lg:hidden">
+        <PrivacyNote />
       </div>
-    </>
+    </div>
   );
 }
 
 // Placeholder bars only: the real details are never sent to non-members.
-function LockedDetails({ signedIn }: { signedIn: boolean }) {
+function LockedDetails({
+  unlock,
+}: {
+  unlock: { href: string; label: string };
+}) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
-      <div aria-hidden className="space-y-6 p-7">
-        {[5, 4, 4, 3].map((lines, i) => (
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
+      <div aria-hidden className="space-y-6 p-6">
+        {[4, 4, 3].map((lines, i) => (
           <div key={i} className="space-y-2.5">
-            <div className="h-4 w-40 rounded-full bg-muted" />
+            <div className="h-4 w-36 rounded-full bg-muted" />
             {Array.from({ length: lines }, (_, j) => (
               <div
                 key={j}
@@ -163,26 +217,97 @@ function LockedDetails({ signedIn }: { signedIn: boolean }) {
         ))}
       </div>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/70 px-6 text-center backdrop-blur-[2px]">
-        <span className="flex size-14 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-lg">
-          <Lock className="size-6" />
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/75 px-6 text-center backdrop-blur-[2px]">
+        <span className="flex size-11 items-center justify-center rounded-xl bg-brand/10">
+          <Lock className="size-5 text-brand" />
         </span>
-        <h2 className="mt-4 font-head text-xl font-bold tracking-tight">
+        <h2 className="mt-3 font-head text-lg font-bold tracking-tight">
           Job details are for members
         </h2>
-        <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+        <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
           Members see the company, location, salary and full description, and
           apply in one click.
         </p>
         <Button
-          className="mt-5 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+          className={cn("mt-5", BRAND_BUTTON)}
           nativeButton={false}
-          render={<Link href={signedIn ? CHECKOUT_PATH : "/sign-up"} />}
+          render={<Link href={unlock.href} />}
         >
-          {signedIn ? "Complete payment to unlock" : "Join JobClubb to unlock"}
+          {unlock.label}
         </Button>
       </div>
     </div>
+  );
+}
+
+function ApplyButton({
+  member,
+  unlock,
+  className = "w-full",
+}: {
+  member: boolean;
+  unlock: { href: string; label: string };
+  className?: string;
+}) {
+  if (member) {
+    // TODO: wire up one-click apply once applications are stored.
+    return (
+      <Button className={cn(BRAND_BUTTON, className)} disabled>
+        Apply — coming soon
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      className={cn(BRAND_BUTTON, className)}
+      nativeButton={false}
+      render={<Link href={unlock.href} />}
+    >
+      {unlock.label}
+    </Button>
+  );
+}
+
+function PrivacyNote() {
+  return (
+    <div className="flex gap-3 rounded-2xl bg-muted/50 p-4">
+      <ShieldCheck className="mt-0.5 size-4 flex-none text-brand" />
+      <p className="text-xs leading-5 text-muted-foreground">
+        Employers see only your skills and experience. Your name and contact
+        details stay hidden until you choose to reveal them.
+      </p>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="p-5 sm:p-6">
+      <h2 className="mb-3 font-head text-base font-bold tracking-tight">
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
+
+function CheckList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2.5">
+      {items.map((item) => (
+        <li key={item} className="flex text-sm gap-2.5 text-muted-foreground">
+          <Check className="mt-1 size-4 flex-none text-brand" />
+          <span className="leading-6">{item}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -196,7 +321,7 @@ function Fact({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="min-w-0">
       <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Icon className="size-3.5" />
         {label}
@@ -204,45 +329,6 @@ function Fact({
       <dd className="mt-1 font-head text-sm font-bold tracking-tight">
         {value}
       </dd>
-    </div>
-  );
-}
-
-function Tag({
-  icon: Icon,
-  children,
-}: {
-  icon?: React.ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-}) {
-  return (
-    <span className="flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-      {Icon && <Icon className="size-3" />}
-      {children}
-    </span>
-  );
-}
-
-function Block({ title, body }: { title: string; body: string }) {
-  return (
-    <div>
-      <h2 className="font-head text-lg font-bold tracking-tight">{title}</h2>
-      <p className="mt-2 leading-7 text-muted-foreground">{body}</p>
-    </div>
-  );
-}
-
-function ListBlock({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div>
-      <h2 className="font-head text-lg font-bold tracking-tight">{title}</h2>
-      <ul className="mt-2 space-y-1.5">
-        {items.map((item) => (
-          <li key={item} className="text-muted-foreground">
-            • {item}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

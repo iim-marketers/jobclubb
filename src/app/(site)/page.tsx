@@ -64,7 +64,7 @@ export default async function Home() {
       <FeaturedOpenings locked={!member} />
       <HowItWorks />
       {view.kind !== "member" && <Membership view={view} />}
-      <Categories />
+      {/* <Categories /> */}
       <Franchise />
       <About />
       <ClosingCta view={view} />
@@ -195,7 +195,7 @@ function Hero({ locked }: { locked: boolean }) {
 
 function StatsBand() {
   return (
-    <section className="bg-brand-surface px-4 py-12 text-white sm:px-6">
+    <section className="jc-auth-panel relative isolate overflow-hidden px-4 py-12 text-white sm:px-6">
       <div className="-mx-4 overflow-hidden sm:hidden">
         <div
           className="jc-marquee flex w-max gap-10"
@@ -787,7 +787,7 @@ function ClosingCta({ view }: { view: MembershipView }) {
 
   return (
     <section className="px-4 py-12 md:py-16 sm:px-6">
-      <div className="mx-auto max-w-6xl rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-5 py-12 sm:px-8 sm:py-14 text-center text-white shadow-lg">
+      <div className="jc-auth-panel relative isolate mx-auto max-w-6xl overflow-hidden rounded-3xl px-5 py-12 sm:px-8 sm:py-14 text-center text-white shadow-lg">
         <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
           Looking for a career change?
         </h2>
