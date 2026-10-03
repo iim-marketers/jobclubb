@@ -230,3 +230,43 @@ export function FieldError({ id, message }: { id?: string; message?: string }) {
     </p>
   );
 }
+
+// Hides each error once the person edits its field (and any form-level error
+// on the first edit). A new `result` from the action shows its errors again.
+export function useFieldErrors<K extends string>(
+  result: object,
+  errors: Partial<Record<K, string>> = {},
+  formError?: string,
+) {
+  const [seen, setSeen] = useState(result);
+  const [cleared, setCleared] = useState<ReadonlySet<string> | "all">(
+    () => new Set(),
+  );
+  if (seen !== result) {
+    setSeen(result);
+    setCleared(new Set());
+  }
+
+  const visible: Partial<Record<K, string>> = {};
+  for (const k in errors)
+    if (cleared !== "all" && !cleared.has(k)) visible[k] = errors[k];
+
+  function clear(...names: string[]) {
+    setCleared((prev) =>
+      prev === "all" || names.every((n) => prev.has(n))
+        ? prev
+        : new Set([...prev, ...names]),
+    );
+  }
+
+  return {
+    errors: visible,
+    formError: cleared === "all" || cleared.size > 0 ? undefined : formError,
+    clear,
+    clearAll: () => setCleared("all"),
+    onChange(e: React.FormEvent<HTMLFormElement>) {
+      const { name } = e.target as HTMLInputElement;
+      if (name) clear(name);
+    },
+  };
+}

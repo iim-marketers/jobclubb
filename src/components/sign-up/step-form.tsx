@@ -42,6 +42,15 @@ export function useStepForm({
       formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function clearError(name: string) {
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  }
+
   function showErrors(all: FieldErrors) {
     setErrors(all);
     goTo(firstStepWithError(steps, all));
@@ -64,6 +73,7 @@ export function useStepForm({
       const all = validate(formData);
       if (Object.keys(all).length > 0) return showErrors(all);
 
+      setErrors({});
       startTransition(async () => {
         const result = await action(formData);
         if (result) showErrors(result.errors);
@@ -73,13 +83,7 @@ export function useStepForm({
     // error as soon as the person edits it.
     onChange(e: React.FormEvent<HTMLFormElement>) {
       const name = (e.target as HTMLInputElement).name;
-      if (name && errors[name]) {
-        setErrors((prev) => {
-          const next = { ...prev };
-          delete next[name];
-          return next;
-        });
-      }
+      if (name) clearError(name);
       const snapshot: Record<string, string> = {};
       readForm().forEach((v, k) => {
         if (typeof v === "string") snapshot[k] = v;
@@ -88,7 +92,17 @@ export function useStepForm({
     },
   };
 
-  return { step, isLast, errors, values, pending, moved, goTo, formProps };
+  return {
+    step,
+    isLast,
+    errors,
+    values,
+    pending,
+    moved,
+    goTo,
+    clearError,
+    formProps,
+  };
 }
 
 export function StepProgress({

@@ -10,7 +10,7 @@ import {
   BackToSignIn,
   CardIcon,
 } from "@/components/forgot-password/forgot-password";
-import { PasswordField } from "@/components/sign-up/fields";
+import { PasswordField, useFieldErrors } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 
 export function ResetPassword({ tokenHash }: { tokenHash: string }) {
@@ -18,7 +18,11 @@ export function ResetPassword({ tokenHash }: { tokenHash: string }) {
     resetPassword,
     { tokenHash, expired: !tokenHash },
   );
-  const errors = state.errors ?? {};
+  const { errors, formError, clearAll, onChange } = useFieldErrors(
+    state,
+    state.errors,
+    state.error,
+  );
 
   if (state.expired) {
     return (
@@ -56,14 +60,20 @@ export function ResetPassword({ tokenHash }: { tokenHash: string }) {
         you out on every other device.
       </p>
 
-      <form noValidate action={formAction} className="mt-6 space-y-5">
-        {state.error && (
+      <form
+        noValidate
+        action={formAction}
+        onSubmit={clearAll}
+        onChange={onChange}
+        className="mt-6 space-y-5"
+      >
+        {formError && (
           <p
             role="alert"
             className="flex items-center gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
           >
             <CircleAlert className="size-4 flex-none" />
-            {state.error}
+            {formError}
           </p>
         )}
         <PasswordField

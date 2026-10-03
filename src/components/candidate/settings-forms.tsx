@@ -20,7 +20,12 @@ import {
 } from "@/app/(app)/candidate/dashboard/settings/actions";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { Panel } from "@/components/candidate/dashboard-ui";
-import { Field, PasswordField, SelectField } from "@/components/sign-up/fields";
+import {
+  Field,
+  PasswordField,
+  SelectField,
+  useFieldErrors,
+} from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -104,7 +109,7 @@ function ProfileSectionForm({
   successMessage: string;
   children: (
     errors: Record<string, string | undefined>,
-    markDirty: () => void,
+    markDirty: (field: string) => void,
   ) => React.ReactNode;
 }) {
   const [state, formAction, pending] = useActionState<
@@ -112,7 +117,11 @@ function ProfileSectionForm({
     FormData
   >(updateProfile, {});
   const [dirty, setDirty] = useState(false);
-  const errors = state.errors ?? {};
+  const { errors, formError, clear, clearAll, onChange } = useFieldErrors(
+    state,
+    state.errors,
+    state.error,
+  );
 
   useEffect(() => {
     if (state.ok) toast.success(successMessage);
@@ -122,8 +131,8 @@ function ProfileSectionForm({
   const hidden = (Object.keys(defaults) as (keyof ProfileDefaults)[]).filter(
     (k): k is ProfileKey => k !== "email" && !own.includes(k as ProfileKey),
   );
-  const hasErrors = Object.keys(errors).length > 0 || !!state.error;
-  const otherError = hidden.some((k) => errors[k])
+  const hasErrors = Object.keys(errors).length > 0 || !!formError;
+  const otherError = hidden.some((k) => state.errors?.[k])
     ? "Some saved details are invalid. Check the other section and save it first."
     : undefined;
 
@@ -131,9 +140,13 @@ function ProfileSectionForm({
     <form
       onSubmit={(e) => {
         setDirty(false);
+        clearAll();
         submitManually(formAction)(e);
       }}
-      onChange={() => setDirty(true)}
+      onChange={(e) => {
+        setDirty(true);
+        onChange(e);
+      }}
       noValidate
     >
       {hidden.map((k) => (
@@ -146,7 +159,7 @@ function ProfileSectionForm({
         footer={
           <>
             <FormStatus
-              error={state.error ?? otherError}
+              error={formError ?? otherError}
               pending={dirty ? "You have unsaved changes" : undefined}
             />
             <SubmitButton pending={pending} disabled={!dirty && !hasErrors}>
@@ -155,7 +168,10 @@ function ProfileSectionForm({
           </>
         }
       >
-        {children(errors, () => setDirty(true))}
+        {children(errors, (field) => {
+          setDirty(true);
+          clear(field);
+        })}
       </Panel>
     </form>
   );
@@ -375,7 +391,7 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
             className="sm:col-span-2"
             options={SECTOR_OPTIONS}
             defaultValue={initial.vertical}
-            onValueChange={markDirty}
+            onValueChange={() => markDirty("vertical")}
             error={errors.vertical}
           />
           <Field
@@ -407,7 +423,11 @@ export function PasswordForm() {
     FormData
   >(changePassword, {});
   const formRef = useRef<HTMLFormElement>(null);
-  const errors = state.errors ?? {};
+  const { errors, formError, clearAll, onChange } = useFieldErrors(
+    state,
+    state.errors,
+    state.error,
+  );
 
   useEffect(() => {
     if (!state.ok) return;
@@ -416,14 +436,22 @@ export function PasswordForm() {
   }, [state]);
 
   return (
-    <form ref={formRef} onSubmit={submitManually(formAction)} noValidate>
+    <form
+      ref={formRef}
+      onSubmit={(e) => {
+        clearAll();
+        submitManually(formAction)(e);
+      }}
+      onChange={onChange}
+      noValidate
+    >
       <Panel
         id="security"
         title="Password"
         description="Choose a new password for signing in to JobClubb."
         footer={
           <>
-            <FormStatus error={state.error} />
+            <FormStatus error={formError} />
             <SubmitButton pending={pending}>
               {pending ? "Updating..." : "Update password"}
             </SubmitButton>

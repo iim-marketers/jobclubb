@@ -42,7 +42,17 @@ const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
 const SOURCE_OPTIONS = SOURCING_CHANNELS.map((c) => ({ value: c, label: c }));
 
 export function CandidateSignUp() {
-  const { step, isLast, errors, values, pending, moved, goTo, formProps } =
+  const {
+    step,
+    isLast,
+    errors,
+    values,
+    pending,
+    moved,
+    goTo,
+    clearError,
+    formProps,
+  } =
     useStepForm({
       steps: CANDIDATE_STEPS,
       validate: validateCandidate,
@@ -187,7 +197,10 @@ export function CandidateSignUp() {
               label="Preferred sector"
               options={SECTOR_OPTIONS}
               value={vertical}
-              onValueChange={setVertical}
+              onValueChange={(v) => {
+                setVertical(v);
+                clearError("vertical");
+              }}
               required
               error={errors.vertical}
               className="sm:col-span-2"
@@ -208,6 +221,7 @@ export function CandidateSignUp() {
               label="How did you hear about JobClubb?"
               options={SOURCE_OPTIONS}
               placeholder="Select an option"
+              onValueChange={() => clearError("source")}
               required
               error={errors.source}
             />
@@ -233,7 +247,13 @@ export function CandidateSignUp() {
             )}
 
             <div className="pt-2">
-              <ScrollGatedTerms onRead={setHasRead} onAccept={setAccepted} />
+              <ScrollGatedTerms
+                onRead={setHasRead}
+                onAccept={(v) => {
+                  setAccepted(v);
+                  clearError("acceptTerms");
+                }}
+              />
               <input
                 type="hidden"
                 name="acceptTerms"

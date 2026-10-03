@@ -161,6 +161,7 @@ export function SignIn({
                 onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
+                  setErrors({});
                   startTransition(async () => {
                     const result = await signIn(formData);
                     if (result) {
@@ -213,7 +214,10 @@ export function SignIn({
                         name="role"
                         value={id}
                         checked={role === id}
-                        onChange={() => setRole(id)}
+                        onChange={() => {
+                          setRole(id);
+                          clearError("role");
+                        }}
                         className="sr-only"
                       />
                       <Icon className="size-5" />

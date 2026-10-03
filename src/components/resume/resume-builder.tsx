@@ -12,6 +12,7 @@ import {
   FieldError,
   FileField,
   SelectField,
+  useFieldErrors,
 } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -94,7 +95,11 @@ export function ResumeBuilder({
     ResumeActionState,
     FormData
   >(buildAtsResume, {});
-  const errors = state.fieldErrors ?? {};
+  const { errors, formError, clear, clearAll, onChange } = useFieldErrors(
+    state,
+    state.fieldErrors,
+    state.error,
+  );
   const roleOptions = (
     targetRole && !roleSuggestions.includes(targetRole)
       ? [targetRole, ...roleSuggestions]
@@ -126,7 +131,17 @@ export function ResumeBuilder({
       onSubmit={(e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
+        clearAll();
         startTransition(() => formAction(data));
+      }}
+      onChange={(e) => {
+        onChange(e);
+        // Either a PDF or a description satisfies the "additions" error.
+        if (
+          e.target instanceof HTMLInputElement &&
+          e.target.name === "oldResume"
+        )
+          clear("additions");
       }}
       className="space-y-5"
     >
@@ -138,6 +153,7 @@ export function ResumeBuilder({
           options={roleOptions}
           defaultValue={targetRole || undefined}
           placeholder="Select a role"
+          onValueChange={() => clear("targetRole")}
           error={errors.targetRole}
         />
       ) : (
@@ -197,12 +213,12 @@ export function ResumeBuilder({
         </>
       )}
 
-      {state.error && (
+      {formError && (
         <p
           role="alert"
           className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          {state.error}
+          {formError}
         </p>
       )}
 

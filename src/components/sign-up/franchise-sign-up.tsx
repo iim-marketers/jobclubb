@@ -30,7 +30,17 @@ import {
 } from "@/lib/sign-up-validation";
 
 export function FranchiseSignUp() {
-  const { step, isLast, errors, values, pending, moved, goTo, formProps } =
+  const {
+    step,
+    isLast,
+    errors,
+    values,
+    pending,
+    moved,
+    goTo,
+    clearError,
+    formProps,
+  } =
     useStepForm({
       steps: FRANCHISE_STEPS,
       validate: validateFranchise,
@@ -201,6 +211,7 @@ export function FranchiseSignUp() {
                     label="Business type"
                     options={BUSINESS_TYPES}
                     placeholder="Select type"
+                    onValueChange={() => clearError("businessType")}
                     required
                     error={errors.businessType}
                     className="sm:col-span-2"
@@ -281,7 +292,10 @@ export function FranchiseSignUp() {
                   <div className="sm:col-span-2">
                     <ScrollGatedTerms
                       onRead={setHasRead}
-                      onAccept={setAccepted}
+                      onAccept={(v) => {
+                        setAccepted(v);
+                        clearError("acceptTerms");
+                      }}
                     />
                     <input
                       type="hidden"

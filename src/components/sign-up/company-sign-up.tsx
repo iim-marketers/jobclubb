@@ -67,7 +67,17 @@ const ROUTE_STYLES: Record<
 };
 
 export function CompanySignUp() {
-  const { step, isLast, errors, values, pending, moved, goTo, formProps } =
+  const {
+    step,
+    isLast,
+    errors,
+    values,
+    pending,
+    moved,
+    goTo,
+    clearError,
+    formProps,
+  } =
     useStepForm({
       steps: COMPANY_STEPS,
       validate: validateCompany,
@@ -152,7 +162,10 @@ export function CompanySignUp() {
               label="Sector"
               options={SECTOR_OPTIONS}
               value={sector}
-              onValueChange={setSector}
+              onValueChange={(v) => {
+                setSector(v);
+                clearError("sector");
+              }}
               required
               error={errors.sector}
             />
@@ -162,7 +175,10 @@ export function CompanySignUp() {
               options={COMPANY_SIZES}
               placeholder="Select size"
               value={size}
-              onValueChange={setSize}
+              onValueChange={(v) => {
+                setSize(v);
+                clearError("size");
+              }}
               required
               error={errors.size}
             />
@@ -344,7 +360,13 @@ export function CompanySignUp() {
             />
 
             <div>
-              <ScrollGatedTerms onRead={setHasRead} onAccept={setAccepted} />
+              <ScrollGatedTerms
+                onRead={setHasRead}
+                onAccept={(v) => {
+                  setAccepted(v);
+                  clearError("acceptTerms");
+                }}
+              />
               <input
                 type="hidden"
                 name="acceptTerms"
