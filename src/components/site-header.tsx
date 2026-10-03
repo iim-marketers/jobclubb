@@ -4,6 +4,7 @@ import { LayoutDashboard } from "lucide-react";
 
 import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { getCandidateSession } from "@/server/auth/current-candidate";
 
 const NAV_LINKS = [
@@ -15,7 +16,7 @@ const NAV_LINKS = [
   { label: "About", href: "/about" },
 ];
 
-export async function SiteHeader() {
+export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const candidate = await getCandidateSession();
 
   return (
@@ -45,6 +46,9 @@ export async function SiteHeader() {
           />
         </Link>
 
+        {search ? (
+          <div className="min-w-0 flex-1 lg:max-w-xl">{search}</div>
+        ) : (
         <nav className="hidden flex-1 items-center gap-7 lg:flex">
           {NAV_LINKS.map((link) => (
             <Link
@@ -56,6 +60,7 @@ export async function SiteHeader() {
             </Link>
           ))}
         </nav>
+        )}
 
         <div className="ml-auto flex flex-none items-center gap-2 sm:gap-3">
           {candidate ? (
@@ -83,7 +88,10 @@ export async function SiteHeader() {
               </Button>
               <Button
                 size="sm"
-                className="hidden bg-brand font-head whitespace-nowrap text-brand-foreground hover:bg-brand-dark sm:inline-flex"
+                className={cn(
+                  "hidden bg-brand font-head whitespace-nowrap text-brand-foreground hover:bg-brand-dark",
+                  search ? "md:inline-flex" : "sm:inline-flex",
+                )}
                 nativeButton={false}
                 render={<Link href="/membership" />}
               >
@@ -91,7 +99,11 @@ export async function SiteHeader() {
               </Button>
             </>
           )}
-          <MobileNav links={NAV_LINKS} candidate={candidate} />
+          <MobileNav
+            links={NAV_LINKS}
+            candidate={candidate}
+            alwaysVisible={Boolean(search)}
+          />
         </div>
       </div>
     </header>
