@@ -1,9 +1,21 @@
-import { SiteHeader } from "@/components/site-header";
+import { Suspense } from "react";
 
-export default function JobsLayout({ children }: LayoutProps<"/">) {
+import { JobSearchBar, JobSearchBarFallback } from "@/components/job-search-bar";
+import { SiteHeader } from "@/components/site-header";
+import { getJobAccess } from "@/server/auth/current-candidate";
+
+export default async function JobsLayout({ children }: LayoutProps<"/">) {
+  const access = await getJobAccess();
+
   return (
     <>
-      <SiteHeader />
+      <SiteHeader
+        search={
+          <Suspense fallback={<JobSearchBarFallback />}>
+            <JobSearchBar member={access.member} />
+          </Suspense>
+        }
+      />
       <main className="flex flex-1 flex-col">{children}</main>
     </>
   );

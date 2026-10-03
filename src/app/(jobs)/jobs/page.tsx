@@ -1,20 +1,16 @@
 import Link from "next/link";
-import { Lock, MapPin, Search } from "lucide-react";
+import { Lock, SearchX } from "lucide-react";
 
 import { JobCard } from "@/components/job-card";
-import { JobFiltersPanel, JobFiltersSheet } from "@/components/job-filters";
-import { PageHeader, Section } from "@/components/page-shell";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  ActiveFilters,
+  JobFiltersPanel,
+  JobFiltersSheet,
+  JobSortSelect,
+} from "@/components/job-filters";
+import { Button } from "@/components/ui/button";
 import { JOBS } from "@/lib/jobs-data";
+import { parseJobQuery, searchJobs } from "@/lib/jobs-search";
 import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
 
 export const metadata = {
@@ -23,160 +19,99 @@ export const metadata = {
     "Live openings across Airlines, Hospitality and Travel & Tourism from verified employers.",
 };
 
-export default async function JobsPage() {
+export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
   const access = await getJobAccess();
+  const query = parseJobQuery(await searchParams, access.member);
+  const jobs = searchJobs(JOBS, query, access.member);
   const unlock = access.signedIn
     ? { href: CHECKOUT_PATH, label: "Complete payment" }
     : { href: "/sign-up", label: "Join JobClubb" };
 
   return (
-    <>
-      <PageHeader
-        eyebrow="Live openings"
-        title="Browse jobs"
-        description={
-          access.member
-            ? "Verified openings across Airlines, Hospitality and Travel & Tourism, with full details and one-click apply."
-            : "Verified openings across Airlines, Hospitality and Travel & Tourism. Members see full details and apply in one click."
-        }
-      >
-        <form className="mt-7 flex max-w-3xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row">
-          <div className="relative flex-1 border-b border-border sm:border-b-0 -mx-2 px-2">
-            <Search className="pointer-events-none absolute top-1/2 left-5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="Role, skill or company"
-              placeholder="Role, skill or company"
-              className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
-            />
-          </div>
-          <div className="relative flex-1 sm:max-w-55 border-b border-border sm:border-b-0 -mx-2 px-2">
-            <MapPin className="pointer-events-none absolute top-1/2 left-5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              aria-label="City or pincode"
-              placeholder="City or pincode"
-              className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
-            />
-          </div>
-          <Button
-            type="submit"
-            className="h-11 bg-brand px-6 font-head text-brand-foreground hover:bg-brand-dark"
-          >
-            Search
-          </Button>
-        </form>
-      </PageHeader>
+    <section className="px-4 pb-12 sm:px-6">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[260px_1fr]">
+        <aside className="hidden min-w-0 lg:sticky lg:top-18 lg:block lg:self-start lg:pt-6">
+          <JobFiltersPanel query={query} member={access.member} />
+        </aside>
 
-      <Section className="py-12!">
-        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-          <aside className="hidden min-w-0 lg:sticky lg:block lg:top-18 lg:self-start lg:pt-4">
-            <JobFiltersPanel />
-
-            {!access.member && (
-              <div className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-muted/50 p-4">
-                <span className="mt-0.5 flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
-                  <Lock className="size-3.5 text-brand" />
-                </span>
-                <div className="min-w-0">
-                  <p className="font-head text-sm font-bold">Location match</p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    Surface jobs near your home address — members only.
-                  </p>
-                  <Link
-                    href="/membership"
-                    className="mt-2 inline-flex items-center font-head text-xs font-bold text-brand hover:underline"
-                  >
-                    Unlock with membership
-                  </Link>
-                </div>
+        <div className="min-w-0">
+          <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:top-18 lg:mx-0 lg:px-0 lg:pt-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-baseline gap-2">
+                <h1 className="font-head text-xl font-extrabold tracking-tight sm:text-2xl">
+                  Jobs
+                </h1>
+                <p className="truncate text-sm text-muted-foreground">
+                  {jobs.length} {jobs.length === 1 ? "opening" : "openings"}
+                </p>
               </div>
-            )}
-          </aside>
-
-          <div className="min-w-0">
-            <div className="sticky top-16 z-10 -mx-4 border-b border-border bg-background/95 px-4 pt-3 pb-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:top-18 lg:-mx-1 lg:bg-background lg:px-1 lg:pt-4 lg:backdrop-blur-none">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <JobFiltersSheet member={access.member} />
-                  <p className="hidden text-sm text-muted-foreground sm:block lg:block">
-                    Showing{" "}
-                    <span className="font-semibold text-foreground">
-                      {JOBS.length}
-                    </span>{" "}
-                    openings
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Label htmlFor="sort" className="hidden sm:block">
-                    Sort
-                  </Label>
-                  <Select
-                    items={{
-                      recent: "Most recent",
-                      salary: "Salary: high to low",
-                      experience: "Experience: low to high",
-                    }}
-                    defaultValue="recent"
-                  >
-                    <SelectTrigger
-                      id="sort"
-                      size="sm"
-                      aria-label="Sort openings"
-                      className="w-40 font-head font-medium sm:w-45"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="recent">Most recent</SelectItem>
-                      <SelectItem value="salary">
-                        Salary: high to low
-                      </SelectItem>
-                      <SelectItem value="experience">
-                        Experience: low to high
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="flex flex-none items-center gap-2">
+                <JobFiltersSheet query={query} member={access.member} />
+                {access.member && <JobSortSelect query={query} />}
               </div>
             </div>
+            <ActiveFilters query={query} />
+          </div>
 
-            <p className="mt-4 text-sm text-muted-foreground sm:hidden">
-              Showing{" "}
-              <span className="font-semibold text-foreground">
-                {JOBS.length}
-              </span>{" "}
-              openings
-            </p>
-
-            <div className="mt-3 grid gap-4 sm:mt-5 sm:grid-cols-2">
-              {JOBS.map((job) => (
-                <div key={job.slug} className="relative min-w-0">
+          {jobs.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <ul className="mt-5 grid gap-4 md:grid-cols-2">
+              {jobs.map((job) => (
+                <li key={job.slug} className="min-w-0">
                   <JobCard job={job} locked={!access.member} />
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
+          )}
 
-            {!access.member && (
-              <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-center">
-                <Lock className="mx-auto size-5 text-brand" />
-                <p className="mt-3 font-head font-bold tracking-tight">
+          {!access.member && (
+            <div className="mt-6 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-6">
+              <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-brand/10">
+                <Lock className="size-4 text-brand" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-head font-bold tracking-tight">
                   See the full picture
                 </p>
-                <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">
-                  Members see the company, location, salary and full job
-                  details, and apply in one click.
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  Members see the company, location and salary, filter openings,
+                  and apply in one click.
                 </p>
-                <Button
-                  className="mt-4 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                  nativeButton={false}
-                  render={<Link href={unlock.href} />}
-                >
-                  {unlock.label}
-                </Button>
               </div>
-            )}
-          </div>
+              <Button
+                className="w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark sm:w-auto"
+                nativeButton={false}
+                render={<Link href={unlock.href} />}
+              >
+                {unlock.label}
+              </Button>
+            </div>
+          )}
         </div>
-      </Section>
-    </>
+      </div>
+    </section>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="mt-5 rounded-2xl border border-dashed border-border bg-card px-6 py-14 text-center">
+      <SearchX className="mx-auto size-6 text-brand" />
+      <p className="mt-3 font-head text-lg font-bold tracking-tight">
+        No jobs match your search
+      </p>
+      <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
+        Try a broader role name or remove a filter.
+      </p>
+      <Button
+        variant="outline"
+        className="mt-5 font-head"
+        nativeButton={false}
+        render={<Link href="/jobs" />}
+      >
+        See all jobs
+      </Button>
+    </div>
   );
 }

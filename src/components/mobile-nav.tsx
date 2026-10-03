@@ -43,9 +43,11 @@ type SessionCandidate = { firstName: string; lastName: string; email: string };
 export function MobileNav({
   links,
   candidate,
+  alwaysVisible = false,
 }: {
   links: { label: string; href: string }[];
   candidate: SessionCandidate | null;
+  alwaysVisible?: boolean;
 }) {
   return (
     <Sheet>
@@ -54,7 +56,7 @@ export function MobileNav({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="lg:hidden"
+            className={alwaysVisible ? undefined : "lg:hidden"}
             aria-label="Open menu"
           >
             <Menu className="size-5" />

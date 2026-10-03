@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Lock, SlidersHorizontal, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetClose,
@@ -15,15 +21,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { SORTS, jobsHref, type JobQuery, type JobSort } from "@/lib/jobs-search";
 import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
+import { cn } from "@/lib/utils";
 
-type Filters = {
-  sectors: string[];
-  jobTypes: string[];
-  workModes: string[];
-};
+type ListKey = "sectors" | "jobTypes" | "workModes";
 
-const EMPTY: Filters = { sectors: [], jobTypes: [], workModes: [] };
+const GROUPS: { key: ListKey; title: string; options: readonly string[] }[] = [
+  { key: "sectors", title: "Sector", options: VERTICALS.map((v) => v.name) },
+  { key: "jobTypes", title: "Job type", options: JOB_TYPES },
+  { key: "workModes", title: "Work mode", options: WORK_MODES },
+];
 
 function toggle(list: string[], value: string) {
   return list.includes(value)
@@ -31,24 +39,41 @@ function toggle(list: string[], value: string) {
     : [...list, value];
 }
 
-function countActive(filters: Filters) {
+function countActive(query: JobQuery) {
   return (
-    filters.sectors.length + filters.jobTypes.length + filters.workModes.length
+    query.sectors.length + query.jobTypes.length + query.workModes.length
   );
 }
 
-function filterId(prefix: string, label: string) {
-  return `${prefix}-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+function clearFilters(query: JobQuery): JobQuery {
+  return { ...query, sectors: [], jobTypes: [], workModes: [] };
+}
+
+function useNavigate() {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const navigate = (next: JobQuery) =>
+    startTransition(() => router.push(jobsHref(next), { scroll: false }));
+  return { navigate, pending };
 }
 
 /* ---------- Desktop sidebar ---------- */
 
-export function JobFiltersPanel() {
-  const [filters, setFilters] = useState<Filters>(EMPTY);
-  const active = countActive(filters);
+export function JobFiltersPanel({
+  query,
+  member,
+}: {
+  query: JobQuery;
+  member: boolean;
+}) {
+  const { navigate, pending } = useNavigate();
+  const active = countActive(query);
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div
+      aria-busy={pending}
+      className="rounded-2xl border border-border bg-card p-5"
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-head font-bold tracking-tight">
           <SlidersHorizontal className="size-4 text-brand" />
@@ -57,7 +82,7 @@ export function JobFiltersPanel() {
         {active > 0 && (
           <button
             type="button"
-            onClick={() => setFilters(EMPTY)}
+            onClick={() => navigate(clearFilters(query))}
             className="font-head text-xs font-bold text-brand hover:underline"
           >
             Clear all
@@ -65,277 +90,244 @@ export function JobFiltersPanel() {
         )}
       </div>
 
-      <div className="mt-4 -mx-5 divide-y divide-border">
-        <FilterGroup title="Sector">
-          <ul className="mt-3 grid gap-y-2.5">
-            {VERTICALS.map((v) => {
-              const id = filterId("filter", v.name);
-              return (
-                <li key={v.slug} className="flex min-w-0 items-center gap-2.5">
-                  <Checkbox
-                    id={id}
-                    checked={filters.sectors.includes(v.name)}
-                    onCheckedChange={() =>
-                      setFilters((f) => ({
-                        ...f,
-                        sectors: toggle(f.sectors, v.name),
-                      }))
-                    }
-                  />
-                  <Label
-                    htmlFor={id}
-                    className="cursor-pointer truncate text-sm font-normal text-muted-foreground hover:text-foreground"
-                  >
-                    {v.name}
-                  </Label>
-                </li>
-              );
-            })}
-          </ul>
-        </FilterGroup>
+      {!member && <MembersOnlyNote />}
 
-        <FilterGroup title="Job type">
-          <ChipList
-            prefix="filter"
-            options={JOB_TYPES}
-            selected={filters.jobTypes}
-            onToggle={(t) =>
-              setFilters((f) => ({ ...f, jobTypes: toggle(f.jobTypes, t) }))
-            }
-          />
-        </FilterGroup>
-
-        <FilterGroup title="Work mode">
-          <ChipList
-            prefix="filter"
-            options={WORK_MODES}
-            selected={filters.workModes}
-            onToggle={(m) =>
-              setFilters((f) => ({ ...f, workModes: toggle(f.workModes, m) }))
-            }
-          />
-        </FilterGroup>
-      </div>
+      <fieldset
+        disabled={!member}
+        className={cn(
+          "mt-4 -mx-5 divide-y divide-border transition-opacity",
+          (!member || pending) && "opacity-60",
+        )}
+      >
+        {GROUPS.map((group) => (
+          <div key={group.key} className="px-5 py-4 last:pb-0">
+            <h3 className="font-head text-sm font-bold tracking-tight">
+              {group.title}
+            </h3>
+            <ChipList
+              prefix="filter"
+              options={group.options}
+              selected={query[group.key]}
+              onToggle={(v) =>
+                navigate({ ...query, [group.key]: toggle(query[group.key], v) })
+              }
+            />
+          </div>
+        ))}
+      </fieldset>
     </div>
   );
 }
 
 /* ---------- Small screens: toolbar + bottom sheet ---------- */
 
-export function JobFiltersSheet({ member }: { member: boolean }) {
-  const [applied, setApplied] = useState<Filters>(EMPTY);
-  const [draft, setDraft] = useState<Filters>(EMPTY);
+export function JobFiltersSheet({
+  query,
+  member,
+}: {
+  query: JobQuery;
+  member: boolean;
+}) {
+  const { navigate } = useNavigate();
+  const [draft, setDraft] = useState(query);
   const [open, setOpen] = useState(false);
-  const active = countActive(applied);
+  const active = countActive(query);
   const draftActive = countActive(draft);
 
-  const appliedChips = [
-    ...applied.sectors.map((v) => ({ key: "sectors" as const, v })),
-    ...applied.jobTypes.map((v) => ({ key: "jobTypes" as const, v })),
-    ...applied.workModes.map((v) => ({ key: "workModes" as const, v })),
-  ];
-
   return (
-    <div className="lg:hidden">
-      <Sheet
-        open={open}
-        onOpenChange={(next) => {
-          if (next) setDraft(applied);
-          setOpen(next);
-        }}
+    <Sheet
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setDraft(query);
+        setOpen(next);
+      }}
+    >
+      <SheetTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-head font-semibold lg:hidden"
+          >
+            <SlidersHorizontal className="text-brand" />
+            Filters
+            {active > 0 && (
+              <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-brand-foreground">
+                {active}
+              </span>
+            )}
+          </Button>
+        }
+      />
+
+      <SheetContent
+        side="bottom"
+        className="max-h-[85dvh] gap-0 rounded-t-3xl p-0 pb-[env(safe-area-inset-bottom)]"
       >
-        <SheetTrigger
-          render={
-            <Button
-              variant="outline"
-              size="sm"
-              className="font-head font-semibold"
-            >
-              <SlidersHorizontal className="text-brand" />
-              Filters
-              {active > 0 && (
-                <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-brand-foreground">
-                  {active}
-                </span>
-              )}
-            </Button>
-          }
+        <div
+          aria-hidden
+          className="mx-auto mt-2.5 h-1.5 w-10 flex-none rounded-full bg-border"
         />
 
-        <SheetContent
-          side="bottom"
-          className="max-h-[85dvh] gap-0 rounded-t-3xl p-0 pb-[env(safe-area-inset-bottom)]"
-        >
-          <div
-            aria-hidden
-            className="mx-auto mt-2.5 h-1.5 w-10 flex-none rounded-full bg-border"
-          />
+        <div className="flex-none border-b border-border px-5 pt-3 pb-4">
+          <SheetTitle className="font-head text-lg font-bold tracking-tight">
+            Filters
+          </SheetTitle>
+          <SheetDescription className="text-xs">
+            {draftActive > 0
+              ? `${draftActive} selected`
+              : "Narrow openings by sector, type and mode"}
+          </SheetDescription>
+        </div>
 
-          <div className="flex flex-none items-center justify-between gap-3 border-b border-border px-5 pt-3 pb-4">
-            <div className="min-w-0">
-              <SheetTitle className="font-head text-lg font-bold tracking-tight">
-                Filters
-              </SheetTitle>
-              <SheetDescription className="text-xs">
-                {draftActive > 0
-                  ? `${draftActive} selected`
-                  : "Narrow openings by sector, type and mode"}
-              </SheetDescription>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-2">
-            <SheetGroup title="Sector">
-              <ChipList
-                prefix="m-filter"
-                size="lg"
-                options={VERTICALS.map((v) => v.name)}
-                selected={draft.sectors}
-                onToggle={(s) =>
-                  setDraft((f) => ({ ...f, sectors: toggle(f.sectors, s) }))
-                }
-              />
-            </SheetGroup>
-            <SheetGroup title="Job type">
-              <ChipList
-                prefix="m-filter"
-                size="lg"
-                options={JOB_TYPES}
-                selected={draft.jobTypes}
-                onToggle={(t) =>
-                  setDraft((f) => ({ ...f, jobTypes: toggle(f.jobTypes, t) }))
-                }
-              />
-            </SheetGroup>
-            <SheetGroup title="Work mode">
-              <ChipList
-                prefix="m-filter"
-                size="lg"
-                options={WORK_MODES}
-                selected={draft.workModes}
-                onToggle={(m) =>
-                  setDraft((f) => ({
-                    ...f,
-                    workModes: toggle(f.workModes, m),
-                  }))
-                }
-              />
-            </SheetGroup>
-
-            {!member && (
-              <div className="mt-2 mb-3 flex items-center gap-3 rounded-2xl border border-border bg-muted/50 p-3.5">
-                <span className="flex size-8 flex-none items-center justify-center rounded-lg bg-brand/10">
-                  <Lock className="size-3.5 text-brand" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-head text-sm font-bold">Location match</p>
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    Jobs near your home address — members only.
-                  </p>
-                </div>
-                <SheetClose
-                  nativeButton={false}
-                  render={
-                    <Link
-                      href="/membership"
-                      className="flex-none font-head text-xs font-bold text-brand hover:underline"
-                    >
-                      Unlock
-                    </Link>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-2">
+          {!member && <MembersOnlyNote onNavigate={() => setOpen(false)} />}
+          <fieldset disabled={!member} className={cn(!member && "opacity-60")}>
+            {GROUPS.map((group) => (
+              <div
+                key={group.key}
+                className="border-b border-border py-4 last:border-b-0"
+              >
+                <h3 className="font-head text-sm font-bold tracking-tight">
+                  {group.title}
+                </h3>
+                <ChipList
+                  prefix="m-filter"
+                  size="lg"
+                  options={group.options}
+                  selected={draft[group.key]}
+                  onToggle={(v) =>
+                    setDraft((d) => ({ ...d, [group.key]: toggle(d[group.key], v) }))
                   }
                 />
               </div>
-            )}
-          </div>
+            ))}
+          </fieldset>
+        </div>
 
-          <div className="flex flex-none gap-3 border-t border-border bg-popover px-5 py-4">
-            <Button
-              variant="outline"
-              size="lg"
-              className="flex-1 font-head"
-              disabled={draftActive === 0}
-              onClick={() => setDraft(EMPTY)}
-            >
-              Clear all
-            </Button>
-            <SheetClose
-              render={
-                <Button
-                  size="lg"
-                  className="flex-2 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                  onClick={() => setApplied(draft)}
-                >
-                  Apply filters
-                </Button>
-              }
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {appliedChips.length > 0 && (
-        <ul className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden">
-          {appliedChips.map(({ key, v }) => (
-            <li key={`${key}-${v}`} className="flex-none">
-              <button
-                type="button"
-                aria-label={`Remove ${v} filter`}
-                onClick={() =>
-                  setApplied((f) => ({ ...f, [key]: toggle(f[key], v) }))
-                }
-                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 pr-2 pl-3 text-xs font-medium text-foreground"
+        <div className="flex flex-none gap-3 border-t border-border bg-popover px-5 py-4">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 font-head"
+            disabled={draftActive === 0}
+            onClick={() => setDraft(clearFilters)}
+          >
+            Clear all
+          </Button>
+          <SheetClose
+            render={
+              <Button
+                size="lg"
+                className="flex-2 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                disabled={!member}
+                onClick={() => navigate(draft)}
               >
-                {v}
-                <X className="size-3.5 text-brand" />
-              </button>
-            </li>
-          ))}
-          <li className="flex-none">
-            <button
-              type="button"
-              onClick={() => setApplied(EMPTY)}
-              className="inline-flex h-8 items-center px-2 font-head text-xs font-bold text-brand"
-            >
-              Clear all
-            </button>
-          </li>
-        </ul>
-      )}
-    </div>
+                Apply filters
+              </Button>
+            }
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/* ---------- Toolbar pieces ---------- */
+
+export function JobSortSelect({ query }: { query: JobQuery }) {
+  const { navigate } = useNavigate();
+
+  return (
+    <Select
+      items={SORTS}
+      value={query.sort}
+      onValueChange={(sort) => navigate({ ...query, sort: sort as JobSort })}
+    >
+      <SelectTrigger
+        size="sm"
+        aria-label="Sort openings"
+        className="w-40 font-head font-medium sm:w-45"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.entries(SORTS).map(([value, label]) => (
+          <SelectItem key={value} value={value}>
+            {label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+export function ActiveFilters({ query }: { query: JobQuery }) {
+  const { navigate } = useNavigate();
+
+  const chips: { label: string; remove: JobQuery }[] = [
+    ...(query.q ? [{ label: `“${query.q}”`, remove: { ...query, q: "" } }] : []),
+    ...(query.loc
+      ? [{ label: `Near ${query.loc}`, remove: { ...query, loc: "" } }]
+      : []),
+    ...GROUPS.flatMap((group) =>
+      query[group.key].map((v) => ({
+        label: v,
+        remove: { ...query, [group.key]: toggle(query[group.key], v) },
+      })),
+    ),
+  ];
+
+  if (chips.length === 0) return null;
+
+  return (
+    <ul className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:px-0 [&::-webkit-scrollbar]:hidden">
+      {chips.map(({ label, remove }) => (
+        <li key={label} className="flex-none">
+          <button
+            type="button"
+            aria-label={`Remove ${label} filter`}
+            onClick={() => navigate(remove)}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 pr-2 pl-3 text-xs font-medium text-foreground transition-colors hover:border-brand"
+          >
+            {label}
+            <X className="size-3.5 text-brand" />
+          </button>
+        </li>
+      ))}
+      <li className="flex-none">
+        <button
+          type="button"
+          onClick={() =>
+            navigate({ ...clearFilters(query), q: "", loc: "" })
+          }
+          className="inline-flex h-8 items-center px-2 font-head text-xs font-bold text-brand hover:underline"
+        >
+          Clear all
+        </button>
+      </li>
+    </ul>
   );
 }
 
 /* ---------- Shared pieces ---------- */
 
-function FilterGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function MembersOnlyNote({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <div className="py-4 px-4 first:pt-0 last:pb-0">
-      <h3 className="font-head text-sm font-bold tracking-tight">{title}</h3>
-      {children}
+    <div className="mt-4 mb-1 flex items-start gap-3 rounded-xl border border-dashed border-brand/40 bg-brand/5 p-3">
+      <Lock className="mt-0.5 size-3.5 flex-none text-brand" />
+      <p className="text-xs leading-5 text-muted-foreground">
+        Filters reveal company, sector and salary details, so they open up with
+        membership.{" "}
+        <Link
+          href="/membership"
+          onClick={onNavigate}
+          className="font-head font-bold text-brand hover:underline"
+        >
+          See plans
+        </Link>
+      </p>
     </div>
-  );
-}
-
-function SheetGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <fieldset className="border-b border-border py-4 last:border-b-0">
-      <legend className="float-left w-full font-head text-sm font-bold tracking-tight">
-        {title}
-      </legend>
-      {children}
-    </fieldset>
   );
 }
 
@@ -353,9 +345,9 @@ function ChipList({
   size?: "sm" | "lg";
 }) {
   return (
-    <ul className="clear-both flex flex-wrap gap-2 pt-3">
+    <ul className="flex flex-wrap gap-2 pt-3">
       {options.map((label) => {
-        const id = filterId(prefix, label);
+        const id = `${prefix}-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
         return (
           <li key={label}>
             <input
@@ -367,10 +359,10 @@ function ChipList({
             />
             <label
               htmlFor={id}
-              className={
-                "inline-flex cursor-pointer items-center rounded-full border border-border bg-background text-muted-foreground transition-colors select-none hover:border-brand/50 hover:text-foreground peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-foreground peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 " +
-                (size === "lg" ? "h-10 px-4 text-sm" : "px-3 py-1.5 text-xs")
-              }
+              className={cn(
+                "inline-flex cursor-pointer items-center rounded-full border border-border bg-background text-muted-foreground transition-colors select-none hover:border-brand/50 hover:text-foreground peer-checked:border-brand peer-checked:bg-brand peer-checked:text-brand-foreground peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-disabled:cursor-not-allowed peer-disabled:hover:border-border peer-disabled:hover:text-muted-foreground",
+                size === "lg" ? "h-10 px-4 text-sm" : "px-3 py-1.5 text-xs",
+              )}
             >
               {label}
             </label>
