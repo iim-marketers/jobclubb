@@ -14,7 +14,7 @@ export function AtsInsights({ report }: { report: AtsReport }) {
           {passed}/{report.checks.length} passed
         </span>
       </div>
-      <ul className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2.5">
+      <ul className="mt-4 grid grid-cols-2 gap-x-3 sm:grid-cols-3 gap-y-2.5">
         {report.checks.map((check) => (
           <li
             key={check.label}

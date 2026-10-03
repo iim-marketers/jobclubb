@@ -49,7 +49,7 @@ function TextareaField({
         maxLength={maxLength}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
-        className="max-h-60 bg-card"
+        className="h-28 resize-none bg-card field-sizing-fixed"
       />
       {hint && !error && (
         <p className="text-xs text-muted-foreground">{hint}</p>
