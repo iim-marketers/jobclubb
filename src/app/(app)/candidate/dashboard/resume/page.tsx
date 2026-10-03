@@ -75,47 +75,46 @@ export default async function ResumePage() {
     <div className="space-y-6 ">
       <PageHeader
         action={
-          <div className="flex items-center lg:pb-6 gap-2 print:hidden">
+          <div className="flex shrink-0 items-center gap-2 print:hidden">
             <ClearResumeButton />
             <PrintResumeButton fileName={`${contact.name} - Resume`} />
           </div>
         }
       />
 
+      <ScoreHero
+        score={report.score}
+        keywordMatch={keywordMatch ?? 0}
+        originalScore={saved.originalScore}
+        targetRole={saved.targetRole}
+        tailored={!!saved.jobDescription}
+        missing={report.missing.length}
+      />
+
+      <div className="print:hidden">
+        <AtsInsights report={report} />
+      </div>
+
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
-        <div className="min-w-0 space-y-6">
-          <ScoreHero
-            score={report.score}
-            keywordMatch={keywordMatch ?? 0}
-            originalScore={saved.originalScore}
-            targetRole={saved.targetRole}
-            tailored={!!saved.jobDescription}
-            missing={report.missing.length}
-          />
+        <section className="min-w-0 rounded-3xl border border-border bg-card">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 pt-5 sm:px-6 print:hidden">
+            <h2 className="font-head font-bold tracking-tight">Preview</h2>
+            <p className="text-xs text-muted-foreground">
+              Generated {generated}
+            </p>
+          </div>
+          <div className="p-3 sm:p-6">
+            <ResumeDocument resume={saved.resume} contact={contact} />
+          </div>
+        </section>
 
-          <section className="min-w-0 rounded-3xl border border-border bg-card">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 pt-5 sm:px-6 print:hidden">
-              <h2 className="font-head font-bold tracking-tight">Preview</h2>
-              <p className="text-xs text-muted-foreground">
-                Generated {generated}
-              </p>
-            </div>
-            <div className="p-3 sm:p-6">
-              <ResumeDocument resume={saved.resume} contact={contact} />
-            </div>
-          </section>
-        </div>
-
-        <div className="min-w-0 space-y-6 print:hidden">
-          <ResumeCard
-            title="Tailor or refine"
-            description="Tell us what to change, then regenerate."
-          >
-            {builder}
-          </ResumeCard>
-
-          <AtsInsights report={report} />
-        </div>
+        <ResumeCard
+          title="Tailor or refine"
+          description="Tell us what to change, then regenerate."
+          className="xl:sticky xl:top-22 print:hidden"
+        >
+          {builder}
+        </ResumeCard>
       </div>
     </div>
   );
@@ -123,7 +122,7 @@ export default async function ResumePage() {
 
 function PageHeader({ action }: { action?: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
           My resume
