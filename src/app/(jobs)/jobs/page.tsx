@@ -10,7 +10,7 @@ import {
 } from "@/components/job-filters";
 import { Button } from "@/components/ui/button";
 import { JOBS } from "@/lib/jobs-data";
-import { parseJobQuery, searchJobs } from "@/lib/jobs-search";
+import { facetCounts, parseJobQuery, searchJobs } from "@/lib/jobs-search";
 import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
 
 export const metadata = {
@@ -23,6 +23,9 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
   const access = await getJobAccess();
   const query = parseJobQuery(await searchParams, access.member);
   const jobs = searchJobs(JOBS, query, access.member);
+  const counts = access.member
+    ? facetCounts(JOBS, query, access.member)
+    : undefined;
   const unlock = access.signedIn
     ? { href: CHECKOUT_PATH, label: "Complete payment" }
     : { href: "/sign-up", label: "Join JobClubb" };
@@ -31,7 +34,11 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
     <section className="px-4 pb-12 sm:px-6">
       <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[260px_1fr]">
         <aside className="hidden min-w-0 lg:sticky lg:top-18 lg:block lg:self-start lg:pt-6">
-          <JobFiltersPanel query={query} member={access.member} />
+          <JobFiltersPanel
+            query={query}
+            member={access.member}
+            counts={counts}
+          />
         </aside>
 
         <div className="min-w-0">
@@ -46,7 +53,11 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
                 </p>
               </div>
               <div className="flex flex-none items-center gap-2">
-                <JobFiltersSheet query={query} member={access.member} />
+                <JobFiltersSheet
+                  query={query}
+                  member={access.member}
+                  counts={counts}
+                />
                 {access.member && <JobSortSelect query={query} />}
               </div>
             </div>

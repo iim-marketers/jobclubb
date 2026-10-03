@@ -94,6 +94,35 @@ export function searchJobs(
   return results;
 }
 
+export type FacetCounts = Record<
+  "sectors" | "jobTypes" | "workModes",
+  Record<string, number>
+>;
+
+// Counts ignore the selected facets so they stay stable while the mobile sheet
+// edits a draft that hasn't hit the server yet.
+export function facetCounts(
+  jobs: JobListing[],
+  query: JobQuery,
+  member: boolean,
+): FacetCounts {
+  const base = searchJobs(
+    jobs,
+    { ...query, sectors: [], jobTypes: [], workModes: [] },
+    member,
+  );
+  const tally = (pick: (job: JobListing) => string) => {
+    const counts: Record<string, number> = {};
+    for (const job of base) counts[pick(job)] = (counts[pick(job)] ?? 0) + 1;
+    return counts;
+  };
+  return {
+    sectors: tally((j) => j.vertical),
+    jobTypes: tally((j) => j.jobType),
+    workModes: tally((j) => j.workMode),
+  };
+}
+
 export function jobsHref(query: JobQuery) {
   const params = new URLSearchParams();
   if (query.q) params.set("q", query.q);
