@@ -1,6 +1,3 @@
-// Company sign-up & verification rules per JobClubb SOP §4.3–4.4.
-// Shared by the sign-up form (live feedback) and the server action (enforcement).
-
 export const COMPANY_SIZES = [
   { value: "1-10", label: "1–10 employees", large: false },
   { value: "11-50", label: "11–50 employees", large: false },
@@ -11,20 +8,6 @@ export const COMPANY_SIZES = [
 
 export type CompanySize = (typeof COMPANY_SIZES)[number]["value"];
 
-// SOP §4.3: free account is a single user; paid accounts are sold in 5 / 10 / 50
-// seat slabs, with a custom tier beyond 50. Per-slab pricing is still to be set.
-export const SEAT_PLANS = [
-  { value: "free", label: "Free", seats: "1 user", note: "Single user, no HR seats" },
-  { value: "slab-5", label: "5 seats", seats: "5 HR seats", note: "Paid" },
-  { value: "slab-10", label: "10 seats", seats: "10 HR seats", note: "Paid" },
-  { value: "slab-50", label: "50 seats", seats: "50 HR seats", note: "Paid" },
-  { value: "custom", label: "Custom", seats: "50+ HR seats", note: "Enterprise, on request" },
-] as const;
-
-export type SeatPlan = (typeof SEAT_PLANS)[number]["value"];
-
-// Generic free-mail providers. A company email on one of these can't prove
-// the sender works at the company, so it needs a manual check.
 const FREE_MAIL_DOMAINS = new Set([
   "gmail.com",
   "googlemail.com",
@@ -90,8 +73,6 @@ export function getWebsiteDomain(website: string): string | null {
   }
 }
 
-// True when the email domain is the website domain or one of its subdomains
-// (careers.taj.com matches taj.com) — or vice versa.
 function domainsMatch(emailDomain: string, websiteDomain: string): boolean {
   return (
     emailDomain === websiteDomain ||
@@ -101,11 +82,8 @@ function domainsMatch(emailDomain: string, websiteDomain: string): boolean {
 }
 
 export type VerificationRoute =
-  // Corporate email on the company's own domain: verified by confirming the email.
   | "email"
-  // Anything we can't prove from the email alone: an admin reviews documents.
   | "manual"
-  // Large company on a free-mail address: not allowed (SOP §4.4).
   | "blocked";
 
 export type VerificationAssessment = {

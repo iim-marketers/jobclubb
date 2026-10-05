@@ -34,8 +34,7 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
     return { errors: { role: "Choose an account type." } };
 
   if (role !== "candidate") {
-    // TODO: move company and franchise accounts onto Supabase — reject
-    // companies that aren't verified yet and inactive HR seats.
+    // TODO: move company and franchise accounts onto Supabase and reject unverified companies.
     redirect(DASHBOARDS[role as SignInRole]);
   }
 

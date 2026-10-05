@@ -52,7 +52,7 @@ const ROLES: {
     eyebrow: "For employers",
     title: ["Your next hire is ", "already here", "."],
     description:
-      "Review candidates by skills and experience, and manage your postings and HR seats.",
+      "Review candidates by skills and experience, and manage your job postings.",
     disabled: true,
   },
   {
@@ -385,9 +385,6 @@ function IconField({
     </div>
   );
 }
-
-// ---- Role previews in the brand panel. Lower rows carry higher `data-fit`
-// numbers so they're the first to go on short screens.
 
 // Only role names reach this client component; the rest is blurred placeholder.
 function CandidatePreview({ roles }: { roles: string[] }) {

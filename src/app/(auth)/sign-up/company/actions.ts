@@ -17,10 +17,7 @@ export async function registerCompany(
     website: String(formData.get("website") ?? ""),
   })!.route;
 
-  // TODO: persist once the backend lands — create the company (status
-  // "pending_email" or "pending_review"), the admin user with a hashed password,
-  // store the proof document, record T&C version + consent timestamp (DPDP), and
-  // send the confirmation email / notify the admin review queue.
+  // TODO: persist the registration once the backend lands.
 
   redirect(`/sign-up/submitted?route=${route}`);
 }
