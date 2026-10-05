@@ -1,7 +1,7 @@
 # Supabase setup
 
 Candidate sign-up and sign-in run on Supabase Auth, with profiles in `public.candidates`.
-Supabase stores the accounts and password hashes and generates the confirmation links. The app sends the emails itself, through Nodemailer (`src/lib/email`).
+Supabase stores the accounts and password hashes and generates the confirmation links. The app sends the emails itself (`src/lib/email`): through Resend in production, and through Gmail SMTP (Nodemailer) everywhere else.
 
 ## 1. Environment
 
@@ -13,6 +13,11 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SECRET_KEY=...        # Project Settings → API Keys → Secret keys
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
+# Production (NODE_ENV=production)
+RESEND_API_KEY=...
+RESEND_FROM="JobClubb <no-reply@mail.example.com>"   # domain verified in Resend
+
+# Local / development
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=you@gmail.com
@@ -51,6 +56,10 @@ select vault.create_secret('<SUPABASE_SECRET_KEY>', 'storage_secret_key');
 ```
 
 Without these secrets, deletes still work but the files stay in Storage. The database logs a warning each time this happens.
+
+### Company accounts
+
+Company sign-ups land in `public.companies`, with the proof document in the private `company-proofs` bucket. `status` moves from `pending_email` to `verified` (corporate email on the company's domain) or `pending_review` (personal email or mismatched domain) once the email is confirmed. Approve a reviewed company by setting its `status` to `verified`, or `rejected`. Only `verified` companies can sign in. Deleting a company also deletes its login and files.
 
 ## 3. Auth settings (dashboard → Authentication)
 

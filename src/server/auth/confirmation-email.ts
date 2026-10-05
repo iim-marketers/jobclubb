@@ -3,11 +3,13 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { sendEmail } from "@/lib/email/mailer";
+import { createAdminClient } from "@/lib/supabase/server";
 import { confirmSignupEmail } from "@/lib/email/templates/confirm-signup";
 
 // Never the request's Origin header: it can be forged to point email links elsewhere.
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_GAP_SECONDS = 60;
 const MAX_PER_HOUR = 5;
 
@@ -23,11 +25,13 @@ export async function sendConfirmationEmail(
     firstName,
     password,
     data,
+    audience,
   }: {
     email: string;
     firstName?: string;
     password?: string;
     data?: Record<string, unknown>;
+    audience?: "candidate" | "company";
   },
 ): Promise<ConfirmationResult> {
   if (await isRateLimited(admin, email, "confirm_signup")) return { error: "rate_limited" };
@@ -55,7 +59,7 @@ export async function sendConfirmationEmail(
   try {
     await sendEmail({
       to: email,
-      ...confirmSignupEmail({ firstName, email, confirmUrl, siteUrl: SITE_URL }),
+      ...confirmSignupEmail({ firstName, email, confirmUrl, siteUrl: SITE_URL, audience }),
     });
   } catch (sendError) {
     console.error("Sending confirmation email failed", sendError);
@@ -64,6 +68,30 @@ export async function sendConfirmationEmail(
 
   await admin.from("email_sends").insert({ email, kind: "confirm_signup" });
   return { userId: link.user.id };
+}
+
+export async function resendConfirmationEmail(email: string): Promise<{ error?: string }> {
+  const address = email.trim().toLowerCase();
+  if (!EMAIL_PATTERN.test(address)) return { error: "Enter a valid email address." };
+
+  // generateLink() on an unknown address would create a new account.
+  const admin = createAdminClient();
+  const [{ data: candidate }, { data: company }] = await Promise.all([
+    admin.from("candidates").select("first_name").eq("email", address).maybeSingle(),
+    admin.from("companies").select("contact_name").eq("email", address).maybeSingle(),
+  ]);
+  if (!candidate && !company) return { error: "We couldn't find a JobClubb account for that email." };
+
+  const { error } = await sendConfirmationEmail(admin, {
+    email: address,
+    firstName: candidate?.first_name ?? company?.contact_name.split(" ")[0],
+    audience: company ? "company" : "candidate",
+  });
+
+  if (error === "rate_limited") return { error: "Please wait a minute before asking for another email." };
+  if (error === "email_exists") return { error: "Your email is already confirmed. Sign in instead." };
+  if (error) return { error: "We couldn't send the email. Please try again." };
+  return {};
 }
 
 export async function isRateLimited(

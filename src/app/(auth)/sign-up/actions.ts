@@ -5,10 +5,8 @@ import { redirect } from "next/navigation";
 
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
-import {
-  registerCandidate as registerCandidateAccount,
-  resendCandidateConfirmation,
-} from "@/server/candidates/register";
+import { resendConfirmationEmail } from "@/server/auth/confirmation-email";
+import { registerCandidate as registerCandidateAccount } from "@/server/candidates/register";
 
 export async function registerCandidate(
   formData: FormData,
@@ -26,5 +24,5 @@ export async function registerCandidate(
 }
 
 export async function resendConfirmation(email: string): Promise<{ error?: string }> {
-  return resendCandidateConfirmation(email);
+  return resendConfirmationEmail(email);
 }

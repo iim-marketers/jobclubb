@@ -167,6 +167,7 @@ export const COMPANY_STEPS: SignUpStep[] = [
 export function validateCompany(formData: FormData): FieldErrors {
   const v = {
     companyName: readText(formData, "companyName"),
+    propertyName: readText(formData, "propertyName"),
     sector: readText(formData, "sector"),
     size: readText(formData, "size"),
     website: readText(formData, "website"),
@@ -185,16 +186,22 @@ export function validateCompany(formData: FormData): FieldErrors {
   const errors: FieldErrors = {};
 
   if (!v.companyName) errors.companyName = "Enter your company's registered name.";
+  else if (v.companyName.length > 120) errors.companyName = "Use 120 characters or fewer.";
+  if (v.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
   if (!VERTICALS.some((s) => s.slug === v.sector)) errors.sector = "Choose a sector.";
   if (!COMPANY_SIZES.some((s) => s.value === v.size)) errors.size = "Choose your company size.";
-  if (v.website && !getWebsiteDomain(v.website)) errors.website = "Enter a valid website, like taj.com.";
+  if (v.website.length > 255 || (v.website && !getWebsiteDomain(v.website))) errors.website = "Enter a valid website, like taj.com.";
   if (v.gstin && !GSTIN_PATTERN.test(v.gstin)) errors.gstin = "GSTIN should be 15 characters, like 19AABCT1234F1Z5.";
   if (!v.city) errors.city = "Enter your city.";
+  else if (v.city.length > 80) errors.city = "Use 80 characters or fewer.";
   if (!PINCODE_PATTERN.test(v.pincode)) errors.pincode = "Enter a 6-digit pincode.";
   if (!v.contactName) errors.contactName = "Enter your full name.";
+  else if (v.contactName.length > 80) errors.contactName = "Use 80 characters or fewer.";
   if (!v.designation) errors.designation = "Enter your designation.";
+  else if (v.designation.length > 80) errors.designation = "Use 80 characters or fewer.";
   if (!PHONE_PATTERN.test(v.phone)) errors.phone = "Enter a valid 10-digit Indian mobile number.";
   if (v.password.length < 8) errors.password = "Use at least 8 characters.";
+  else if (new TextEncoder().encode(v.password).length > 72) errors.password = "Use 72 characters or fewer.";
   else if (v.password !== v.confirmPassword) errors.confirmPassword = "Passwords don't match.";
   if (v.acceptTerms !== "yes") errors.acceptTerms = "Read and accept the Terms & Conditions.";
 

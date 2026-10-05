@@ -15,6 +15,7 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
 import {
   Field,
+  FieldError,
   FileField,
   PasswordField,
   SelectField,
@@ -35,7 +36,7 @@ import {
   assessCompanyVerification,
   type VerificationRoute,
 } from "@/lib/company-verification";
-import { COMPANY_STEPS } from "@/lib/sign-up-validation";
+import { COMPANY_STEPS, validateCompany } from "@/lib/sign-up-validation";
 import { VERTICALS } from "@/lib/taxonomy";
 
 const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
@@ -77,7 +78,7 @@ export function CompanySignUp() {
     formProps,
   } = useStepForm({
     steps: COMPANY_STEPS,
-    validate: () => ({}),
+    validate: validateCompany,
     action: registerCompany,
   });
   const [sector, setSector] = useState<string | null>("hotels");
@@ -154,6 +155,8 @@ export function CompanySignUp() {
               label="Registered company name"
               placeholder="E.g., Taj Hotels Ltd."
               autoComplete="organization"
+              required
+              error={errors.companyName}
               className="sm:col-span-2"
             />
             <Field
@@ -173,6 +176,8 @@ export function CompanySignUp() {
                 setSector(v);
                 clearError("sector");
               }}
+              required
+              error={errors.sector}
             />
             <SelectField
               id="size"
@@ -184,12 +189,15 @@ export function CompanySignUp() {
                 setSize(v);
                 clearError("size");
               }}
+              required
+              error={errors.size}
             />
             <Field
               id="website"
               label="Company website"
               placeholder="E.g., tajhotels.com"
               optional
+              error={errors.website}
             />
             <Field
               id="gstin"
@@ -197,6 +205,7 @@ export function CompanySignUp() {
               placeholder="E.g., 19AABCT1234F1Z5"
               optional
               hint="Speeds up verification."
+              error={errors.gstin}
               inputClassName="uppercase placeholder:normal-case"
             />
             <Field
@@ -204,6 +213,8 @@ export function CompanySignUp() {
               label="Property city"
               placeholder="E.g., Kolkata"
               autoComplete="address-level2"
+              required
+              error={errors.city}
             />
             <Field
               id="pincode"
@@ -212,6 +223,8 @@ export function CompanySignUp() {
               inputMode="numeric"
               maxLength={6}
               autoComplete="postal-code"
+              required
+              error={errors.pincode}
             />
           </div>
         </StepPanel>
@@ -229,12 +242,16 @@ export function CompanySignUp() {
               label="Full name"
               placeholder="E.g., Rakesh Nair"
               autoComplete="name"
+              required
+              error={errors.contactName}
             />
             <Field
               id="designation"
               label="Designation"
               placeholder="E.g., HR Manager"
               autoComplete="organization-title"
+              required
+              error={errors.designation}
             />
             <div className="space-y-2 sm:col-span-2">
               <Field
@@ -244,16 +261,18 @@ export function CompanySignUp() {
                 placeholder="E.g., hr.kolkata@yourcompany.com"
                 hint="Used to sign in. Each property needs its own email — it can't be shared with another location."
                 autoComplete="email"
+                required
+                error={errors.email}
               />
               {assessment && !errors.email && (
                 <p
                   aria-live="polite"
                   className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs leading-5 ${ROUTE_STYLES[assessment.route].form}`}
                 >
-                  {(() => {
+                  {/* {(() => {
                     const Icon = ROUTE_STYLES[assessment.route].icon;
                     return <Icon className="mt-0.5 size-3.5 flex-none" />;
-                  })()}
+                  })()} */}
                   {assessment.reason}
                 </p>
               )}
@@ -262,18 +281,24 @@ export function CompanySignUp() {
               id="phone"
               label="Mobile number"
               type="tel"
-              placeholder="E.g., +91 90000 00000"
+              placeholder="E.g., 9000000000"
               autoComplete="tel"
+              required
+              error={errors.phone}
               className="sm:col-span-2"
             />
             <PasswordField
               id="password"
               label="Password"
               placeholder="At least 8 characters"
+              required
+              error={errors.password}
             />
             <PasswordField
               id="confirmPassword"
               label="Confirm password"
+              required
+              error={errors.confirmPassword}
             />
           </div>
         </StepPanel>
@@ -294,6 +319,8 @@ export function CompanySignUp() {
                   : "Upload a business document"
               }
               description="Incorporation or GST certificate, or trade licence · PDF, JPG or PNG, up to 5 MB"
+              required={assessment?.route === "manual" && !values.gstin}
+              error={errors.proof}
             />
 
             <div>
@@ -309,6 +336,7 @@ export function CompanySignUp() {
                 name="acceptTerms"
                 value={accepted ? "yes" : ""}
               />
+              <FieldError message={errors.acceptTerms} />
             </div>
           </div>
         </StepPanel>

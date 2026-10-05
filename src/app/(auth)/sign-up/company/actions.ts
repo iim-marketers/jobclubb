@@ -1,23 +1,23 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { assessCompanyVerification } from "@/lib/company-verification";
-import { validateCompany, type FieldErrors } from "@/lib/sign-up-validation";
+import type { FieldErrors } from "@/lib/sign-up-validation";
+import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
+import { registerCompany as registerCompanyAccount } from "@/server/companies/register";
 
 export async function registerCompany(
   formData: FormData,
 ): Promise<{ errors: FieldErrors }> {
-  const errors = validateCompany(formData);
-  if (Object.keys(errors).length > 0) return { errors };
+  const result = await registerCompanyAccount(formData);
+  if (!result.ok) return { errors: result.errors };
 
-  const route = assessCompanyVerification({
-    email: String(formData.get("email")),
-    size: String(formData.get("size")),
-    website: String(formData.get("website") ?? ""),
-  })!.route;
-
-  // TODO: persist the registration once the backend lands.
-
-  redirect(`/sign-up/submitted?route=${route}`);
+  (await cookies()).set(PENDING_EMAIL_COOKIE, result.email, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24,
+  });
+  redirect(`/sign-up/submitted?route=${result.route}`);
 }
