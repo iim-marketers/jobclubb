@@ -302,7 +302,7 @@ function CheckList({ items }: { items: string[] }) {
   return (
     <ul className="space-y-2.5">
       {items.map((item) => (
-        <li key={item} className="flex text-sm gap-2.5 text-muted-foreground">
+        <li key={item} className="flex text-sm gap-1 text-muted-foreground">
           <Check className="mt-1 size-4 flex-none text-brand" />
           <span className="leading-6">{item}</span>
         </li>
@@ -323,7 +323,7 @@ function Fact({
   return (
     <div className="min-w-0">
       <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="size-3.5" />
+        {/* <Icon className="size-3.5" /> */}
         {label}
       </dt>
       <dd className="mt-1 font-head text-sm font-bold tracking-tight">
