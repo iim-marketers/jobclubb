@@ -35,6 +35,15 @@
   --color-brand-surface-strong: var(--brand-surface-strong);
   --color-good: var(--good);
 
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
   --font-head: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -77,6 +86,15 @@
   --brand-surface: #00789f;
   --brand-surface-strong: #02506b;
   --good: #0a6b47;
+
+  --sidebar: #023b50;
+  --sidebar-foreground: #e3eef4;
+  --sidebar-primary: #00bea2;
+  --sidebar-primary-foreground: #032a36;
+  --sidebar-accent: rgb(255 255 255 / 0.1);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.1);
+  --sidebar-ring: rgb(255 255 255 / 0.4);
 }
 
 .dark {
@@ -107,6 +125,15 @@
   --brand-surface: #02506b;
   --brand-surface-strong: #021f2b;
   --good: #1fb884;
+
+  --sidebar: #031a24;
+  --sidebar-foreground: #e3eef4;
+  --sidebar-primary: #2ad3b6;
+  --sidebar-primary-foreground: #032a36;
+  --sidebar-accent: rgb(255 255 255 / 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.08);
+  --sidebar-ring: rgb(255 255 255 / 0.4);
 }
 
 @layer base {
