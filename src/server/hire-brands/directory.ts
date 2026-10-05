@@ -2,7 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 
-export const COMPANY_SECTORS = [
+export const HIRE_BRAND_SECTORS = [
   { value: "Airlines", label: "Airlines" },
   { value: "Hotels", label: "Hotels" },
   { value: "Cruise Lines", label: "Cruise Lines" },
@@ -10,12 +10,12 @@ export const COMPANY_SECTORS = [
   { value: "Other", label: "Other employers" },
 ] as const;
 
-export type Company = { id: string; name: string; sector: string; logo_path: string };
+export type HireBrand = { id: string; name: string; sector: string; logo_path: string };
 
-export async function getCompanies(): Promise<Company[]> {
+export async function getHireBrands(): Promise<HireBrand[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("companies")
+    .from("hire_brands")
     .select("id, name, sector, logo_path")
     .order("name");
 

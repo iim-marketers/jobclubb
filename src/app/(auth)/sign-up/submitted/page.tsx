@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MailCheck, Store, UserCheck } from "lucide-react";
 
 import { CheckInbox } from "@/components/sign-up/check-inbox";
+import { ResendConfirmation } from "@/components/sign-up/resend-confirmation";
 import { Button } from "@/components/ui/button";
 import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
 
@@ -42,8 +43,9 @@ const CONTENT = {
     icon: UserCheck,
     iconClass: "bg-brand/15 text-brand",
     title: "Your company is under review",
-    body: "Because you registered with a personal email address, our team will verify your company manually against your GSTIN or business document.",
+    body: "We've sent a confirmation link to your email. Once you confirm it, our team will verify your company manually against your GSTIN or business document.",
     steps: [
+      "Click the confirmation link in your inbox",
       "We review your details — usually within 2 business days",
       "We may call you to confirm",
       "You'll get an email once your account is approved",
@@ -57,9 +59,8 @@ export default async function SignUpSubmittedPage({
   searchParams,
 }: PageProps<"/sign-up/submitted">) {
   const { route } = await searchParams;
-  if (route === "candidate") {
-    return <CheckInbox email={(await cookies()).get(PENDING_EMAIL_COOKIE)?.value} />;
-  }
+  const pendingEmail = (await cookies()).get(PENDING_EMAIL_COOKIE)?.value;
+  if (route === "candidate") return <CheckInbox email={pendingEmail} />;
 
   const content = CONTENT[ROUTES.find((r) => r === route) ?? "email"];
   const Icon = content.icon;
@@ -90,6 +91,9 @@ export default async function SignUpSubmittedPage({
           ))}
         </ol>
 
+        {route !== "franchise" && pendingEmail && (
+          <ResendConfirmation email={pendingEmail} justSent className="mt-6" />
+        )}
 
         <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button

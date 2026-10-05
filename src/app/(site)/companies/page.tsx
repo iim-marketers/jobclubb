@@ -5,7 +5,7 @@ import { Building2 } from "lucide-react";
 import { PageHeader, Section } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { VERTICALS } from "@/lib/taxonomy";
-import { COMPANY_SECTORS, getCompanies } from "@/server/companies/directory";
+import { HIRE_BRAND_SECTORS, getHireBrands } from "@/server/hire-brands/directory";
 
 export const metadata = {
   title: "Companies — JobClubb",
@@ -16,8 +16,8 @@ export const metadata = {
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z]+/g, "-");
 
 export default async function CompaniesPage() {
-  const companies = await getCompanies();
-  const sectors = COMPANY_SECTORS.map((sector) => ({
+  const companies = await getHireBrands();
+  const sectors = HIRE_BRAND_SECTORS.map((sector) => ({
     ...sector,
     companies: companies.filter((c) => c.sector === sector.value),
   })).filter((sector) => sector.companies.length);

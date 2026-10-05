@@ -5,7 +5,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { isStudentCode, validateCandidate, type FieldErrors } from "@/lib/sign-up-validation";
 import { TERMS_VERSION } from "@/lib/terms-content";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMAIL_TAKEN = "An account with this email already exists. Sign in instead.";
 
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
@@ -69,30 +68,6 @@ export async function registerCandidate(formData: FormData): Promise<RegisterCan
   // once franchise accounts are on Supabase.
 
   return { ok: true, userId: result.userId, email };
-}
-
-export async function resendCandidateConfirmation(email: string): Promise<{ error?: string }> {
-  const address = email.trim().toLowerCase();
-  if (!EMAIL_PATTERN.test(address)) return { error: "Enter a valid email address." };
-
-  // generateLink() on an unknown address would create a new account.
-  const admin = createAdminClient();
-  const { data: candidate } = await admin
-    .from("candidates")
-    .select("first_name")
-    .eq("email", address)
-    .maybeSingle();
-  if (!candidate) return { error: "We couldn't find a JobClubb account for that email." };
-
-  const { error } = await sendConfirmationEmail(admin, {
-    email: address,
-    firstName: candidate.first_name,
-  });
-
-  if (error === "rate_limited") return { error: "Please wait a minute before asking for another email." };
-  if (error === "email_exists") return { error: "Your email is already confirmed. Sign in instead." };
-  if (error) return { error: "We couldn't send the email. Please try again." };
-  return {};
 }
 
 async function storeStudentId(userId: string, file: File) {

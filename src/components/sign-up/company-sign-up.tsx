@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  BadgeCheck,
+  Building2,
   EyeOff,
   MailCheck,
   ShieldAlert,
   UserCheck,
-  Users,
 } from "lucide-react";
 
 import { registerCompany } from "@/app/(auth)/sign-up/company/actions";
@@ -18,6 +17,7 @@ import {
   Field,
   FieldError,
   FileField,
+  PasswordField,
   SelectField,
 } from "@/components/sign-up/fields";
 import {
@@ -33,7 +33,6 @@ import {
 } from "@/components/sign-up/step-form";
 import {
   COMPANY_SIZES,
-  SEAT_PLANS,
   assessCompanyVerification,
   type VerificationRoute,
 } from "@/lib/company-verification";
@@ -77,12 +76,11 @@ export function CompanySignUp() {
     goTo,
     clearError,
     formProps,
-  } =
-    useStepForm({
-      steps: COMPANY_STEPS,
-      validate: validateCompany,
-      action: registerCompany,
-    });
+  } = useStepForm({
+    steps: COMPANY_STEPS,
+    validate: validateCompany,
+    action: registerCompany,
+  });
   const [sector, setSector] = useState<string | null>("hotels");
   const [size, setSize] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
@@ -95,7 +93,6 @@ export function CompanySignUp() {
         website: values.website ?? "",
       })
     : null;
-  const plan = SEAT_PLANS.find((p) => p.value === (values.plan ?? "free"));
 
   return (
     <SignUpLayout
@@ -112,14 +109,19 @@ export function CompanySignUp() {
         <>
           <EmployerBadge
             name={values.companyName}
+            property={values.propertyName}
             city={values.city}
             sector={sector}
             size={size}
-            planLabel={plan ? `${plan.label} · ${plan.seats}` : undefined}
+            email={values.email}
             route={assessment?.route}
           />
           <PanelPoints
             points={[
+              {
+                icon: Building2,
+                text: "One account per property — each location signs up with its own email",
+              },
               {
                 icon: MailCheck,
                 text: "Corporate email? Confirm one link and you're verified",
@@ -151,10 +153,18 @@ export function CompanySignUp() {
             <Field
               id="companyName"
               label="Registered company name"
-              placeholder="Taj Hotels Ltd."
+              placeholder="E.g., Taj Hotels Ltd."
               autoComplete="organization"
               required
               error={errors.companyName}
+              className="sm:col-span-2"
+            />
+            <Field
+              id="propertyName"
+              label="Property / office name"
+              placeholder="E.g., Taj Bengal, Kolkata"
+              hint="The specific hotel, office or branch this account is for. Leave blank if you only have one location."
+              optional
               className="sm:col-span-2"
             />
             <SelectField
@@ -185,14 +195,14 @@ export function CompanySignUp() {
             <Field
               id="website"
               label="Company website"
-              placeholder="tajhotels.com"
+              placeholder="E.g., tajhotels.com"
               optional
               error={errors.website}
             />
             <Field
               id="gstin"
               label="GSTIN"
-              placeholder="19AABCT1234F1Z5"
+              placeholder="E.g., 19AABCT1234F1Z5"
               optional
               hint="Speeds up verification."
               error={errors.gstin}
@@ -200,8 +210,8 @@ export function CompanySignUp() {
             />
             <Field
               id="city"
-              label="City"
-              placeholder="Kolkata"
+              label="Property city"
+              placeholder="E.g., Kolkata"
               autoComplete="address-level2"
               required
               error={errors.city}
@@ -209,7 +219,7 @@ export function CompanySignUp() {
             <Field
               id="pincode"
               label="Pincode"
-              placeholder="700001"
+              placeholder="E.g., 700001"
               inputMode="numeric"
               maxLength={6}
               autoComplete="postal-code"
@@ -230,7 +240,7 @@ export function CompanySignUp() {
             <Field
               id="contactName"
               label="Full name"
-              placeholder="Rakesh Nair"
+              placeholder="E.g., Rakesh Nair"
               autoComplete="name"
               required
               error={errors.contactName}
@@ -238,7 +248,7 @@ export function CompanySignUp() {
             <Field
               id="designation"
               label="Designation"
-              placeholder="HR Manager"
+              placeholder="E.g., HR Manager"
               autoComplete="organization-title"
               required
               error={errors.designation}
@@ -246,9 +256,10 @@ export function CompanySignUp() {
             <div className="space-y-2 sm:col-span-2">
               <Field
                 id="email"
-                label="Work email"
+                label="Property email"
                 type="email"
-                placeholder="you@yourcompany.com"
+                placeholder="E.g., hr.kolkata@yourcompany.com"
+                hint="Used to sign in. Each property needs its own email — it can't be shared with another location."
                 autoComplete="email"
                 required
                 error={errors.email}
@@ -258,10 +269,10 @@ export function CompanySignUp() {
                   aria-live="polite"
                   className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs leading-5 ${ROUTE_STYLES[assessment.route].form}`}
                 >
-                  {(() => {
+                  {/* {(() => {
                     const Icon = ROUTE_STYLES[assessment.route].icon;
                     return <Icon className="mt-0.5 size-3.5 flex-none" />;
-                  })()}
+                  })()} */}
                   {assessment.reason}
                 </p>
               )}
@@ -270,26 +281,22 @@ export function CompanySignUp() {
               id="phone"
               label="Mobile number"
               type="tel"
-              placeholder="+91 90000 00000"
+              placeholder="E.g., 9000000000"
               autoComplete="tel"
               required
               error={errors.phone}
               className="sm:col-span-2"
             />
-            <Field
+            <PasswordField
               id="password"
               label="Password"
-              type="password"
               placeholder="At least 8 characters"
-              autoComplete="new-password"
               required
               error={errors.password}
             />
-            <Field
+            <PasswordField
               id="confirmPassword"
               label="Confirm password"
-              type="password"
-              autoComplete="new-password"
               required
               error={errors.confirmPassword}
             />
@@ -304,49 +311,6 @@ export function CompanySignUp() {
           step={COMPANY_STEPS[2]}
         >
           <div className="space-y-8">
-            <div>
-              <p className="text-sm font-medium">
-                Plan<span className="text-destructive">*</span>
-              </p>
-              <div
-                role="radiogroup"
-                aria-label="Plan"
-                className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5"
-              >
-                {SEAT_PLANS.map((p) => (
-                  <label
-                    key={p.value}
-                    className="group relative flex cursor-pointer flex-col rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-brand/60 hover:shadow-md has-checked:border-brand has-checked:bg-brand/5 has-checked:ring-3 has-checked:ring-brand/15 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
-                  >
-                    <input
-                      type="radio"
-                      name="plan"
-                      value={p.value}
-                      defaultChecked={p.value === "free"}
-                      className="peer sr-only"
-                    />
-                    <BadgeCheck className="absolute top-3 right-3 size-4 text-brand opacity-0 transition-opacity peer-checked:opacity-100" />
-                    <Users className="size-4 text-muted-foreground" />
-                    <span className="mt-3 font-head text-base font-extrabold tracking-tight">
-                      {p.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {p.seats}
-                    </span>
-                    <span className="mt-2 text-[11px] font-semibold text-brand">
-                      {p.note}
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <FieldError message={errors.plan} />
-              <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                Paid slab pricing is confirmed by our team after verification —
-                you won&apos;t be charged at sign-up. Payments are collected via
-                Razorpay.
-              </p>
-            </div>
-
             <FileField
               id="proof"
               label={
@@ -409,17 +373,19 @@ export function CompanySignUp() {
 
 function EmployerBadge({
   name,
+  property,
   city,
   sector,
   size,
-  planLabel,
+  email,
   route,
 }: {
   name?: string;
+  property?: string;
   city?: string;
   sector: string | null;
   size: string | null;
-  planLabel?: string;
+  email?: string;
   route?: VerificationRoute;
 }) {
   const companyName = name?.trim() || "Your company";
@@ -464,8 +430,12 @@ function EmployerBadge({
         data-fit="7"
         className="mt-5 divide-y divide-white/10 rounded-2xl bg-black/15 px-4 text-sm"
       >
+        <BadgeRow
+          label="Property"
+          value={property?.trim() || name?.trim() || "—"}
+        />
+        <BadgeRow label="Login email" value={email?.trim() || "—"} />
         <BadgeRow label="Company size" value={sizeLabel ?? "—"} />
-        <BadgeRow label="Plan" value={planLabel ?? "—"} />
         <BadgeRow label="Candidate view" value="Skills & experience" />
       </dl>
     </PanelCard>

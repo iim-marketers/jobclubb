@@ -3,6 +3,25 @@ import "server-only";
 import { EMAIL_LOGO_CID, EMAIL_LOGO_PNG } from "@/lib/email/assets/logo";
 
 
+const COPY = {
+  candidate: {
+    preheader: "One click to activate your JobClubb account and start applying to verified openings.",
+    benefits: [
+      "Build your AI-powered, ATS-ready resume",
+      "Browse verified openings matched to your city",
+      "Apply with your identity hidden until you choose to reveal it",
+    ],
+  },
+  company: {
+    preheader: "One click to verify your JobClubb employer account.",
+    benefits: [
+      "Post openings across Airlines, Hospitality and Travel",
+      "Review candidates by skills and experience",
+      "Unlock the profiles that fit your property",
+    ],
+  },
+};
+
 const escape = (value: string) =>
   value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -11,12 +30,15 @@ export function confirmSignupEmail({
   email,
   confirmUrl,
   siteUrl,
+  audience = "candidate",
 }: {
   firstName?: string;
   email: string;
   confirmUrl: string;
   siteUrl: string;
+  audience?: keyof typeof COPY;
 }) {
+  const copy = COPY[audience];
   const name = firstName?.trim();
   const heading = name ? `Welcome to JobClubb, ${escape(name)}!` : "Welcome to JobClubb!";
   const address = escape(email);
@@ -57,7 +79,7 @@ export function confirmSignupEmail({
 </head>
 <body style="margin:0; padding:0; background-color:#f2f6f8; -webkit-text-size-adjust:100%;">
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#f2f6f8;">
-    One click to activate your JobClubb account and start applying to verified openings.
+    ${copy.preheader}
   </div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f6f8;">
@@ -109,6 +131,26 @@ export function confirmSignupEmail({
                         </td>
                       </tr>
                     </table>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td class="px" style="padding:0 40px 32px; font-family:Arial, Helvetica, sans-serif;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f8fa; border-radius:14px;">
+                      <tr>
+                        <td style="padding:20px 24px;">
+                          <p style="margin:0 0 12px; font-size:13px; font-weight:700; color:#0f1d24;">Once you're in, you can:</p>
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                            ${copy.benefits
+                              .map((benefit, i) => {
+                                const pad = i === copy.benefits.length - 1 ? "0" : "8px";
+                                return `<tr>
+                              <td valign="top" style="padding:0 10px ${pad} 0; font-size:14px; color:#00bea2; font-weight:700;">&#10003;</td>
+                              <td style="padding:0 0 ${pad}; font-size:14px; line-height:1.5; color:#4a5a63;">${escape(benefit)}</td>
+                            </tr>`;
+                              })
+                              .join("\n                            ")}
+                          </table>
                   </td>
                 </tr>
 

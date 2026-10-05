@@ -11,8 +11,6 @@ import {
   type SignUpStep,
 } from "@/lib/sign-up-validation";
 
-// Drives a multi-step sign-up form. Every step's fields stay mounted (inactive
-// steps are just `hidden`), so the final submit sends one complete FormData.
 export function useStepForm({
   steps,
   validate,
@@ -26,8 +24,7 @@ export function useStepForm({
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [values, setValues] = useState<Record<string, string>>({});
-  // Step panels only animate once the person has moved between steps, so the
-  // first step doesn't fade in on page load.
+
   const [moved, setMoved] = useState(false);
   const [pending, startTransition] = useTransition();
   const isLast = step === steps.length - 1;
@@ -79,8 +76,7 @@ export function useStepForm({
         if (result) showErrors(result.errors);
       });
     },
-    // Keeps a snapshot of text values for live previews, and clears a field's
-    // error as soon as the person edits it.
+
     onChange(e: React.FormEvent<HTMLFormElement>) {
       const name = (e.target as HTMLInputElement).name;
       if (name) clearError(name);

@@ -21,7 +21,7 @@ const AUDIENCES = [
     short: "Company",
     href: "/sign-up/company",
     icon: Building2,
-    disabled: true,
+    disabled: false,
   },
 ] as const;
 
@@ -125,7 +125,6 @@ function AudienceSwitch({ active }: { active: Audience }) {
   );
 }
 
-// Frosted card used for the live previews inside the brand panel.
 export function PanelCard({
   label,
   badge,

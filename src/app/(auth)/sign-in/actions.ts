@@ -11,7 +11,7 @@ import {
   REMEMBERED_EMAIL_COOKIE,
   REMEMBERED_EMAIL_MAX_AGE,
 } from "@/lib/supabase/session";
-import { signInCandidate } from "@/server/auth/sign-in";
+import { signInCandidate, signInCompany } from "@/server/auth/sign-in";
 
 const DASHBOARDS = {
   candidate: "/candidate/dashboard",
@@ -33,19 +33,16 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
   if (!(role in DASHBOARDS))
     return { errors: { role: "Choose an account type." } };
 
-  if (role !== "candidate") {
-    // TODO: move company and franchise accounts onto Supabase — reject
-    // companies that aren't verified yet and inactive HR seats.
-    redirect(DASHBOARDS[role as SignInRole]);
+  if (role === "franchise") {
+    // TODO: move franchise accounts onto Supabase.
+    redirect(DASHBOARDS.franchise);
   }
 
-  const result = await signInCandidate(
-    await createClient(),
-    {
-      email: String(formData.get("email") ?? ""),
-      password: String(formData.get("password") ?? ""),
-    },
-  );
+  const signInAs = role === "company" ? signInCompany : signInCandidate;
+  const result = await signInAs(await createClient(), {
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+  });
   if (!result.ok)
     return { errors: result.errors, unconfirmedEmail: result.unconfirmedEmail };
 
@@ -59,6 +56,7 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
     });
   else cookieStore.delete(REMEMBERED_EMAIL_COOKIE);
   cookieStore.delete(PENDING_EMAIL_COOKIE);
+  if (role === "company") redirect(DASHBOARDS.company);
   redirect(safeRedirectPath(formData.get("next"), DASHBOARDS.candidate));
 }
 
