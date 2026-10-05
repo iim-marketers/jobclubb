@@ -1,0 +1,232 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import {
+  Briefcase,
+  ChevronDown,
+  CircleHelp,
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
+  Settings,
+} from "lucide-react";
+
+import { CompanyAvatar } from "@/components/company-avatar";
+import {
+  COMPANY_SIGN_OUT_DESCRIPTION,
+  CompanySidebarContent,
+  type CompanyProfile,
+} from "@/components/company/company-sidebar";
+import {
+  COMPANY_HOME,
+  COMPANY_JOBS,
+  activeNavItem,
+} from "@/components/company/nav";
+import { SignOutDialog } from "@/components/sign-out-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+const menuItemClass =
+  "flex w-full cursor-default items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none select-none data-highlighted:bg-muted";
+
+const popupClass =
+  "origin-(--transform-origin) rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-xl shadow-black/5 transition-[transform,opacity] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0";
+
+export function CompanyHeader({
+  company,
+  sidebarCollapsed,
+  onToggleSidebar,
+}: {
+  company: CompanyProfile;
+  sidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
+}) {
+  const pathname = usePathname();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
+  const current = activeNavItem(pathname);
+  const firstName = company.contactName.split(" ")[0];
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-lg">
+      <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
+        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <SheetTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="-ml-1.5 lg:hidden"
+                aria-label="Open menu"
+              >
+                <Menu className="size-5" />
+              </Button>
+            }
+          />
+          <SheetContent
+            side="left"
+            showCloseButton={false}
+            className="jc-sidebar w-[min(18rem,86vw)] gap-0 border-0 p-0 text-white"
+          >
+            <SheetTitle className="sr-only">Dashboard menu</SheetTitle>
+            <CompanySidebarContent
+              company={company}
+              onNavigate={() => setDrawerOpen(false)}
+            />
+          </SheetContent>
+        </Sheet>
+
+        <Link
+          href={COMPANY_HOME}
+          className="flex-none lg:hidden"
+          aria-label="JobClubb — dashboard"
+        >
+          <Image
+            src="/brand/jobclubb-logo.png"
+            alt="JobClubb"
+            width={120}
+            height={22}
+            className="h-5 w-auto object-contain dark:hidden"
+          />
+          <Image
+            src="/brand/jobclubb-logo-dark.png"
+            alt=""
+            aria-hidden
+            width={120}
+            height={22}
+            className="hidden h-5 w-auto object-contain dark:block"
+          />
+        </Link>
+
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="-ml-4 hidden text-muted-foreground lg:inline-flex"
+          onClick={onToggleSidebar}
+          aria-controls="company-sidebar"
+          aria-expanded={!sidebarCollapsed}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={`${sidebarCollapsed ? "Expand" : "Collapse"} sidebar (⌘B)`}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeftOpen className="size-4.5" />
+          ) : (
+            <PanelLeftClose className="size-4.5" />
+          )}
+        </Button>
+
+        <div className="hidden min-w-0 lg:block">
+          <p className="font-head text-[11px] font-semibold tracking-wide text-muted-foreground">
+            Dashboard <span className="mx-1 text-border">/</span>
+            <span className="text-foreground">
+              {current?.label ?? "Overview"}
+            </span>
+          </p>
+        </div>
+
+        <div className="ml-auto flex flex-none items-center gap-1 sm:gap-1.5">
+          <Button
+            size="sm"
+            className="mr-1 hidden bg-brand font-head text-brand-foreground hover:bg-brand-dark sm:inline-flex"
+            nativeButton={false}
+            render={<Link href={`${COMPANY_JOBS}/new`} />}
+          >
+            <Plus className="size-4" />
+            Post a job
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="hidden sm:inline-flex"
+            aria-label="Help"
+            nativeButton={false}
+            render={<a href="mailto:contact@jobclubb.com" />}
+          >
+            <CircleHelp className="size-4.5" />
+          </Button>
+
+          <SignOutDialog
+            open={signOutOpen}
+            onOpenChange={setSignOutOpen}
+            description={COMPANY_SIGN_OUT_DESCRIPTION}
+          />
+
+          <MenuPrimitive.Root>
+            <MenuPrimitive.Trigger
+              className="ml-1 flex items-center gap-2 rounded-full border border-border bg-card py-1 pr-2 pl-1 transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 data-popup-open:bg-muted"
+              aria-label="Account menu"
+            >
+              <CompanyAvatar
+                name={company.contactName}
+                className="size-7 bg-linear-to-br from-brand to-brand-accent text-[11px]"
+              />
+              <span className="hidden font-head text-sm font-semibold sm:inline">
+                {firstName}
+              </span>
+              <ChevronDown className="size-3.5 text-muted-foreground" />
+            </MenuPrimitive.Trigger>
+            <MenuPrimitive.Portal>
+              <MenuPrimitive.Positioner
+                align="end"
+                sideOffset={8}
+                className="z-50"
+              >
+                <MenuPrimitive.Popup className={`${popupClass} w-64`}>
+                  <div className="px-2.5 pt-1.5 pb-2.5">
+                    <p className="truncate font-head text-sm font-bold">
+                      {company.contactName}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {company.email}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {company.propertyName
+                        ? `${company.propertyName} · ${company.companyName}`
+                        : company.companyName}
+                    </p>
+                  </div>
+                  <MenuPrimitive.Separator className="-mx-1.5 my-1 h-px bg-border" />
+                  <MenuPrimitive.LinkItem
+                    className={menuItemClass}
+                    closeOnClick
+                    render={<Link href={COMPANY_JOBS} />}
+                  >
+                    <Briefcase className="size-4 text-muted-foreground" /> Job
+                    postings
+                  </MenuPrimitive.LinkItem>
+                  <MenuPrimitive.LinkItem
+                    className={menuItemClass}
+                    closeOnClick
+                    render={<Link href={`${COMPANY_HOME}/settings`} />}
+                  >
+                    <Settings className="size-4 text-muted-foreground" />{" "}
+                    Settings
+                  </MenuPrimitive.LinkItem>
+                  <MenuPrimitive.Separator className="-mx-1.5 my-1 h-px bg-border" />
+                  <MenuPrimitive.Item
+                    className={`${menuItemClass} text-destructive data-highlighted:bg-destructive/10`}
+                    onClick={() => setSignOutOpen(true)}
+                  >
+                    <LogOut className="size-4" /> Sign out
+                  </MenuPrimitive.Item>
+                </MenuPrimitive.Popup>
+              </MenuPrimitive.Positioner>
+            </MenuPrimitive.Portal>
+          </MenuPrimitive.Root>
+        </div>
+      </div>
+    </header>
+  );
+}

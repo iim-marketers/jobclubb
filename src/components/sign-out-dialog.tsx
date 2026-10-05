@@ -21,11 +21,13 @@ export function SignOutDialog({
   children,
   open,
   onOpenChange,
+  description = "You'll need to sign in again to see your matches, applications and resume.",
 }: {
   render?: ReactElement;
   children?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  description?: string;
 }) {
   const [ownOpen, setOwnOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -46,10 +48,7 @@ export function SignOutDialog({
           <DialogTitle className="font-head text-lg font-bold">
             Sign out?
           </DialogTitle>
-          <DialogDescription>
-            You&apos;ll need to sign in again to see your matches, applications
-            and resume.
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose

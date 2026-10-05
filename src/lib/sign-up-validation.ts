@@ -218,6 +218,41 @@ export function validateCompany(formData: FormData): FieldErrors {
   return errors;
 }
 
+export function validateCompanyDetails(formData: FormData) {
+  const values = {
+    propertyName: readText(formData, "propertyName"),
+    sector: readText(formData, "sector"),
+    city: readText(formData, "city"),
+    pincode: readText(formData, "pincode"),
+  };
+  const errors: FieldErrors = {};
+
+  if (values.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
+  if (!VERTICALS.some((s) => s.slug === values.sector)) errors.sector = "Choose a sector.";
+  if (!values.city) errors.city = "Enter your city.";
+  else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
+  if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
+
+  return { values, errors };
+}
+
+export function validateCompanyContact(formData: FormData) {
+  const values = {
+    contactName: readText(formData, "contactName"),
+    designation: readText(formData, "designation"),
+    phone: readText(formData, "phone"),
+  };
+  const errors: FieldErrors = {};
+
+  if (!values.contactName) errors.contactName = "Enter your full name.";
+  else if (values.contactName.length > 80) errors.contactName = "Use 80 characters or fewer.";
+  if (!values.designation) errors.designation = "Enter your designation.";
+  else if (values.designation.length > 80) errors.designation = "Use 80 characters or fewer.";
+  if (!PHONE_PATTERN.test(values.phone)) errors.phone = "Enter a valid 10-digit Indian mobile number.";
+
+  return { values, errors };
+}
+
 export const FRANCHISE_EMAIL_DOMAIN = "jobclubb.com";
 
 export const BUSINESS_TYPES = [

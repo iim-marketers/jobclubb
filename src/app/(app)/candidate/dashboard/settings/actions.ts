@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import {
   validateCandidateProfile,
-  validateNewPassword,
   type FieldErrors,
 } from "@/lib/sign-up-validation";
 import { createClient } from "@/lib/supabase/server";
+import { changeOwnPassword } from "@/server/auth/change-password";
 import { requireCandidate } from "@/server/auth/current-candidate";
 import {
   deleteCandidatePhoto,
@@ -59,26 +59,7 @@ export async function changePassword(
   formData: FormData,
 ): Promise<SettingsActionState> {
   await requireCandidate(SETTINGS_PATH);
-  const errors = validateNewPassword(formData);
-  if (Object.keys(errors).length > 0) return { errors };
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.updateUser({
-    password: String(formData.get("password")),
-  });
-
-  if (error) {
-    if (error.code === "same_password")
-      return { errors: { password: "Choose a password you haven't used here before." } };
-    if (error.code === "weak_password")
-      return { errors: { password: "That password is too weak. Try a longer one." } };
-    if (error.code === "reauthentication_needed")
-      return { error: "For security, sign out and back in, then change your password." };
-    console.error("Changing password failed", error);
-    return { error: "We couldn't change your password. Please try again." };
-  }
-
-  return { ok: true };
+  return changeOwnPassword(formData);
 }
 
 async function savePhotoPath(candidateId: string, photoPath: string | null) {

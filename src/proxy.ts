@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { authCookieOptions } from "@/lib/supabase/session";
 
-const PROTECTED = ["/candidate", "/onboarding"];
+const PROTECTED = ["/candidate", "/company", "/onboarding"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -36,7 +36,8 @@ export async function proxy(request: NextRequest) {
   if (isProtected && !signedIn) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
-    url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    const as = pathname.startsWith("/company") ? "&as=company" : "";
+    url.search = `?next=${encodeURIComponent(pathname + search)}${as}`;
     const redirect = NextResponse.redirect(url);
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     return redirect;

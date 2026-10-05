@@ -5,7 +5,13 @@ import { Camera, KeyRound, Mail, SlidersHorizontal, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const SECTIONS = [
+export type SettingsSection = {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+const SECTIONS: SettingsSection[] = [
   { id: "photo", label: "Profile photo", icon: Camera },
   { id: "profile", label: "Personal details", icon: User },
   { id: "preferences", label: "Job preferences", icon: SlidersHorizontal },
@@ -18,8 +24,12 @@ const ACTIVE_OFFSET = 120;
 
 type Indicator = { x: number; y: number; w: number; h: number };
 
-export function SettingsNav() {
-  const [active, setActive] = useState(SECTIONS[0].id);
+export function SettingsNav({
+  sections = SECTIONS,
+}: {
+  sections?: SettingsSection[];
+}) {
+  const [active, setActive] = useState(sections[0].id);
   const [indicator, setIndicator] = useState<Indicator | null>(null);
   const [animate, setAnimate] = useState(false);
   const navRef = useRef<HTMLElement>(null);
@@ -34,12 +44,12 @@ export function SettingsNav() {
       const atBottom =
         window.innerHeight + window.scrollY >=
         document.documentElement.scrollHeight - 4;
-      let current = SECTIONS[0].id;
-      for (const { id } of SECTIONS) {
+      let current = sections[0].id;
+      for (const { id } of sections) {
         const el = document.getElementById(id);
         if (el && el.getBoundingClientRect().top <= ACTIVE_OFFSET) current = id;
       }
-      setActive(atBottom ? SECTIONS[SECTIONS.length - 1].id : current);
+      setActive(atBottom ? sections[sections.length - 1].id : current);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -60,7 +70,7 @@ export function SettingsNav() {
         window.removeEventListener(type, unlock);
       }
     };
-  }, []);
+  }, [sections]);
 
   useLayoutEffect(() => {
     const nav = navRef.current;
@@ -133,7 +143,7 @@ export function SettingsNav() {
             : undefined
         }
       />
-      {SECTIONS.map(({ id, label, icon: Icon }) => {
+      {sections.map(({ id, label, icon: Icon }) => {
         const current = active === id;
         return (
           <a
