@@ -20,11 +20,11 @@ const STEPS = [
 
 export function PostingGuide() {
   return (
-    <aside className="rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white lg:sticky lg:top-24">
+    <aside className="rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white">
       <p className="font-head text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
         How posting works
       </p>
-      <ol className="mt-4 space-y-5">
+      <ol className="mt-4 grid gap-5 md:grid-cols-3 md:gap-6">
         {STEPS.map(({ icon: Icon, title, body }) => (
           <li key={title} className="flex gap-3">
             <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-white/12">

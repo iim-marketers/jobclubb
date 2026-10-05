@@ -41,15 +41,14 @@ export default async function EditJobPage({
         }
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,52rem)_22rem] xl:gap-8">
-        <JobForm
-          action={updateJob.bind(null, job.id)}
-          defaults={jobFormDefaults(job, company)}
-          submitLabel="Save and resubmit"
-          cancelHref={jobHref}
-        />
-        <PostingGuide />
-      </div>
+      <PostingGuide />
+
+      <JobForm
+        action={updateJob.bind(null, job.id)}
+        defaults={jobFormDefaults(job, company)}
+        submitLabel="Save and resubmit"
+        cancelHref={jobHref}
+      />
     </div>
   );
 }

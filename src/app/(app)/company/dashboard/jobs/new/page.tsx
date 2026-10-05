@@ -28,15 +28,14 @@ export default async function NewJobPage() {
         description="Tell candidates what the role involves. Our team reviews every posting before it goes live."
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,52rem)_22rem] xl:gap-8">
-        <JobForm
-          action={createJob}
-          defaults={jobFormDefaults(null, company)}
-          submitLabel="Submit for review"
-          cancelHref={COMPANY_JOBS}
-        />
-        <PostingGuide />
-      </div>
+      <PostingGuide />
+
+      <JobForm
+        action={createJob}
+        defaults={jobFormDefaults(null, company)}
+        submitLabel="Submit for review"
+        cancelHref={COMPANY_JOBS}
+      />
     </div>
   );
 }
