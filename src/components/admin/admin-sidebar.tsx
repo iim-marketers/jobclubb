@@ -69,7 +69,7 @@ export function AdminSidebar({
             Manage
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {ADMIN_NAV.map(({ label, href, icon: Icon }) => {
                 const active =
                   pathname === href || pathname.startsWith(`${href}/`);
