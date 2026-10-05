@@ -140,7 +140,7 @@ export function CandidateHeader({
           </p>
         </div>
 
-        <form
+        {/* <form
           action="/jobs"
           role="search"
           className="relative mx-auto hidden w-full max-w-md md:block"
@@ -153,10 +153,11 @@ export function CandidateHeader({
             aria-label="Search jobs"
             className="h-10 w-full rounded-full border border-border bg-card pr-4 pl-10 text-sm shadow-xs transition-colors outline-none placeholder:text-muted-foreground focus:border-brand focus:ring-3 focus:ring-brand/15"
           />
-        </form>
+        </form> */}
+        <div className="relative mx-auto hidden w-full max-w-md md:block" />
 
-        <div className="ml-auto flex flex-none items-center gap-1 sm:gap-1.5 md:ml-0">
-          <Button
+        <div className="ml-auto flex flex-none items-center  gap-1 sm:gap-1.5 md:ml-0">
+          {/* <Button
             variant="ghost"
             size="icon-sm"
             className="md:hidden"
@@ -165,7 +166,7 @@ export function CandidateHeader({
             render={<Link href="/jobs" />}
           >
             <Search className="size-4.5" />
-          </Button>
+          </Button> */}
 
           <Button
             size="sm"
