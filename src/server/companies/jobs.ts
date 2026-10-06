@@ -2,6 +2,7 @@ import "server-only";
 
 import type { CompanyJob, JobInput } from "@/lib/company-jobs";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { sanitizeRichText } from "@/server/rich-text";
 
 const COLUMNS =
   "id, vertical, role, designation, city, pincode, job_type, work_mode, experience_min, experience_max, salary_min_lpa, salary_max_lpa, openings, description, responsibilities, requirements, benefits, status, approved_at, created_at, updated_at";
@@ -71,7 +72,7 @@ function toRow(input: JobInput) {
     salary_min_lpa: input.salaryMinLpa,
     salary_max_lpa: input.salaryMaxLpa,
     openings: input.openings,
-    description: input.description,
+    description: sanitizeRichText(input.description),
     responsibilities: input.responsibilities,
     requirements: input.requirements,
     benefits: input.benefits,

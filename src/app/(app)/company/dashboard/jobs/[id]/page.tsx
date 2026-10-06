@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyJob } from "@/server/companies/jobs";
+import { sanitizeRichText } from "@/server/rich-text";
 
 const STATUS_NOTES: Record<JobStatus, string> = {
   in_review:
@@ -182,8 +183,12 @@ export default async function JobDetailPage({
           <IdentityNotice className="mt-4" />
         </Panel>
 
-        <Panel title="About the role" description={job.description}>
+        <Panel title="About the role">
           <div className="space-y-6">
+            <div
+              className="rich-text text-sm text-muted-foreground"
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(job.description) }}
+            />
             <DetailList title="Responsibilities" items={job.responsibilities} />
             <DetailList title="Requirements" items={job.requirements} />
             {job.benefits.length > 0 && (

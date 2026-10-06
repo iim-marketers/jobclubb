@@ -1,3 +1,4 @@
+import { richTextToPlain, toRichTextHtml } from "@/lib/rich-text";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
 
@@ -120,9 +121,10 @@ export function validateJob(formData: FormData): {
   if (!(values.openings >= 1 && values.openings <= 999))
     errors.openings = "Enter from 1 to 999 openings.";
 
-  if (values.description.length < 30)
+  const descriptionLength = richTextToPlain(values.description).length;
+  if (descriptionLength < 30)
     errors.description = "Describe the role in at least 30 characters.";
-  else if (values.description.length > 4000)
+  else if (descriptionLength > 4000)
     errors.description = "Use 4,000 characters or fewer.";
 
   const responsibilities = listError(values.responsibilities, { required: true });
@@ -206,7 +208,7 @@ export function jobFormDefaults(
     experienceMax: String(job.experienceMax),
     salaryMinLpa: String(job.salaryMinLpa),
     salaryMaxLpa: String(job.salaryMaxLpa),
-    description: job.description,
+    description: toRichTextHtml(job.description),
     responsibilities: job.responsibilities.join("\n"),
     requirements: job.requirements.join("\n"),
     benefits: job.benefits.join("\n"),

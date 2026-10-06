@@ -16,6 +16,7 @@ import {
   SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -234,16 +235,24 @@ export function JobForm({
         }
       >
         <div className="grid gap-5">
-          <TextareaField
-            id="description"
-            label="About the role"
-            required
-            rows={4}
-            maxLength={4000}
-            defaultValue={initial.description}
-            placeholder="A short summary of the role, the team and what a great hire looks like."
-            error={errors.description}
-          />
+          <div className="space-y-2">
+            <Label id="description-label">
+              About the role
+              <span className="text-destructive">*</span>
+            </Label>
+            <RichTextEditor
+              id="description"
+              name="description"
+              labelId="description-label"
+              defaultValue={initial.description}
+              maxLength={4000}
+              placeholder="A short summary of the role, the team and what a great hire looks like."
+              invalid={!!errors.description}
+              describedBy={errors.description ? "description-error" : undefined}
+              onChange={() => clear("description")}
+            />
+            <FieldError id="description-error" message={errors.description} />
+          </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <TextareaField
               id="responsibilities"
@@ -297,7 +306,7 @@ function TextareaField({
   error?: string;
 } & Pick<
   React.ComponentProps<"textarea">,
-  "rows" | "maxLength" | "defaultValue" | "placeholder"
+  "rows" | "defaultValue" | "placeholder"
 >) {
   return (
     <div className="space-y-2">
