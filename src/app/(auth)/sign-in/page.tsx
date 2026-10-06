@@ -4,7 +4,7 @@ import { SignIn } from "@/components/sign-in/sign-in";
 import { FRESH_JOBS } from "@/lib/home-data";
 import {
   PENDING_EMAIL_COOKIE,
-  REMEMBERED_EMAIL_COOKIE,
+  rememberedEmailCookie,
 } from "@/lib/supabase/session";
 
 export const metadata = {
@@ -25,7 +25,9 @@ export default async function SignInPage({
     verified === "1" || reset === "1"
       ? cookieStore.get(PENDING_EMAIL_COOKIE)?.value
       : undefined;
-  const rememberedEmail = cookieStore.get(REMEMBERED_EMAIL_COOKIE)?.value;
+  const rememberedEmails = Object.fromEntries(
+    ROLES.map((r) => [r, cookieStore.get(rememberedEmailCookie(r))?.value]),
+  );
   return (
     <SignIn
       initialRole={initialRole}
@@ -34,7 +36,7 @@ export default async function SignInPage({
       verified={verified === "1"}
       passwordReset={reset === "1"}
       verifiedEmail={verifiedEmail}
-      rememberedEmail={rememberedEmail}
+      rememberedEmails={rememberedEmails}
       freshRoles={FRESH_JOBS.map((job) => job.role)}
     />
   );

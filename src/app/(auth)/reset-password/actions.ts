@@ -5,10 +5,11 @@ import { redirect } from "next/navigation";
 
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
-import { resetCandidatePassword } from "@/server/auth/password-reset";
+import { resetPasswordWithToken, type ResetRole } from "@/server/auth/password-reset";
 
 export type ResetPasswordState = {
   tokenHash: string;
+  role: ResetRole;
   expired?: boolean;
   errors?: FieldErrors;
   error?: string;
@@ -18,10 +19,11 @@ export async function resetPassword(
   prev: ResetPasswordState,
   formData: FormData,
 ): Promise<ResetPasswordState> {
-  const result = await resetCandidatePassword(prev.tokenHash, formData);
+  const { role } = prev;
+  const result = await resetPasswordWithToken(prev.tokenHash, formData);
   if (!result.ok) {
-    if ("expired" in result) return { tokenHash: "", expired: true };
-    return { tokenHash: result.tokenHash, errors: result.errors, error: result.error };
+    if ("expired" in result) return { tokenHash: "", role, expired: true };
+    return { tokenHash: result.tokenHash, role, errors: result.errors, error: result.error };
   }
 
   (await cookies()).set(PENDING_EMAIL_COOKIE, result.email, {
@@ -30,5 +32,5 @@ export async function resetPassword(
     path: "/",
     maxAge: 60 * 60,
   });
-  redirect("/sign-in?reset=1");
+  redirect(`/sign-in?reset=1&as=${role}`);
 }

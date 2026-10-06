@@ -8,8 +8,8 @@ import type { FieldErrors } from "@/lib/sign-up-validation";
 import { createClient } from "@/lib/supabase/server";
 import {
   PENDING_EMAIL_COOKIE,
-  REMEMBERED_EMAIL_COOKIE,
   REMEMBERED_EMAIL_MAX_AGE,
+  rememberedEmailCookie,
 } from "@/lib/supabase/session";
 import { signInCandidate, signInCompany } from "@/server/auth/sign-in";
 
@@ -47,14 +47,15 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
     return { errors: result.errors, unconfirmedEmail: result.unconfirmedEmail };
 
   const cookieStore = await cookies();
+  const rememberCookie = rememberedEmailCookie(role);
   if (remember)
-    cookieStore.set(REMEMBERED_EMAIL_COOKIE, result.user.email ?? "", {
+    cookieStore.set(rememberCookie, result.user.email ?? "", {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
       maxAge: REMEMBERED_EMAIL_MAX_AGE,
     });
-  else cookieStore.delete(REMEMBERED_EMAIL_COOKIE);
+  else cookieStore.delete(rememberCookie);
   cookieStore.delete(PENDING_EMAIL_COOKIE);
   const next = safeRedirectPath(formData.get("next"), DASHBOARDS.candidate);
   if (role === "company")
@@ -64,6 +65,11 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
 
 export async function signOut() {
   const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims.sub;
+  const { data: company } = userId
+    ? await supabase.from("companies").select("id").eq("id", userId).maybeSingle()
+    : { data: null };
   await supabase.auth.signOut();
-  redirect("/sign-in");
+  redirect(company ? "/sign-in?as=company" : "/sign-in");
 }

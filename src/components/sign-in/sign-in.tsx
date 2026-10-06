@@ -74,7 +74,7 @@ export function SignIn({
   verified,
   passwordReset,
   verifiedEmail,
-  rememberedEmail,
+  rememberedEmails,
   freshRoles,
 }: {
   initialRole: SignInRole;
@@ -84,7 +84,7 @@ export function SignIn({
   verified?: boolean;
   passwordReset?: boolean;
   verifiedEmail?: string;
-  rememberedEmail?: string;
+  rememberedEmails: Partial<Record<SignInRole, string>>;
 }) {
   const [role, setRole] = useState<SignInRole>(initialRole);
   const [showPassword, setShowPassword] = useState(false);
@@ -95,6 +95,7 @@ export function SignIn({
   useFitToHeight(panelRef);
 
   const active = ROLES.find((r) => r.id === role)!;
+  const rememberedEmail = rememberedEmails[role];
   const clearError = (key: string) =>
     setErrors((prev) => {
       const next = { ...prev };
@@ -228,6 +229,7 @@ export function SignIn({
                 <FieldError message={errors.role} />
 
                 <IconField
+                  key={`email-${role}`}
                   id="email"
                   label="Email"
                   type="email"
@@ -280,6 +282,7 @@ export function SignIn({
                 <div className="flex items-center justify-between gap-3">
                   <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
                     <Checkbox
+                      key={`remember-${role}`}
                       name="remember"
                       value="yes"
                       defaultChecked={!!rememberedEmail}
@@ -287,7 +290,11 @@ export function SignIn({
                     Remember me
                   </label>
                   <Link
-                    href="/forgot-password"
+                    href={
+                      role === "company"
+                        ? "/forgot-password?as=company"
+                        : "/forgot-password"
+                    }
                     className="-my-1 py-1 text-sm font-semibold text-brand hover:underline"
                   >
                     Forgot password?

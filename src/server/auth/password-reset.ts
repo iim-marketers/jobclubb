@@ -10,7 +10,30 @@ import { SITE_URL, isRateLimited } from "@/server/auth/confirmation-email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export async function sendCandidatePasswordReset(email: string): Promise<{ error?: string }> {
+export type ResetRole = "candidate" | "company";
+
+async function findAccount(
+  admin: ReturnType<typeof createAdminClient>,
+  email: string,
+): Promise<{ role: ResetRole; firstName?: string } | null> {
+  const { data: candidate } = await admin
+    .from("candidates")
+    .select("first_name")
+    .eq("email", email)
+    .maybeSingle();
+  if (candidate) return { role: "candidate", firstName: candidate.first_name };
+
+  const { data: company } = await admin
+    .from("companies")
+    .select("contact_name")
+    .eq("email", email)
+    .maybeSingle();
+  if (company) return { role: "company", firstName: company.contact_name.trim().split(/\s+/)[0] };
+
+  return null;
+}
+
+export async function sendPasswordReset(email: string): Promise<{ error?: string }> {
   const address = email.trim().toLowerCase();
   if (!EMAIL_PATTERN.test(address)) return { error: "Enter a valid email address." };
 
@@ -20,12 +43,8 @@ export async function sendCandidatePasswordReset(email: string): Promise<{ error
   }
 
   // Unknown addresses get the same response, so this can't be used to probe for accounts.
-  const { data: candidate } = await admin
-    .from("candidates")
-    .select("first_name")
-    .eq("email", address)
-    .maybeSingle();
-  if (!candidate) return {};
+  const account = await findAccount(admin, address);
+  if (!account) return {};
 
   const { data: link, error } = await admin.auth.admin.generateLink({ type: "recovery", email: address });
   if (error) {
@@ -33,11 +52,11 @@ export async function sendCandidatePasswordReset(email: string): Promise<{ error
     return { error: "We couldn't send the email. Please try again." };
   }
 
-  const resetUrl = `${SITE_URL}/reset-password?token_hash=${encodeURIComponent(link.properties.hashed_token)}`;
+  const resetUrl = `${SITE_URL}/reset-password?token_hash=${encodeURIComponent(link.properties.hashed_token)}&as=${account.role}`;
   try {
     await sendEmail({
       to: address,
-      ...resetPasswordEmail({ firstName: candidate.first_name, email: address, resetUrl, siteUrl: SITE_URL }),
+      ...resetPasswordEmail({ firstName: account.firstName, email: address, resetUrl, siteUrl: SITE_URL }),
     });
   } catch (sendError) {
     console.error("Sending password reset email failed", sendError);
@@ -54,7 +73,7 @@ export type ResetPasswordResult =
   | { ok: false; tokenHash: string; errors?: FieldErrors; error?: string };
 
 // The token is only spent here, on submit, so link scanners that open emails can't use it up.
-export async function resetCandidatePassword(
+export async function resetPasswordWithToken(
   tokenHash: string,
   formData: FormData,
 ): Promise<ResetPasswordResult> {

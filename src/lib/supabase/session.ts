@@ -10,5 +10,6 @@ export function authCookieOptions(options: CookieOptions): CookieOptions {
 
 export const PENDING_EMAIL_COOKIE = "jc-pending-email";
 
-export const REMEMBERED_EMAIL_COOKIE = "jc-remembered-email";
+export const rememberedEmailCookie = (role: string) =>
+  `jc-remembered-email-${role}`;
 export const REMEMBERED_EMAIL_MAX_AGE = 365 * 24 * 60 * 60;
