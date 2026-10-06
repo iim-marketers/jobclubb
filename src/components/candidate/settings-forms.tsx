@@ -51,7 +51,7 @@ const SECTION_KEYS = {
   preferences: ["city", "pincode", "vertical"],
 } satisfies Record<string, ProfileKey[]>;
 
-function submitManually(
+export function submitManually(
   action: (data: FormData) => void,
 ): React.FormEventHandler<HTMLFormElement> {
   return (e) => {
@@ -61,7 +61,7 @@ function submitManually(
   };
 }
 
-function FormStatus({ error, pending }: { error?: string; pending?: string }) {
+export function FormStatus({ error, pending }: { error?: string; pending?: string }) {
   return (
     <p role="status" className="min-h-5 text-sm">
       {error ? (
@@ -73,7 +73,7 @@ function FormStatus({ error, pending }: { error?: string; pending?: string }) {
   );
 }
 
-function SubmitButton({
+export function SubmitButton({
   pending,
   disabled,
   children,
@@ -417,11 +417,20 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
   );
 }
 
-export function PasswordForm() {
+export function PasswordForm({
+  action = changePassword,
+  description = "Choose a new password for signing in to JobClubb.",
+}: {
+  action?: (
+    prev: SettingsActionState,
+    formData: FormData,
+  ) => Promise<SettingsActionState>;
+  description?: string;
+}) {
   const [state, formAction, pending] = useActionState<
     SettingsActionState,
     FormData
-  >(changePassword, {});
+  >(action, {});
   const formRef = useRef<HTMLFormElement>(null);
   const { errors, formError, clearAll, onChange } = useFieldErrors(
     state,
@@ -448,7 +457,7 @@ export function PasswordForm() {
       <Panel
         id="security"
         title="Password"
-        description="Choose a new password for signing in to JobClubb."
+        description={description}
         footer={
           <>
             <FormStatus error={formError} />

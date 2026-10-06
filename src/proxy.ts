@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { authCookieOptions } from "@/lib/supabase/session";
 
-const PROTECTED = ["/candidate", "/onboarding"];
+const PROTECTED = ["/candidate", "/company", "/onboarding"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -36,7 +36,24 @@ export async function proxy(request: NextRequest) {
   if (isProtected && !signedIn) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
-    url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    const as = pathname.startsWith("/company") ? "&as=company" : "";
+    url.search = `?next=${encodeURIComponent(pathname + search)}${as}`;
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  }
+
+  const role = data?.claims.user_metadata?.role;
+  const home =
+    role === "company" && isCandidateArea(pathname)
+      ? "/company/dashboard"
+      : role === "candidate" && isCompanyArea(pathname)
+        ? "/candidate/dashboard"
+        : null;
+  if (home) {
+    const url = request.nextUrl.clone();
+    url.pathname = home;
+    url.search = "";
     const redirect = NextResponse.redirect(url);
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     return redirect;
@@ -44,6 +61,12 @@ export async function proxy(request: NextRequest) {
 
   return response;
 }
+
+const under = (pathname: string, prefix: string) =>
+  pathname === prefix || pathname.startsWith(`${prefix}/`);
+const isCandidateArea = (pathname: string) =>
+  under(pathname, "/candidate") || under(pathname, "/onboarding");
+const isCompanyArea = (pathname: string) => under(pathname, "/company");
 
 export const config = {
   matcher: [

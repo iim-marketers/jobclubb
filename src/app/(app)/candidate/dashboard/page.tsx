@@ -28,6 +28,7 @@ import {
   upcomingInterviews,
   type Interview,
 } from "@/lib/candidate-activity";
+import { greeting } from "@/lib/greeting";
 import { VERTICALS } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
@@ -52,21 +53,6 @@ function profileChecklist(resume: Resume | undefined, hasPhoto: boolean) {
     },
     { label: "Upload a profile photo", done: hasPhoto },
   ];
-}
-
-const IST = "Asia/Kolkata";
-
-function greeting(now: Date) {
-  const hour = Number(
-    new Intl.DateTimeFormat("en-IN", {
-      hour: "numeric",
-      hourCycle: "h23",
-      timeZone: IST,
-    }).format(now),
-  );
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
 }
 
 export default async function CandidateDashboard() {

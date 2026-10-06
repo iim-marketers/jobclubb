@@ -4,92 +4,60 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tooltip } from "@base-ui/react/tooltip";
-import { ArrowUpRight, LogOut, Sparkles } from "lucide-react";
+import { LogOut, Plus, ShieldCheck } from "lucide-react";
 
-import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
-import {
-  CANDIDATE_HOME,
-  CANDIDATE_NAV,
-  isActive,
-} from "@/components/candidate/nav";
-import {
-  MEMBERSHIP_DAYS,
-  PLAN_DETAILS,
-  type MembershipPlan,
-} from "@/lib/membership";
+import { RailTooltip } from "@/components/candidate/candidate-sidebar";
+import { CompanyAvatar } from "@/components/company-avatar";
+import { COMPANY_JOBS, COMPANY_NAV, isActive } from "@/components/company/nav";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { cn } from "@/lib/utils";
 
-export type CandidateProfile = {
-  firstName: string;
-  lastName: string;
+export type CompanyProfile = {
+  companyName: string;
+  propertyName: string | null;
+  contactName: string;
   email: string;
-  photoUrl: string | null;
   sector?: string;
-  plan: MembershipPlan;
-  validUntil: string;
-  daysLeft: number;
+  city: string;
+  logoUrl: string | null;
 };
 
-export function CandidateSidebar({
-  candidate,
+export const COMPANY_SIGN_OUT_DESCRIPTION =
+  "You'll need to sign in again to manage your job postings and applicants.";
+
+export function CompanySidebar({
+  company,
   collapsed,
 }: {
-  candidate: CandidateProfile;
+  company: CompanyProfile;
   collapsed: boolean;
 }) {
   return (
     <aside
-      id="candidate-sidebar"
+      id="company-sidebar"
       className={cn(
         "jc-sidebar sticky top-0 hidden h-dvh flex-none overflow-hidden text-white transition-[width] duration-200 ease-out motion-reduce:transition-none lg:flex",
         collapsed ? "w-18" : "w-68",
       )}
     >
       <Tooltip.Provider delay={100}>
-        <SidebarContent candidate={candidate} collapsed={collapsed} />
+        <CompanySidebarContent company={company} collapsed={collapsed} />
       </Tooltip.Provider>
     </aside>
   );
 }
 
-export function RailTooltip({
-  label,
-  enabled,
-  children,
-}: {
-  label: string;
-  enabled: boolean;
-  children: React.ReactElement;
-}) {
-  if (!enabled) return children;
-  return (
-    <Tooltip.Root>
-      <Tooltip.Trigger render={children} />
-      <Tooltip.Portal>
-        <Tooltip.Positioner side="right" sideOffset={12} className="z-50">
-          <Tooltip.Popup className="rounded-lg bg-foreground px-2.5 py-1.5 font-head text-xs font-semibold text-background shadow-lg transition-opacity duration-100 data-ending-style:opacity-0 data-starting-style:opacity-0">
-            {label}
-          </Tooltip.Popup>
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
-  );
-}
-
-export function SidebarContent({
-  candidate,
+export function CompanySidebarContent({
+  company,
   collapsed = false,
   onNavigate,
 }: {
-  candidate: CandidateProfile;
+  company: CompanyProfile;
   collapsed?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const expiringSoon = candidate.daysLeft <= 15;
-  const used = 1 - candidate.daysLeft / MEMBERSHIP_DAYS;
-  const tooltip = `Membership · ${candidate.daysLeft} days left`;
+  const displayName = company.propertyName ?? company.companyName;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
@@ -115,7 +83,7 @@ export function SidebarContent({
         </Link>
         {!collapsed && (
           <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 font-head text-[10px] font-bold tracking-[0.14em] text-white/70 uppercase">
-            Candidate
+            Employer
           </span>
         )}
       </div>
@@ -124,7 +92,7 @@ export function SidebarContent({
         aria-label="Dashboard"
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pt-4 pb-6"
       >
-        {CANDIDATE_NAV.map((group) => (
+        {COMPANY_NAV.map((group) => (
           <div key={group.title} className="mb-6 last:mb-0">
             {collapsed ? (
               <div className="mx-auto mb-3 h-px w-6 bg-white/15" />
@@ -133,8 +101,8 @@ export function SidebarContent({
                 {group.title}
               </p>
             )}
-            <ul className="space-y-0.5">
-              {group.items.map(({ label, href, icon: Icon, badge }) => {
+            <ul className="space-y-1">
+              {group.items.map(({ label, href, icon: Icon }) => {
                 const active = isActive(pathname, href);
                 return (
                   <li key={href}>
@@ -167,15 +135,6 @@ export function SidebarContent({
                             {label}
                           </span>
                         )}
-                        {badge ? (
-                          collapsed ? (
-                            <span className="absolute top-1.5 right-2.5 size-2 rounded-full bg-brand-accent ring-2 ring-[#023b50]" />
-                          ) : (
-                            <span className="min-w-5 rounded-full bg-brand-accent px-1.5 py-0.5 text-center text-[10px] leading-none font-bold text-[#032a36]">
-                              {badge}
-                            </span>
-                          )
-                        ) : null}
                       </Link>
                     </RailTooltip>
                   </li>
@@ -188,90 +147,65 @@ export function SidebarContent({
 
       {collapsed ? (
         <div className="flex flex-none flex-col items-center gap-3 px-3 pb-4">
-          <RailTooltip label={tooltip} enabled>
+          <RailTooltip label="Post a job" enabled>
             <Link
-              href={`${CANDIDATE_HOME}/membership`}
-              aria-label={tooltip}
-              className="relative flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/6 text-brand-accent transition-colors hover:bg-white/12"
+              href={`${COMPANY_JOBS}/new`}
+              aria-label="Post a job"
+              className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/6 text-brand-accent transition-colors hover:bg-white/12"
             >
-              <Sparkles className="size-4.5" />
-              {expiringSoon && (
-                <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-300 ring-2 ring-[#023b50]" />
-              )}
+              <Plus className="size-4.5" />
             </Link>
           </RailTooltip>
-          <RailTooltip
-            label={`${candidate.firstName} ${candidate.lastName}`}
-            enabled
-          >
-            <CandidateAvatar
-              firstName={candidate.firstName}
-              lastName={candidate.lastName}
-              photoUrl={candidate.photoUrl}
-              className="size-9 bg-linear-to-br from-brand-accent to-[#38b6dd] text-xs text-[#032a36]"
+          <RailTooltip label={displayName} enabled>
+            <CompanyAvatar
+              name={displayName}
+              logoUrl={company.logoUrl}
+              className="size-9 rounded-xl text-xs"
             />
           </RailTooltip>
         </div>
       ) : (
         <div className="flex-none space-y-3 px-3 pb-4">
           <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-            <p className="truncate font-head text-sm font-bold">
-              {PLAN_DETAILS[candidate.plan].name}
-            </p>
-            <div
-              className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"
-              role="meter"
-              aria-label="Membership used"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(used * 100)}
-            >
-              <div
-                className="h-full rounded-full bg-linear-to-r from-brand-accent to-[#38b6dd]"
-                style={{ width: `${Math.min(Math.max(used, 0), 1) * 100}%` }}
+            <div className="flex items-center gap-3">
+              <CompanyAvatar
+                name={displayName}
+                logoUrl={company.logoUrl}
+                className="size-9 rounded-xl text-xs"
               />
+              <div className="min-w-0">
+                <p className="truncate font-head text-sm font-bold">
+                  {displayName}
+                </p>
+                <p className="flex items-center mt-0.5 text-[11px] text-brand-accent">
+                  {/* <ShieldCheck className="size-3.5 flex-none" /> */}
+                  Verified employer
+                </p>
+              </div>
             </div>
-            <div className="mt-2 flex items-baseline justify-between gap-2 text-xs">
-              <p className="truncate text-white/60">
-                Valid till {candidate.validUntil}
-              </p>
-              <p
-                className={cn(
-                  "flex-none",
-                  expiringSoon ? "text-amber-300" : "text-white/60",
-                )}
-              >
-                {candidate.daysLeft} days left
-              </p>
-            </div>
-            {expiringSoon && (
-              <Link
-                href="/membership"
-                onClick={onNavigate}
-                className="mt-2 inline-flex items-center gap-1 font-head text-xs font-bold text-brand-accent hover:text-white"
-              >
-                Renew membership
-                <ArrowUpRight className="size-3.5" />
-              </Link>
-            )}
+            <Link
+              href={`${COMPANY_JOBS}/new`}
+              onClick={onNavigate}
+              className="mt-3 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white font-head text-sm font-semibold text-[#023b50] transition-colors hover:bg-white/90"
+            >
+              {/* <Plus className="size-4" /> */}
+              Post a job
+            </Link>
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl px-2 py-1.5">
-            <CandidateAvatar
-              firstName={candidate.firstName}
-              lastName={candidate.lastName}
-              photoUrl={candidate.photoUrl}
-              className="size-9 bg-linear-to-br from-brand-accent to-[#38b6dd] text-xs text-[#032a36]"
+            <CompanyAvatar
+              name={company.contactName}
+              className="size-9 bg-linear-to-br from-brand-accent to-[#38b6dd] text-[#032a36]"
             />
             <div className="min-w-0 flex-1">
               <p className="truncate font-head text-sm font-bold">
-                {candidate.firstName} {candidate.lastName}
+                {company.contactName}
               </p>
-              <p className="truncate text-xs text-white/55">
-                {candidate.email}
-              </p>
+              <p className="truncate text-xs text-white/55">{company.email}</p>
             </div>
             <SignOutDialog
+              description={COMPANY_SIGN_OUT_DESCRIPTION}
               render={
                 <button
                   type="button"

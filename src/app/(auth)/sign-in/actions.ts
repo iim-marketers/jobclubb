@@ -15,7 +15,7 @@ import { signInCandidate, signInCompany } from "@/server/auth/sign-in";
 
 const DASHBOARDS = {
   candidate: "/candidate/dashboard",
-  company: "/company",
+  company: "/company/dashboard",
   franchise: "/franchise/dashboard",
 } as const;
 
@@ -56,8 +56,10 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
     });
   else cookieStore.delete(REMEMBERED_EMAIL_COOKIE);
   cookieStore.delete(PENDING_EMAIL_COOKIE);
-  if (role === "company") redirect(DASHBOARDS.company);
-  redirect(safeRedirectPath(formData.get("next"), DASHBOARDS.candidate));
+  const next = safeRedirectPath(formData.get("next"), DASHBOARDS.candidate);
+  if (role === "company")
+    redirect(next.startsWith("/company/") ? next : DASHBOARDS.company);
+  redirect(next);
 }
 
 export async function signOut() {

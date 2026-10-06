@@ -5,6 +5,7 @@ import { Building2 } from "lucide-react";
 import { PageHeader, Section } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { VERTICALS } from "@/lib/taxonomy";
+import { getCompanySession } from "@/server/auth/current-company";
 import { HIRE_BRAND_SECTORS, getHireBrands } from "@/server/hire-brands/directory";
 
 export const metadata = {
@@ -16,7 +17,10 @@ export const metadata = {
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z]+/g, "-");
 
 export default async function CompaniesPage() {
-  const companies = await getHireBrands();
+  const [companies, session] = await Promise.all([
+    getHireBrands(),
+    getCompanySession(),
+  ]);
   const sectors = HIRE_BRAND_SECTORS.map((sector) => ({
     ...sector,
     companies: companies.filter((c) => c.sector === sector.value),
@@ -103,17 +107,27 @@ export default async function CompaniesPage() {
               <Button
                 className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
                 nativeButton={false}
-                render={<Link href="/sign-up/company" />}
+                render={
+                  <Link
+                    href={
+                      session ? "/company/dashboard/jobs/new" : "/sign-up/company"
+                    }
+                  />
+                }
               >
-                Register your company
+                {session ? "Post a job" : "Register your company"}
               </Button>
               <Button
                 variant="outline"
                 className="font-head"
                 nativeButton={false}
-                render={<Link href="/sign-in?as=company" />}
+                render={
+                  <Link
+                    href={session ? "/company/dashboard" : "/sign-in?as=company"}
+                  />
+                }
               >
-                Sign in to post a job
+                {session ? "Go to dashboard" : "Sign in to post a job"}
               </Button>
             </div>
           </div>
