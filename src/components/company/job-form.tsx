@@ -228,7 +228,7 @@ export function JobForm({
                 Cancel
               </Button>
               <SubmitButton pending={pending}>
-                {pending ? "Submitting..." : submitLabel}
+                {pending ? "Saving..." : submitLabel}
               </SubmitButton>
             </div>
           </>

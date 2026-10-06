@@ -5,8 +5,12 @@ import {
   formatSalary,
   industryName,
 } from "@/lib/company-jobs";
-import { getJob as getSampleJob, type JobListing } from "@/lib/jobs-data";
-import { getLiveJobBySlug, type PublicJob } from "@/server/companies/jobs";
+import type { JobListing } from "@/lib/jobs-data";
+import {
+  getLiveJobBySlug,
+  listLiveJobs,
+  type PublicJob,
+} from "@/server/companies/jobs";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -27,6 +31,7 @@ function toListing(job: PublicJob): JobListing {
     title: job.role,
     designation: job.designation,
     company: job.companyName,
+    companyLogoUrl: job.companyLogoUrl,
     industry: industryName(job.industry),
     location: job.city,
     pincode: job.pincode,
@@ -34,7 +39,7 @@ function toListing(job: PublicJob): JobListing {
     experience: formatExperience(job),
     jobType: job.jobType,
     workMode: job.workMode,
-    postedAgo: postedAgo(job.approvedAt ?? job.createdAt),
+    postedAgo: postedAgo(job.createdAt),
     description: job.description,
     responsibilities: job.responsibilities,
     requirements: job.requirements,
@@ -42,8 +47,11 @@ function toListing(job: PublicJob): JobListing {
   };
 }
 
+export async function listJobs(limit?: number): Promise<JobListing[]> {
+  return (await listLiveJobs(limit)).map(toListing);
+}
+
 export async function getJob(slug: string): Promise<JobListing | null> {
   const job = await getLiveJobBySlug(slug);
-  if (job) return toListing(job);
-  return getSampleJob(slug) ?? null;
+  return job ? toListing(job) : null;
 }

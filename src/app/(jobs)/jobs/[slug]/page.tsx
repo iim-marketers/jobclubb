@@ -14,7 +14,7 @@ import {
 
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
-import { JOBS, type JobListing } from "@/lib/jobs-data";
+import type { JobListing } from "@/lib/jobs-data";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
@@ -23,10 +23,6 @@ import { sanitizeRichText } from "@/server/rich-text";
 
 const BRAND_BUTTON =
   "bg-brand font-head text-brand-foreground hover:bg-brand-dark";
-
-export function generateStaticParams() {
-  return JOBS.map((job) => ({ slug: job.slug }));
-}
 
 export default async function JobDetailPage({
   params,
@@ -42,7 +38,7 @@ export default async function JobDetailPage({
 
   return (
     <section className="px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <Link
           href="/jobs"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-brand"
@@ -64,7 +60,7 @@ export default async function JobDetailPage({
           <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block lg:self-start">
             <div className="rounded-2xl border border-border bg-card p-5">
               {access.member && (
-                <div className="mb-4 border-b border-border pb-4">
+                <div className="mb-4 -mx-5 px-5 border-b border-border pb-4">
                   <p className="text-xs text-muted-foreground">Salary</p>
                   <p className="mt-0.5 font-head text-lg font-bold tracking-tight">
                     {job.salaryRange}
@@ -131,6 +127,7 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
       <div className="flex items-start gap-4">
         <CompanyAvatar
           name={job.company}
+          logoUrl={job.companyLogoUrl}
           className="size-14 rounded-xl text-base"
         />
         <div className="min-w-0 flex-1">
@@ -145,7 +142,8 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
             )}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {job.company} · {job.industry} · Posted {job.postedAgo}
+            {job.company} · {job.industry} · Posted{" "}
+            {job.postedAgo.toLowerCase()}
           </p>
         </div>
       </div>

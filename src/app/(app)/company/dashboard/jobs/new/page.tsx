@@ -25,7 +25,7 @@ export default async function NewJobPage() {
 
       <DashboardHeader
         title="Post a job"
-        description="Tell candidates what the role involves. Our team reviews every posting before it goes live."
+        description="Tell candidates what the role involves. Your posting goes live to members as soon as you publish it."
       />
 
       <PostingGuide />
@@ -33,7 +33,7 @@ export default async function NewJobPage() {
       <JobForm
         action={createJob}
         defaults={jobFormDefaults(null, company)}
-        submitLabel="Submit for review"
+        submitLabel="Publish job"
         cancelHref={COMPANY_JOBS}
       />
     </div>

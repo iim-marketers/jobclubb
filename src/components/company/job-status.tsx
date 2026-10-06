@@ -3,9 +3,7 @@ import { cn } from "@/lib/utils";
 
 const STYLES: Record<JobStatus, string> = {
   live: "bg-good/12 text-good",
-  in_review: "bg-brand/10 text-brand",
   closed: "bg-muted text-muted-foreground",
-  rejected: "bg-destructive/10 text-destructive",
 };
 
 export function JobStatusPill({
@@ -23,9 +21,6 @@ export function JobStatusPill({
         className,
       )}
     >
-      {status === "live" && (
-        <span className="size-1.5 rounded-full bg-current" aria-hidden />
-      )}
       {JOB_STATUS_LABELS[status]}
     </span>
   );

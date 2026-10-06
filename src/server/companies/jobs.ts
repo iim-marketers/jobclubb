@@ -2,10 +2,11 @@ import "server-only";
 
 import { jobSlug, type CompanyJob, type JobInput } from "@/lib/company-jobs";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { getCompanyLogoUrl } from "@/server/companies/logo";
 import { sanitizeRichText } from "@/server/rich-text";
 
 const COLUMNS =
-  "id, slug, industry, role, designation, city, pincode, job_type, work_mode, experience_min, experience_max, salary_min_lpa, salary_max_lpa, openings, description, responsibilities, requirements, benefits, status, approved_at, created_at, updated_at";
+  "id, slug, industry, role, designation, city, pincode, job_type, work_mode, experience_min, experience_max, salary_min_lpa, salary_max_lpa, openings, description, responsibilities, requirements, benefits, status, created_at, updated_at";
 
 type JobRow = {
   id: string;
@@ -27,7 +28,6 @@ type JobRow = {
   requirements: string[];
   benefits: string[];
   status: CompanyJob["status"];
-  approved_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -54,7 +54,6 @@ function toJob(row: JobRow): CompanyJob {
     requirements: row.requirements,
     benefits: row.benefits,
     status: row.status,
-    approvedAt: row.approved_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -119,28 +118,52 @@ export async function createCompanyJob(companyId: string, input: JobInput) {
   }
 }
 
-export type PublicJob = CompanyJob & { companyName: string };
+export type PublicJob = CompanyJob & {
+  companyName: string;
+  companyLogoUrl: string | null;
+};
 
-// Bypasses RLS, so only live postings are returned.
+type PublicJobRow = JobRow & {
+  companies: { company_name: string; logo_path: string | null } | null;
+};
+
+function toPublicJob(row: PublicJobRow): PublicJob {
+  return {
+    ...toJob(row),
+    companyName: row.companies?.company_name ?? "",
+    companyLogoUrl: getCompanyLogoUrl(row.companies?.logo_path ?? null),
+  };
+}
+
+// The queries below bypass RLS, so they must keep the live-only filter.
+export async function listLiveJobs(limit?: number): Promise<PublicJob[]> {
+  let query = createAdminClient()
+    .from("company_jobs")
+    .select(`${COLUMNS}, companies (company_name, logo_path)`)
+    .eq("status", "live")
+    .order("created_at", { ascending: false });
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data as unknown as PublicJobRow[]).map(toPublicJob);
+}
+
 export async function getLiveJobBySlug(slug: string): Promise<PublicJob | null> {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null;
   const { data, error } = await createAdminClient()
     .from("company_jobs")
-    .select(`${COLUMNS}, companies (company_name)`)
+    .select(`${COLUMNS}, companies (company_name, logo_path)`)
     .eq("slug", slug)
     .eq("status", "live")
     .maybeSingle();
   if (error) throw error;
-  if (!data) return null;
-  const row = data as unknown as JobRow & { companies: { company_name: string } | null };
-  return { ...toJob(row), companyName: row.companies?.company_name ?? "" };
+  return data ? toPublicJob(data as unknown as PublicJobRow) : null;
 }
 
-// Any edit sends the posting back to review, including a live one.
 export async function updateCompanyJob(companyId: string, id: string, input: JobInput) {
   const { data, error } = await createAdminClient()
     .from("company_jobs")
-    .update({ ...toRow(input), status: "in_review", updated_at: new Date().toISOString() })
+    .update({ ...toRow(input), updated_at: new Date().toISOString() })
     .eq("company_id", companyId)
     .eq("id", id)
     .neq("status", "closed")
@@ -150,17 +173,13 @@ export async function updateCompanyJob(companyId: string, id: string, input: Job
 }
 
 export async function setCompanyJobOpen(companyId: string, id: string, open: boolean) {
-  const job = await getCompanyJob(companyId, id);
-  if (!job) return false;
-  if (open ? job.status !== "closed" : job.status === "closed" || job.status === "rejected")
-    return false;
-
-  const status = open ? (job.approvedAt ? "live" : "in_review") : "closed";
-  const { error } = await createAdminClient()
+  const { data, error } = await createAdminClient()
     .from("company_jobs")
-    .update({ status, updated_at: new Date().toISOString() })
+    .update({ status: open ? "live" : "closed", updated_at: new Date().toISOString() })
     .eq("company_id", companyId)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("status", open ? "closed" : "live")
+    .select("id");
   if (error) throw error;
-  return true;
+  return data.length > 0;
 }

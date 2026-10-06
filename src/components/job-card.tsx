@@ -23,7 +23,7 @@ export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
   const hidden = locked ? HIDDEN : undefined;
 
   return (
-    <article className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 transition-[border-color,box-shadow] hover:border-brand/40 hover:shadow-md sm:p-5">
+    <article className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 transition-[border-color,box-shadow] hover:border-brand/40 hover:shadow-md">
       <div className="flex items-start gap-3">
         {locked ? (
           <span
@@ -31,7 +31,11 @@ export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
             className={cn("size-11 flex-none rounded-xl bg-muted", HIDDEN)}
           />
         ) : (
-          <CompanyAvatar name={job.company} className="size-11 rounded-xl" />
+          <CompanyAvatar
+            name={job.company}
+            logoUrl={job.companyLogoUrl}
+            className="size-11 rounded-xl"
+          />
         )}
         <div className="min-w-0 flex-1">
           <h3 className="line-clamp-2 font-head leading-snug font-bold tracking-tight transition-colors group-hover:text-brand">
@@ -68,7 +72,7 @@ export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
         <Meta icon={Clock}>{shown.workMode}</Meta>
       </ul>
 
-      <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+      <div className="my-4 flex">
         <div className="flex min-w-0 items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5">
           {locked && <Lock className="size-3 flex-none text-brand" />}
           <span
@@ -81,12 +85,16 @@ export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
             {shown.salaryRange}
           </span>
         </div>
-        <div className="flex flex-none items-center gap-2 text-xs text-muted-foreground">
-          <span aria-hidden={locked} className={hidden}>
-            {shown.postedAgo}
-          </span>
-          <ArrowRight className="size-4 text-brand transition-transform group-hover:translate-x-0.5" />
-        </div>
+      </div>
+
+      <div className="-mx-5 mt-auto flex items-center justify-between gap-3 border-t border-border px-4 pt-4">
+        <span
+          aria-hidden={locked}
+          className={cn("text-xs text-muted-foreground", hidden)}
+        >
+          Posted {shown.postedAgo.toLowerCase()}
+        </span>
+        <ArrowRight className="size-4 flex-none text-brand transition-transform group-hover:translate-x-0.5" />
       </div>
     </article>
   );

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Briefcase, Hourglass, Plus, Radio, Users } from "lucide-react";
+import { Archive, Briefcase, Plus, Radio, Users } from "lucide-react";
 
 import { DashboardHeader, StatTile } from "@/components/candidate/dashboard-ui";
 import { JobsList } from "@/components/company/jobs-list";
@@ -20,7 +20,7 @@ export default async function JobPostingsPage() {
     <div className="space-y-6">
       <DashboardHeader
         title="Job postings"
-        description="Every opening you've posted, its review status and who has applied."
+        description="Every opening you've posted, whether it's live and who has applied."
         action={
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
@@ -42,10 +42,10 @@ export default async function JobPostingsPage() {
           tone="good"
         />
         <StatTile
-          label="In review"
-          value={jobs.filter((j) => j.status === "in_review").length}
-          note="Waiting on JobClubb"
-          icon={Hourglass}
+          label="Closed"
+          value={jobs.length - live.length}
+          note="Not accepting applications"
+          icon={Archive}
         />
         <StatTile
           label="Open positions"

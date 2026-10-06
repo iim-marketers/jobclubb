@@ -71,7 +71,6 @@ const PAGE_SIZE = 10;
 const TABS: { key: "all" | JobStatus; label: string }[] = [
   { key: "all", label: "All" },
   { key: "live", label: "Live" },
-  { key: "in_review", label: "In review" },
   { key: "closed", label: "Closed" },
 ];
 
@@ -98,10 +97,6 @@ const columns = helper.columns([
             >
               {job.designation}
             </Link>
-            <p className="truncate text-xs text-muted-foreground">
-              {job.role}
-              <span className="md:hidden"> · {job.city}</span>
-            </p>
           </div>
         </div>
       );
@@ -176,13 +171,7 @@ export function JobsList({ jobs }: { jobs: JobListItem[] }) {
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>("all");
   const data = useMemo(
-    () =>
-      jobs.filter(
-        (j) =>
-          tab === "all" ||
-          j.status === tab ||
-          (tab === "closed" && j.status === "rejected"),
-      ),
+    () => jobs.filter((j) => tab === "all" || j.status === tab),
     [jobs, tab],
   );
 
@@ -283,7 +272,7 @@ export function JobsList({ jobs }: { jobs: JobListItem[] }) {
           }
         >
           {jobs.length === 0
-            ? "Post an opening and our team will review it before it goes live to members."
+            ? "Post an opening and it goes live to members right away."
             : query
               ? "Try a different title, role or city."
               : "No postings have this status right now."}

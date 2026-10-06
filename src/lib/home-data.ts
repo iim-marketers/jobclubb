@@ -1,14 +1,3 @@
-export type Job = {
-  role: string;
-  company: string;
-  location: string;
-  type: string;
-  category: string;
-  salary: string;
-  postedAgo: string;
-  featured?: boolean;
-};
-
 const AVATAR_COLORS = [
   "#c1442e",
   "#5a3d8a",
@@ -145,15 +134,6 @@ export const JOB_FILTERS = [
   "Bars & Nightclubs",
   "Cruise Lines",
   "Travel & Tourism",
-];
-
-export const FEATURED_JOBS: Job[] = [
-  { role: "Cabin Crew", company: "IndiGo", location: "Kolkata", type: "full time", category: "Airlines", salary: "₹4.5 LPA – 6 LPA", postedAgo: "2 days ago", featured: true },
-  { role: "Front Office Executive", company: "Taj Hotels", location: "Mumbai", type: "full time", category: "Hotels", salary: "₹3 LPA – 4.5 LPA", postedAgo: "3 days ago", featured: true },
-  { role: "Ground Staff", company: "Air India", location: "Bengaluru", type: "full time", category: "Airlines", salary: "₹3 LPA – 4.2 LPA", postedAgo: "4 days ago", featured: true },
-  { role: "F&B Service Staff", company: "J.W. Marriott", location: "Pune", type: "full time", category: "Hotels", salary: "₹2.8 LPA – 3.9 LPA", postedAgo: "5 days ago", featured: true },
-  { role: "Reservation Agent", company: "MakeMyTrip", location: "Gurugram", type: "full time", category: "Travel & Tourism", salary: "₹3.5 LPA – 5.2 LPA", postedAgo: "6 days ago" },
-  { role: "Cruise Staff", company: "Dream Cruises", location: "Mumbai", type: "full time", category: "Cruise Lines", salary: "₹5 LPA – 7 LPA", postedAgo: "1 week ago" },
 ];
 
 export const HOW_IT_WORKS = [

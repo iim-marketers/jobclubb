@@ -34,11 +34,7 @@ export default async function EditJobPage({
 
       <DashboardHeader
         title={`Edit ${job.designation}`}
-        description={
-          job.status === "live"
-            ? "Saving sends the posting back for review. It comes off the job board until it's approved again."
-            : "Saving sends the posting back for review."
-        }
+        description="Changes go live on the job board as soon as you save."
       />
 
       <PostingGuide />
@@ -46,7 +42,7 @@ export default async function EditJobPage({
       <JobForm
         action={updateJob.bind(null, job.id)}
         defaults={jobFormDefaults(job, company)}
-        submitLabel="Save and resubmit"
+        submitLabel="Save changes"
         cancelHref={jobHref}
       />
     </div>
