@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { ArrowRight, CircleAlert, LockKeyhole, TimerOff } from "lucide-react";
 import Link from "next/link";
 
+import type { ResetRole } from "@/app/(auth)/forgot-password/actions";
 import { resetPassword, type ResetPasswordState } from "@/app/(auth)/reset-password/actions";
 import {
   AuthCard,
@@ -13,10 +14,16 @@ import {
 import { PasswordField, useFieldErrors } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 
-export function ResetPassword({ tokenHash }: { tokenHash: string }) {
+export function ResetPassword({
+  tokenHash,
+  role,
+}: {
+  tokenHash: string;
+  role: ResetRole;
+}) {
   const [state, formAction, pending] = useActionState<ResetPasswordState, FormData>(
     resetPassword,
-    { tokenHash, expired: !tokenHash },
+    { tokenHash, role, expired: !tokenHash },
   );
   const { errors, formError, clearAll, onChange } = useFieldErrors(
     state,
@@ -39,12 +46,12 @@ export function ResetPassword({ tokenHash }: { tokenHash: string }) {
           nativeButton={false}
           size="lg"
           className="mt-7 h-12 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-          render={<Link href="/forgot-password" />}
+          render={<Link href={`/forgot-password?as=${role}`} />}
         >
           Request a new link
           <ArrowRight className="size-4" />
         </Button>
-        <BackToSignIn />
+        <BackToSignIn role={role} />
       </AuthCard>
     );
   }
@@ -56,7 +63,7 @@ export function ResetPassword({ tokenHash }: { tokenHash: string }) {
         Choose a new password
       </h1>
       <p className="mt-2 leading-7 text-muted-foreground">
-        You&apos;ll use it to sign in to your candidate account. We&apos;ll sign
+        You&apos;ll use it to sign in to your {role} account. We&apos;ll sign
         you out on every other device.
       </p>
 
@@ -101,7 +108,7 @@ export function ResetPassword({ tokenHash }: { tokenHash: string }) {
         </Button>
       </form>
 
-      <BackToSignIn />
+      <BackToSignIn role={role} />
     </AuthCard>
   );
 }

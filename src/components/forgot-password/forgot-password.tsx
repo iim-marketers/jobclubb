@@ -11,7 +11,10 @@ import {
   MailCheck,
 } from "lucide-react";
 
-import { requestPasswordReset } from "@/app/(auth)/forgot-password/actions";
+import {
+  requestPasswordReset,
+  type ResetRole,
+} from "@/app/(auth)/forgot-password/actions";
 import { FieldError } from "@/components/sign-up/fields";
 import { ResendConfirmation } from "@/components/sign-up/resend-confirmation";
 import { Button } from "@/components/ui/button";
@@ -19,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { inboxFor } from "@/lib/inbox-providers";
 
-export function ForgotPassword() {
+export function ForgotPassword({ role }: { role: ResetRole }) {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string>();
@@ -28,7 +31,7 @@ export function ForgotPassword() {
   return (
     <AuthCard>
       {sent ? (
-        <ResetSent email={email} onBack={() => setSent(false)} />
+        <ResetSent role={role} email={email} onBack={() => setSent(false)} />
       ) : (
         <>
           <CardIcon icon={KeyRound} />
@@ -36,7 +39,7 @@ export function ForgotPassword() {
             Forgot your password?
           </h1>
           <p className="mt-2 leading-7 text-muted-foreground">
-            Enter the email you use for your candidate account and we&apos;ll
+            Enter the email you use for your {role} account and we&apos;ll
             send you a link to choose a new one.
           </p>
 
@@ -65,7 +68,9 @@ export function ForgotPassword() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder={
+                    role === "company" ? "you@yourcompany.com" : "you@example.com"
+                  }
                   autoComplete="email"
                   autoFocus
                   defaultValue={email}
@@ -88,14 +93,22 @@ export function ForgotPassword() {
             </Button>
           </form>
 
-          <BackToSignIn />
+          <BackToSignIn role={role} />
         </>
       )}
     </AuthCard>
   );
 }
 
-function ResetSent({ email, onBack }: { email: string; onBack: () => void }) {
+function ResetSent({
+  role,
+  email,
+  onBack,
+}: {
+  role: ResetRole;
+  email: string;
+  onBack: () => void;
+}) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const inbox = inboxFor(email);
 
@@ -114,8 +127,8 @@ function ResetSent({ email, onBack }: { email: string; onBack: () => void }) {
         Check your inbox
       </h1>
       <p className="mt-2 leading-7 text-muted-foreground">
-        If a candidate account exists for this email, we&apos;ve sent it a link
-        to reset your password.
+        If a {role} account exists for this email, we&apos;ve sent it a link to
+        reset your password.
       </p>
       <p className="mt-3 flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold">
         <Mail className="size-4 flex-none text-muted-foreground" />
@@ -154,7 +167,7 @@ function ResetSent({ email, onBack }: { email: string; onBack: () => void }) {
         />
       </div>
 
-      <BackToSignIn />
+      <BackToSignIn role={role} />
     </div>
   );
 }
@@ -187,11 +200,11 @@ export function CardIcon({
   );
 }
 
-export function BackToSignIn() {
+export function BackToSignIn({ role }: { role: ResetRole }) {
   return (
     <div className="mt-6 border-t border-border pt-5 text-center">
       <Link
-        href="/sign-in"
+        href={`/sign-in?as=${role}`}
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
       >
         <ArrowLeft className="size-4" />
