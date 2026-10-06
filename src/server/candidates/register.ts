@@ -41,7 +41,7 @@ export async function registerCandidate(formData: FormData): Promise<RegisterCan
       phone: text(formData, "phone"),
       city: text(formData, "city"),
       pincode: text(formData, "pincode"),
-      vertical: text(formData, "vertical"),
+      industry: text(formData, "industry"),
       source: text(formData, "source"),
       code,
       terms_version: TERMS_VERSION,

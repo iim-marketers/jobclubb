@@ -16,13 +16,14 @@ import {
   SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { JobFormDefaults } from "@/lib/company-jobs";
-import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
+import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
 
-const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
 const JOB_TYPE_OPTIONS = JOB_TYPES.map((t) => ({ value: t, label: t }));
 const WORK_MODE_LABELS: Record<(typeof WORK_MODES)[number], string> = {
   WFO: "Work from office",
@@ -49,7 +50,7 @@ export function JobForm({
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   const [initial] = useState(defaults);
-  const [vertical, setVertical] = useState<string | null>(defaults.vertical);
+  const [industry, setIndustry] = useState<string | null>(defaults.industry);
   const [role, setRole] = useState<string | null>(defaults.role);
   const { errors, formError, clear, clearAll, onChange } = useFieldErrors(
     state,
@@ -58,7 +59,7 @@ export function JobForm({
   );
   const hasErrors = Object.keys(errors).length > 0;
   const roleOptions = (
-    VERTICALS.find((v) => v.slug === vertical)?.roles ?? []
+    INDUSTRIES.find((v) => v.slug === industry)?.roles ?? []
   ).map((r) => ({ value: r, label: r }));
 
   return (
@@ -74,17 +75,17 @@ export function JobForm({
       <Panel title="Role" description="What you're hiring for and how many people you need.">
         <div className="grid gap-5 sm:grid-cols-2">
           <SelectField
-            id="vertical"
-            label="Sector"
+            id="industry"
+            label="Industry"
             required
-            options={SECTOR_OPTIONS}
-            value={vertical}
+            options={INDUSTRY_OPTIONS}
+            value={industry}
             onValueChange={(v) => {
-              setVertical(v);
+              setIndustry(v);
               setRole(null);
-              clear("vertical", "role");
+              clear("industry", "role");
             }}
-            error={errors.vertical}
+            error={errors.industry}
           />
           <SelectField
             id="role"
@@ -234,16 +235,24 @@ export function JobForm({
         }
       >
         <div className="grid gap-5">
-          <TextareaField
-            id="description"
-            label="About the role"
-            required
-            rows={4}
-            maxLength={4000}
-            defaultValue={initial.description}
-            placeholder="A short summary of the role, the team and what a great hire looks like."
-            error={errors.description}
-          />
+          <div className="space-y-2">
+            <Label id="description-label">
+              About the role
+              <span className="text-destructive">*</span>
+            </Label>
+            <RichTextEditor
+              id="description"
+              name="description"
+              labelId="description-label"
+              defaultValue={initial.description}
+              maxLength={4000}
+              placeholder="A short summary of the role, the team and what a great hire looks like."
+              invalid={!!errors.description}
+              describedBy={errors.description ? "description-error" : undefined}
+              onChange={() => clear("description")}
+            />
+            <FieldError id="description-error" message={errors.description} />
+          </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <TextareaField
               id="responsibilities"
@@ -297,10 +306,10 @@ function TextareaField({
   error?: string;
 } & Pick<
   React.ComponentProps<"textarea">,
-  "rows" | "maxLength" | "defaultValue" | "placeholder"
+  "rows" | "defaultValue" | "placeholder"
 >) {
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       <Label htmlFor={id}>
         {label}
         {required && <span className="text-destructive">*</span>}
@@ -313,7 +322,7 @@ function TextareaField({
         name={id}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
-        className="min-h-24 bg-card"
+        className="min-h-32 max-h-80 flex-1 bg-card"
         {...props}
       />
       {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}

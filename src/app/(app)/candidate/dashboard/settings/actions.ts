@@ -41,7 +41,7 @@ export async function updateProfile(
       phone: values.phone,
       city: values.city,
       pincode: values.pincode,
-      vertical: values.vertical,
+      industry: values.industry,
     })
     .eq("id", candidate.id);
 

@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 
 import { Panel } from "@/components/candidate/dashboard-ui";
-import { ApplicantsTable, IdentityNotice } from "@/components/company/applicants-table";
+import {
+  ApplicantsTable,
+  IdentityNotice,
+} from "@/components/company/applicants-table";
 import { JobOpenToggle } from "@/components/company/job-open-toggle";
 import { JobStatusPill } from "@/components/company/job-status";
 import { COMPANY_JOBS } from "@/components/company/nav";
@@ -21,18 +24,20 @@ import {
   formatExperience,
   formatPostedDate,
   formatSalary,
-  verticalName,
+  industryName,
   type JobStatus,
 } from "@/lib/company-jobs";
 import { cn } from "@/lib/utils";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyJob } from "@/server/companies/jobs";
+import { sanitizeRichText } from "@/server/rich-text";
 
 const STATUS_NOTES: Record<JobStatus, string> = {
   in_review:
     "Our team is reviewing this posting. It goes live to members once approved, and you'll see the status change here.",
   live: "This posting is live on the job board and accepting applications.",
-  closed: "This posting is closed and no longer accepts applications. Reopen it to start hiring again.",
+  closed:
+    "This posting is closed and no longer accepts applications. Reopen it to start hiring again.",
   rejected:
     "This posting wasn't approved. Edit it to fix the details and it goes back for review, or contact us for help.",
 };
@@ -87,7 +92,7 @@ export default async function JobDetailPage({
             <div className="flex flex-wrap items-center gap-2">
               <JobStatusPill status={job.status} />
               <span className="font-head text-xs font-semibold text-muted-foreground">
-                {verticalName(job.vertical)} · {job.role}
+                {industryName(job.industry)} · {job.role}
               </span>
             </div>
             <h1 className="mt-2 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
@@ -129,14 +134,16 @@ export default async function JobDetailPage({
           ].map(([label, value]) => (
             <div key={label} className="min-w-0">
               <dt className="text-xs text-muted-foreground">{label}</dt>
-              <dd className="mt-0.5 truncate font-head text-sm font-bold">{value}</dd>
+              <dd className="mt-0.5 truncate font-head text-sm font-bold">
+                {value}
+              </dd>
             </div>
           ))}
         </dl>
 
         <div
           className={cn(
-            "mt-6 flex items-start gap-3 rounded-2xl p-4 text-sm",
+            "mt-6 flex items-start gap-1.5 rounded-2xl p-4 text-sm",
             job.status === "live" && "bg-good/8",
             job.status === "in_review" && "bg-brand/6",
             job.status === "closed" && "bg-muted/70",
@@ -148,7 +155,7 @@ export default async function JobDetailPage({
           ) : (
             <span
               className={cn(
-                "mt-1.5 size-2 flex-none rounded-full",
+                "mt-2 size-2 flex-none rounded-full",
                 job.status === "live" && "bg-good",
                 job.status === "in_review" && "bg-brand",
                 job.status === "closed" && "bg-muted-foreground",
@@ -159,51 +166,57 @@ export default async function JobDetailPage({
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Panel
-          title="Applicants"
-          description={`${applicants.length} ${applicants.length === 1 ? "person has" : "people have"} applied`}
-        >
-          {applicants.length === 0 ? (
-            <div className="flex flex-col items-center rounded-2xl border border-dashed border-border px-6 py-10 text-center">
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-                <UserRoundSearch className="size-5" />
-              </span>
-              <p className="mt-4 font-head font-bold">No applicants yet</p>
-              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+      <Panel
+        title="Applicants"
+        description={`${applicants.length} ${applicants.length === 1 ? "person has" : "people have"} applied`}
+      >
+        {applicants.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border px-6 py-6 text-center sm:flex-row sm:text-left">
+            <span className="flex size-11 flex-none items-center justify-center rounded-2xl bg-brand/10 text-brand">
+              <UserRoundSearch className="size-5" />
+            </span>
+            <div>
+              <p className="font-head font-bold">No applicants yet</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 {job.status === "live"
                   ? "Members who apply will show up here with their skills and experience."
                   : "Applications open once this posting is live."}
               </p>
             </div>
-          ) : (
-            <ApplicantsTable applicants={applicants} />
-          )}
-          <IdentityNotice className="mt-4" />
-        </Panel>
-
-        <Panel title="About the role" description={job.description}>
-          <div className="space-y-6">
-            <DetailList title="Responsibilities" items={job.responsibilities} />
-            <DetailList title="Requirements" items={job.requirements} />
-            {job.benefits.length > 0 && (
-              <div>
-                <p className="font-head text-sm font-bold">Benefits</p>
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {job.benefits.map((b) => (
-                    <li
-                      key={b}
-                      className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
-                    >
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
-        </Panel>
-      </div>
+        ) : (
+          <ApplicantsTable applicants={applicants} />
+        )}
+        <IdentityNotice className="mt-4" />
+      </Panel>
+
+      <Panel title="About the role">
+        <div
+          className="rich-text max-w-4xl text-sm text-muted-foreground"
+          dangerouslySetInnerHTML={{
+            __html: sanitizeRichText(job.description),
+          }}
+        />
+        <div className="mt-6 grid gap-6 border-t border-border pt-6 md:grid-cols-2 md:gap-10">
+          <DetailList title="Responsibilities" items={job.responsibilities} />
+          <DetailList title="Requirements" items={job.requirements} />
+        </div>
+        {job.benefits.length > 0 && (
+          <div className="mt-6 border-t border-border pt-6">
+            <p className="font-head text-sm font-bold">Benefits</p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {job.benefits.map((b) => (
+                <li
+                  key={b}
+                  className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
+                >
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }

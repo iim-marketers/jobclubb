@@ -37,7 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 
 export const adminTableFeatures = tableFeatures({
@@ -276,5 +276,5 @@ export function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
-export const verticalName = (slug: string) =>
-  VERTICALS.find((v) => v.slug === slug)?.name ?? slug;
+export const industryName = (slug: string) =>
+  INDUSTRIES.find((v) => v.slug === slug)?.name ?? slug;

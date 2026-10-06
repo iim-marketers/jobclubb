@@ -13,7 +13,7 @@ import {
   resumeToText,
   type ResumeContact,
 } from "@/lib/resume";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
@@ -23,7 +23,7 @@ export const maxDuration = 60;
 
 export default async function ResumePage() {
   const candidate = await requireMember(`${CANDIDATE_HOME}/resume`);
-  const vertical = VERTICALS.find((v) => v.slug === candidate.vertical);
+  const industry = INDUSTRIES.find((v) => v.slug === candidate.industry);
   const saved = await getSavedResume(candidate.id);
 
   const contact: ResumeContact = {
@@ -39,9 +39,9 @@ export default async function ResumePage() {
   const builder = (
     <ResumeBuilder
       key={saved?.generatedAt ?? "new"}
-      targetRole={saved?.targetRole ?? vertical?.roles[0] ?? ""}
+      targetRole={saved?.targetRole ?? industry?.roles[0] ?? ""}
       jobDescription={saved?.jobDescription ?? ""}
-      roleSuggestions={vertical?.roles ?? []}
+      roleSuggestions={industry?.roles ?? []}
       hasResume={!!saved}
     />
   );

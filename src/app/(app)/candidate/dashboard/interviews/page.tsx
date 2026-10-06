@@ -39,7 +39,7 @@ import {
   type Interview,
   type InterviewMode,
 } from "@/lib/candidate-activity";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
 
@@ -143,8 +143,8 @@ export default async function InterviewsPage() {
   const thisWeek = upcoming.filter(
     (i) => new Date(i.startsAt).getTime() - now.getTime() < 7 * DAY_MS,
   ).length;
-  const tips = TIPS[candidate.vertical] ?? DEFAULT_TIPS;
-  const sector = VERTICALS.find((v) => v.slug === candidate.vertical)?.name;
+  const tips = TIPS[candidate.industry] ?? DEFAULT_TIPS;
+  const sector = INDUSTRIES.find((v) => v.slug === candidate.industry)?.name;
 
   return (
     <div className="space-y-6">

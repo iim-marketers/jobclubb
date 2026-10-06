@@ -36,9 +36,9 @@ import {
   isStudentCode,
   validateCandidate,
 } from "@/lib/sign-up-validation";
-import { SOURCING_CHANNELS, VERTICALS } from "@/lib/taxonomy";
+import { SOURCING_CHANNELS, INDUSTRIES } from "@/lib/taxonomy";
 
-const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
 const SOURCE_OPTIONS = SOURCING_CHANNELS.map((c) => ({ value: c, label: c }));
 
 export function CandidateSignUp() {
@@ -58,7 +58,7 @@ export function CandidateSignUp() {
       validate: validateCandidate,
       action: registerCandidate,
     });
-  const [vertical, setVertical] = useState<string | null>("airlines");
+  const [industry, setIndustry] = useState<string | null>("airlines");
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
   const studentCode = isStudentCode(values.code ?? "");
@@ -80,8 +80,8 @@ export function CandidateSignUp() {
             firstName={values.firstName}
             lastName={values.lastName}
             city={values.city}
-            vertical={vertical}
-            filled={countFilled(values, vertical)}
+            industry={industry}
+            filled={countFilled(values, industry)}
           />
           <PanelPoints
             points={[
@@ -193,16 +193,16 @@ export function CandidateSignUp() {
               error={errors.pincode}
             />
             <SelectField
-              id="vertical"
-              label="Preferred sector"
-              options={SECTOR_OPTIONS}
-              value={vertical}
+              id="industry"
+              label="Preferred industry"
+              options={INDUSTRY_OPTIONS}
+              value={industry}
               onValueChange={(v) => {
-                setVertical(v);
-                clearError("vertical");
+                setIndustry(v);
+                clearError("industry");
               }}
               required
-              error={errors.vertical}
+              error={errors.industry}
               className="sm:col-span-2"
             />
           </div>
@@ -303,9 +303,9 @@ const PREVIEW_FIELDS = [
   "pincode",
 ];
 
-function countFilled(values: Record<string, string>, vertical: string | null) {
+function countFilled(values: Record<string, string>, industry: string | null) {
   const filled = PREVIEW_FIELDS.filter((f) => values[f]?.trim()).length;
-  return (filled + (vertical ? 1 : 0)) / (PREVIEW_FIELDS.length + 1);
+  return (filled + (industry ? 1 : 0)) / (PREVIEW_FIELDS.length + 1);
 }
 
 // SOP §4.2: employers only ever see skills and experience — this card shows the
@@ -314,17 +314,17 @@ function ProfilePreview({
   firstName,
   lastName,
   city,
-  vertical,
+  industry,
   filled,
 }: {
   firstName?: string;
   lastName?: string;
   city?: string;
-  vertical: string | null;
+  industry: string | null;
   filled: number;
 }) {
   const name = [firstName, lastName].filter((s) => s?.trim()).join(" ");
-  const sector = VERTICALS.find((v) => v.slug === vertical);
+  const sector = INDUSTRIES.find((v) => v.slug === industry);
 
   return (
     <PanelCard
@@ -355,7 +355,7 @@ function ProfilePreview({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Chip>{sector?.name ?? "Your sector"}</Chip>
+        <Chip>{sector?.name ?? "Your industry"}</Chip>
         <Chip>
           <MapPin className="size-3" />
           {city?.trim() || "Your city"}

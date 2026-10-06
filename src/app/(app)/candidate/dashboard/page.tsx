@@ -29,7 +29,7 @@ import {
   type Interview,
 } from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
 import type { Resume } from "@/lib/resume";
@@ -57,8 +57,8 @@ function profileChecklist(resume: Resume | undefined, hasPhoto: boolean) {
 
 export default async function CandidateDashboard() {
   const candidate = await requireMember(CANDIDATE_HOME);
-  const vertical = VERTICALS.find((v) => v.slug === candidate.vertical);
-  const sector = vertical?.name;
+  const industry = INDUSTRIES.find((v) => v.slug === candidate.industry);
+  const sector = industry?.name;
   const now = new Date();
 
   const [photoUrl, saved] = await Promise.all([
@@ -156,7 +156,7 @@ export default async function CandidateDashboard() {
           photoUrl={photoUrl}
           city={candidate.city}
           sector={sector}
-          roles={vertical?.roles.slice(0, 4) ?? []}
+          roles={industry?.roles.slice(0, 4) ?? []}
           strength={strength}
           nextStep={checklist.find((c) => !c.done)?.label}
           nextInterview={upcoming[0]}

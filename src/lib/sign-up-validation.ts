@@ -3,7 +3,7 @@ import {
   assessCompanyVerification,
   getWebsiteDomain,
 } from "@/lib/company-verification";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 
 export type FieldErrors = Partial<Record<string, string>>;
 
@@ -57,7 +57,7 @@ export const CANDIDATE_STEPS: SignUpStep[] = [
   {
     title: "Your preferences",
     description: "We use these to match you with openings near you.",
-    fields: ["city", "pincode", "vertical"],
+    fields: ["city", "pincode", "industry"],
   },
   {
     title: "Finish up",
@@ -84,7 +84,7 @@ export function validateCandidate(formData: FormData): FieldErrors {
     confirmPassword: String(formData.get("confirmPassword") ?? ""),
     city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
-    vertical: readText(formData, "vertical"),
+    industry: readText(formData, "industry"),
     source: readText(formData, "source"),
     code: readText(formData, "code").toUpperCase(),
     acceptTerms: readText(formData, "acceptTerms"),
@@ -102,7 +102,7 @@ export function validateCandidate(formData: FormData): FieldErrors {
   else if (v.password !== v.confirmPassword) errors.confirmPassword = "Passwords don't match.";
   if (!v.city) errors.city = "Enter your city.";
   if (!PINCODE_PATTERN.test(v.pincode)) errors.pincode = "Enter a 6-digit pincode.";
-  if (!VERTICALS.some((s) => s.slug === v.vertical)) errors.vertical = "Choose a sector.";
+  if (!INDUSTRIES.some((s) => s.slug === v.industry)) errors.industry = "Choose an industry.";
   if (!v.source) errors.source = "Tell us how you heard about JobClubb.";
   if (v.code && !CODE_PATTERN.test(v.code)) errors.code = "Codes look like JC-STU-7F2A.";
   if (isStudentCode(v.code) && !studentId) errors.studentId = "Upload your student ID to use a student code.";
@@ -120,7 +120,7 @@ export function validateCandidateProfile(formData: FormData) {
     phone: readText(formData, "phone"),
     city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
-    vertical: readText(formData, "vertical"),
+    industry: readText(formData, "industry"),
   };
   const errors: FieldErrors = {};
 
@@ -132,7 +132,7 @@ export function validateCandidateProfile(formData: FormData) {
   if (!values.city) errors.city = "Enter your city.";
   else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
   if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
-  if (!VERTICALS.some((s) => s.slug === values.vertical)) errors.vertical = "Choose a sector.";
+  if (!INDUSTRIES.some((s) => s.slug === values.industry)) errors.industry = "Choose an industry.";
 
   return { values, errors };
 }
@@ -150,7 +150,7 @@ export const COMPANY_STEPS: SignUpStep[] = [
   {
     title: "Property",
     description: "Each property registers on its own — a group with several hotels or offices creates one account per location.",
-    fields: ["companyName", "propertyName", "sector", "size", "website", "gstin", "city", "pincode"],
+    fields: ["companyName", "propertyName", "industry", "size", "website", "gstin", "city", "pincode"],
   },
   {
     title: "Account",
@@ -168,7 +168,7 @@ export function validateCompany(formData: FormData): FieldErrors {
   const v = {
     companyName: readText(formData, "companyName"),
     propertyName: readText(formData, "propertyName"),
-    sector: readText(formData, "sector"),
+    industry: readText(formData, "industry"),
     size: readText(formData, "size"),
     website: readText(formData, "website"),
     gstin: readText(formData, "gstin").toUpperCase(),
@@ -188,7 +188,7 @@ export function validateCompany(formData: FormData): FieldErrors {
   if (!v.companyName) errors.companyName = "Enter your company's registered name.";
   else if (v.companyName.length > 120) errors.companyName = "Use 120 characters or fewer.";
   if (v.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
-  if (!VERTICALS.some((s) => s.slug === v.sector)) errors.sector = "Choose a sector.";
+  if (!INDUSTRIES.some((s) => s.slug === v.industry)) errors.industry = "Choose an industry.";
   if (!COMPANY_SIZES.some((s) => s.value === v.size)) errors.size = "Choose your company size.";
   if (v.website.length > 255 || (v.website && !getWebsiteDomain(v.website))) errors.website = "Enter a valid website, like taj.com.";
   if (v.gstin && !GSTIN_PATTERN.test(v.gstin)) errors.gstin = "GSTIN should be 15 characters, like 19AABCT1234F1Z5.";
@@ -221,14 +221,14 @@ export function validateCompany(formData: FormData): FieldErrors {
 export function validateCompanyDetails(formData: FormData) {
   const values = {
     propertyName: readText(formData, "propertyName"),
-    sector: readText(formData, "sector"),
+    industry: readText(formData, "industry"),
     city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
   };
   const errors: FieldErrors = {};
 
   if (values.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
-  if (!VERTICALS.some((s) => s.slug === values.sector)) errors.sector = "Choose a sector.";
+  if (!INDUSTRIES.some((s) => s.slug === values.industry)) errors.industry = "Choose an industry.";
   if (!values.city) errors.city = "Enter your city.";
   else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
   if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";

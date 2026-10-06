@@ -15,7 +15,7 @@ export const getCurrentCompany = cache(async () => {
   const { data: company } = await supabase
     .from("companies")
     .select(
-      "id, company_name, property_name, sector, size, website, gstin, city, pincode, contact_name, designation, email, phone, verification_route, status, logo_path, created_at",
+      "id, company_name, property_name, industry, size, website, gstin, city, pincode, contact_name, designation, email, phone, verification_route, status, logo_path, created_at",
     )
     .eq("id", userId)
     .maybeSingle();

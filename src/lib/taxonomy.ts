@@ -1,13 +1,13 @@
 // Taxonomy per JobClubb SOP §4.1 and "Sectors & Roles We Cover".
 
-export type Vertical = {
+export type Industry = {
   slug: string;
   name: string;
   sector: "Airlines" | "Hospitality" | "Travel & Tourism";
   roles: string[];
 };
 
-export const VERTICALS: Vertical[] = [
+export const INDUSTRIES: Industry[] = [
   {
     slug: "airlines",
     name: "Airlines",

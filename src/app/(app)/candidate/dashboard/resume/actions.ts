@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { keywordScore } from "@/lib/resume";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 import { requireMember } from "@/server/auth/current-candidate";
 import {
   deleteResume,
@@ -43,7 +43,7 @@ export async function buildAtsResume(
   formData: FormData,
 ): Promise<ResumeActionState> {
   const candidate = await requireMember(RESUME_PATH);
-  const sector = VERTICALS.find((v) => v.slug === candidate.vertical)?.name;
+  const sector = INDUSTRIES.find((v) => v.slug === candidate.industry)?.name;
 
   const targetRole = text(formData, "targetRole", 120);
   const jobDescription = text(formData, "jobDescription", 12_000);

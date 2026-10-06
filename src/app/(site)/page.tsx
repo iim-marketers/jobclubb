@@ -337,7 +337,7 @@ function FeaturedOpenings({ locked }: { locked: boolean }) {
 function MemberJobsBanner() {
   const sectors = Object.entries(
     JOBS.reduce<Record<string, number>>((counts, job) => {
-      counts[job.vertical] = (counts[job.vertical] ?? 0) + 1;
+      counts[job.industry] = (counts[job.industry] ?? 0) + 1;
       return counts;
     }, {}),
   ).sort(([, a], [, b]) => b - a);

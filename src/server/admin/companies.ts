@@ -14,7 +14,7 @@ export type AdminCompany = {
   id: string;
   companyName: string;
   propertyName: string | null;
-  sector: string;
+  industry: string;
   size: string;
   website: string | null;
   gstin: string | null;
@@ -38,7 +38,7 @@ export async function listCompanies(): Promise<AdminCompany[]> {
   const { data, error } = await admin
     .from("companies")
     .select(
-      "id, company_name, property_name, sector, size, website, gstin, city, pincode, contact_name, designation, email, phone, verification_route, status, email_verified_at, proof_path, created_at",
+      "id, company_name, property_name, industry, size, website, gstin, city, pincode, contact_name, designation, email, phone, verification_route, status, email_verified_at, proof_path, created_at",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -56,7 +56,7 @@ export async function listCompanies(): Promise<AdminCompany[]> {
     id: c.id,
     companyName: c.company_name,
     propertyName: c.property_name,
-    sector: c.sector,
+    industry: c.industry,
     size: c.size,
     website: c.website,
     gstin: c.gstin,

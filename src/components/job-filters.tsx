@@ -28,7 +28,7 @@ import {
   type JobQuery,
   type JobSort,
 } from "@/lib/jobs-search";
-import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
+import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 
 type ListKey = "sectors" | "jobTypes" | "workModes";
@@ -43,7 +43,7 @@ const GROUPS: {
   {
     key: "sectors",
     title: "Sector",
-    options: VERTICALS.map((v) => v.name),
+    options: INDUSTRIES.map((v) => v.name),
     layout: "list",
   },
   { key: "jobTypes", title: "Job type", options: JOB_TYPES, layout: "grid-2" },

@@ -4,7 +4,7 @@ import { Building2 } from "lucide-react";
 
 import { PageHeader, Section } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 import { getCompanySession } from "@/server/auth/current-company";
 import { HIRE_BRAND_SECTORS, getHireBrands } from "@/server/hire-brands/directory";
 
@@ -137,7 +137,7 @@ export default async function CompaniesPage() {
               Sectors we cover
             </h3>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-              {VERTICALS.map((v) => (
+              {INDUSTRIES.map((v) => (
                 <li key={v.slug} className="text-sm">
                   <span className="font-head font-semibold">{v.name}</span>
                   <span className="block text-xs text-muted-foreground">

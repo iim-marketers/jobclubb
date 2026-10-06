@@ -14,9 +14,12 @@ import {
 
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
-import { JOBS, getJob, type JobListing } from "@/lib/jobs-data";
+import { JOBS, type JobListing } from "@/lib/jobs-data";
+import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
+import { getJob } from "@/server/jobs/listings";
+import { sanitizeRichText } from "@/server/rich-text";
 
 const BRAND_BUTTON =
   "bg-brand font-head text-brand-foreground hover:bg-brand-dark";
@@ -29,7 +32,7 @@ export default async function JobDetailPage({
   params,
 }: PageProps<"/jobs/[slug]">) {
   const { slug } = await params;
-  const job = getJob(slug);
+  const job = await getJob(slug);
   if (!job) notFound();
 
   const access = await getJobAccess();
@@ -142,7 +145,7 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
             )}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {job.company} · {job.vertical} · Posted {job.postedAgo}
+            {job.company} · {job.industry} · Posted {job.postedAgo}
           </p>
         </div>
       </div>
@@ -165,9 +168,12 @@ function JobBody({ job }: { job: JobListing }) {
   return (
     <div className="divide-y divide-border rounded-2xl border border-border bg-card">
       <Section title="About the role">
-        <p className="leading-7 text-sm text-muted-foreground">
-          {job.description}
-        </p>
+        <div
+          className="rich-text text-sm leading-7 text-muted-foreground"
+          dangerouslySetInnerHTML={{
+            __html: sanitizeRichText(toRichTextHtml(job.description)),
+          }}
+        />
       </Section>
       <Section title="Responsibilities">
         <CheckList items={job.responsibilities} />
