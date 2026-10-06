@@ -43,8 +43,30 @@ export async function proxy(request: NextRequest) {
     return redirect;
   }
 
+  const role = data?.claims.user_metadata?.role;
+  const home =
+    role === "company" && isCandidateArea(pathname)
+      ? "/company/dashboard"
+      : role === "candidate" && isCompanyArea(pathname)
+        ? "/candidate/dashboard"
+        : null;
+  if (home) {
+    const url = request.nextUrl.clone();
+    url.pathname = home;
+    url.search = "";
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  }
+
   return response;
 }
+
+const under = (pathname: string, prefix: string) =>
+  pathname === prefix || pathname.startsWith(`${prefix}/`);
+const isCandidateArea = (pathname: string) =>
+  under(pathname, "/candidate") || under(pathname, "/onboarding");
+const isCompanyArea = (pathname: string) => under(pathname, "/company");
 
 export const config = {
   matcher: [

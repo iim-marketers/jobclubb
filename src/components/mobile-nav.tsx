@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import { CompanyAvatar } from "@/components/company-avatar";
+import { COMPANY_SIGN_OUT_DESCRIPTION } from "@/components/company/company-sidebar";
+import { COMPANY_HOME } from "@/components/company/nav";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,17 +41,20 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/about": Info,
 };
 
-type SessionCandidate = { firstName: string; lastName: string; email: string };
+export type SessionAccount =
+  | { kind: "candidate"; firstName: string; lastName: string; email: string }
+  | { kind: "company"; name: string; email: string; logoUrl: string | null };
 
 export function MobileNav({
   links,
-  candidate,
+  account,
   alwaysVisible = false,
 }: {
   links: { label: string; href: string }[];
-  candidate: SessionCandidate | null;
+  account: SessionAccount | null;
   alwaysVisible?: boolean;
 }) {
+  const home = account?.kind === "company" ? COMPANY_HOME : CANDIDATE_HOME;
   return (
     <Sheet>
       <SheetTrigger
@@ -101,7 +107,7 @@ export function MobileNav({
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {candidate && <AccountSection candidate={candidate} />}
+          {account && <AccountSection account={account} home={home} />}
 
           <p className="px-2 pb-2 font-head text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
             Explore
@@ -160,7 +166,7 @@ export function MobileNav({
         </nav>
 
         <div className="border-t border-border px-5 py-4">
-          {candidate ? (
+          {account ? (
             <div className="flex gap-2">
               <SheetClose
                 nativeButton={false}
@@ -169,7 +175,7 @@ export function MobileNav({
                     variant="outline"
                     className="flex-1 font-head"
                     nativeButton={false}
-                    render={<Link href={`${CANDIDATE_HOME}/settings`} />}
+                    render={<Link href={`${home}/settings`} />}
                   >
                     <Settings className="size-4" />
                     Settings
@@ -177,6 +183,11 @@ export function MobileNav({
                 }
               />
               <SignOutDialog
+                description={
+                  account.kind === "company"
+                    ? COMPANY_SIGN_OUT_DESCRIPTION
+                    : undefined
+                }
                 render={
                   <Button variant="destructive" className="flex-1 font-head" />
                 }
@@ -223,20 +234,39 @@ export function MobileNav({
   );
 }
 
-function AccountSection({ candidate }: { candidate: SessionCandidate }) {
+function AccountSection({
+  account,
+  home,
+}: {
+  account: SessionAccount;
+  home: string;
+}) {
+  const name =
+    account.kind === "company"
+      ? account.name
+      : `${account.firstName} ${account.lastName}`;
+
   return (
     <div className="mb-6">
       <div className="jc-auth-panel relative isolate overflow-hidden rounded-2xl p-4 text-white">
         <div className="flex items-center gap-3">
-          <span className="flex size-11 flex-none items-center justify-center rounded-full bg-white/15 font-head text-sm font-extrabold ring-2 ring-white/20">
-            {candidate.firstName[0]}
-            {candidate.lastName[0]}
-          </span>
+          {account.kind === "company" ? (
+            <CompanyAvatar
+              name={account.name}
+              logoUrl={account.logoUrl}
+              className="size-11 text-sm ring-2 ring-white/20"
+            />
+          ) : (
+            <span className="flex size-11 flex-none items-center justify-center rounded-full bg-white/15 font-head text-sm font-extrabold ring-2 ring-white/20">
+              {account.firstName[0]}
+              {account.lastName[0]}
+            </span>
+          )}
           <div className="min-w-0">
             <p className="truncate font-head font-bold tracking-tight">
-              {candidate.firstName} {candidate.lastName}
+              {name}
             </p>
-            <p className="truncate text-xs text-white/70">{candidate.email}</p>
+            <p className="truncate text-xs text-white/70">{account.email}</p>
           </div>
         </div>
         <SheetClose
@@ -246,7 +276,7 @@ function AccountSection({ candidate }: { candidate: SessionCandidate }) {
               size="sm"
               className="mt-4 w-full bg-white font-head text-brand hover:bg-white/90"
               nativeButton={false}
-              render={<Link href={CANDIDATE_HOME} />}
+              render={<Link href={home} />}
             >
               <LayoutDashboard className="size-4" />
               Go to dashboard
