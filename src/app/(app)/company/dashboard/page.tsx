@@ -57,7 +57,6 @@ export default async function CompanyDashboard() {
   const applicants = APPLICANTS.filter((a) => ownJobs.has(a.jobId));
   const active = applicants.filter((a) => a.status === "active");
   const live = jobs.filter((j) => j.status === "live");
-  const inReview = jobs.filter((j) => j.status === "in_review").length;
   const upcoming = upcomingCompanyInterviews(now);
   const weekAhead = upcoming.filter(
     (i) => +new Date(i.startsAt) - +now < 7 * 86_400_000,
@@ -68,7 +67,6 @@ export default async function CompanyDashboard() {
   const checklist = [
     { label: "Get your company verified", done: true },
     { label: "Post your first job", done: jobs.length > 0 },
-    { label: "Go live on the job board", done: jobs.some((j) => j.approvedAt) },
     { label: "Receive your first applicant", done: applicants.length > 0 },
     { label: "Schedule an interview", done: upcoming.length > 0 || active.some((a) => a.stage >= 3) },
   ];
@@ -77,7 +75,7 @@ export default async function CompanyDashboard() {
     {
       label: "Live postings",
       value: live.length,
-      note: inReview ? `${inReview} in review` : "Visible to members",
+      note: "Visible to members",
       icon: Radio,
       tone: "good" as const,
     },
@@ -403,7 +401,7 @@ function RecentPostings({
           </Button>
         }
       >
-        Postings are reviewed by our team, then shown to members matched on
+        Postings go live right away and are shown to members matched on
         sector and location.
       </EmptyState>
     );

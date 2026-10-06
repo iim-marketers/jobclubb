@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lock, SearchX } from "lucide-react";
+import { BriefcaseBusiness, Lock, SearchX } from "lucide-react";
 
 import { JobCard } from "@/components/job-card";
 import {
@@ -9,9 +9,9 @@ import {
   JobSortSelect,
 } from "@/components/job-filters";
 import { Button } from "@/components/ui/button";
-import { JOBS } from "@/lib/jobs-data";
 import { facetCounts, parseJobQuery, searchJobs } from "@/lib/jobs-search";
 import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
+import { listJobs } from "@/server/jobs/listings";
 
 export const metadata = {
   title: "Jobs — JobClubb",
@@ -20,11 +20,15 @@ export const metadata = {
 };
 
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
-  const access = await getJobAccess();
-  const query = parseJobQuery(await searchParams, access.member);
-  const jobs = searchJobs(JOBS, query, access.member);
+  const [access, params, allJobs] = await Promise.all([
+    getJobAccess(),
+    searchParams,
+    listJobs(),
+  ]);
+  const query = parseJobQuery(params, access.member);
+  const jobs = searchJobs(allJobs, query, access.member);
   const counts = access.member
-    ? facetCounts(JOBS, query, access.member)
+    ? facetCounts(allJobs, query, access.member)
     : undefined;
   const unlock = access.signedIn
     ? { href: CHECKOUT_PATH, label: "Complete payment" }
@@ -48,9 +52,6 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
                 <h1 className="font-head text-xl font-extrabold tracking-tight sm:text-2xl">
                   Jobs
                 </h1>
-                <p className="truncate text-sm text-muted-foreground">
-                  {jobs.length} {jobs.length === 1 ? "opening" : "openings"}
-                </p>
               </div>
               <div className="flex flex-none items-center gap-2">
                 <JobFiltersSheet
@@ -64,7 +65,9 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
             <ActiveFilters query={query} />
           </div>
 
-          {jobs.length === 0 ? (
+          {allJobs.length === 0 ? (
+            <NoOpenings />
+          ) : jobs.length === 0 ? (
             <EmptyState />
           ) : (
             <ul className="mt-5 grid gap-4 md:grid-cols-2">
@@ -76,7 +79,7 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
             </ul>
           )}
 
-          {!access.member && (
+          {!access.member && allJobs.length > 0 && (
             <div className="mt-6 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-6">
               <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-brand/10">
                 <Lock className="size-4 text-brand" />
@@ -102,6 +105,20 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
         </div>
       </div>
     </section>
+  );
+}
+
+function NoOpenings() {
+  return (
+    <div className="mt-5 rounded-2xl border border-dashed border-border bg-card px-6 py-14 text-center">
+      <BriefcaseBusiness className="mx-auto size-6 text-brand" />
+      <p className="mt-3 font-head text-lg font-bold tracking-tight">
+        No openings right now
+      </p>
+      <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
+        Verified employers post new roles every week. Check back soon.
+      </p>
+    </div>
   );
 }
 

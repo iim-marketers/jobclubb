@@ -3,6 +3,7 @@ import {
   ArrowRight,
   BarChart3,
   Briefcase,
+  BriefcaseBusiness,
   Check,
   CheckCircle2,
   Lock,
@@ -12,32 +13,28 @@ import {
   Star,
   Users,
 } from "lucide-react";
-
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RecruiterBoard } from "@/components/recruiter-board";
 import { cn } from "@/lib/utils";
-import { JOBS } from "@/lib/jobs-data";
+import type { JobListing } from "@/lib/jobs-data";
 import { PLAN_DETAILS } from "@/lib/membership";
 import {
   CHECKOUT_PATH,
   getMembershipView,
   type MembershipView,
 } from "@/server/auth/current-candidate";
+import { listJobs } from "@/server/jobs/listings";
 import {
   ABOUT_STATS,
-  CATEGORIES,
-  FEATURED_JOBS,
   FRANCHISE_STEPS,
-  FRESH_JOBS,
   HERO_STATS,
   HOW_IT_WORKS,
   JOB_FILTERS,
   MEMBERSHIP_FEATURES,
   MEMBERSHIP_POINTS,
   RECRUITER_LOGOS,
-  type Job,
 } from "@/lib/home-data";
 
 const CAROUSEL =
@@ -53,18 +50,17 @@ const STAT_ICONS = {
 } as const;
 
 export default async function Home() {
-  const view = await getMembershipView();
+  const [view, jobs] = await Promise.all([getMembershipView(), listJobs()]);
   const member = view.kind === "member";
 
   return (
     <>
-      <Hero locked={!member} />
+      <Hero jobs={jobs.slice(0, 3)} locked={!member} />
       <StatsBand />
       <EmployerShowcase />
-      <FeaturedOpenings locked={!member} />
+      <FeaturedOpenings jobs={jobs} locked={!member} />
       <HowItWorks />
       {view.kind !== "member" && <Membership view={view} />}
-      {/* <Categories /> */}
       <Franchise />
       <About />
       <ClosingCta view={view} />
@@ -72,15 +68,14 @@ export default async function Home() {
   );
 }
 
-function Hero({ locked }: { locked: boolean }) {
+const FRESH_SLOTS = 3;
+
+function Hero({ jobs, locked }: { jobs: JobListing[]; locked: boolean }) {
   return (
     <section className="bg-linear-to-b from-muted/60 to-background px-4 pt-8 pb-12 md:py-12 sm:px-6 lg:py-16">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="min-w-0">
           <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">
-            {/* <span className="rounded-full bg-good/15 px-2.5 py-0.5 font-head text-xs font-bold text-good">
-              NEW
-            </span> */}
             3 guaranteed interviews for members
           </span>
 
@@ -113,18 +108,6 @@ function Hero({ locked }: { locked: boolean }) {
               Search Jobs
             </Button>
           </form>
-
-          {/* <ul className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
-            {["Verified employers", "3 guaranteed interviews"].map((item) => (
-              <li
-                key={item}
-                className="flex items-center gap-2 text-sm text-muted-foreground"
-              >
-                <Check className="size-4 text-brand-accent" />
-                {item}
-              </li>
-            ))}
-          </ul> */}
         </div>
 
         <div className="min-w-0 rounded-3xl border border-border bg-card p-6 shadow-lg">
@@ -139,10 +122,10 @@ function Hero({ locked }: { locked: boolean }) {
           </div>
 
           <ul className="mt-4 space-y-3">
-            {FRESH_JOBS.map((job, i) => (
+            {jobs.slice(0, FRESH_SLOTS).map((job) => (
               <li
-                key={`${job.role}-${i}`}
-                className="flex items-center gap-3 rounded-2xl border border-border p-3 transition-colors hover:border-brand/40"
+                key={job.slug}
+                className="relative flex items-center gap-3 rounded-2xl border border-border p-3 transition-colors hover:border-brand/40"
               >
                 {locked ? (
                   <span
@@ -153,12 +136,18 @@ function Hero({ locked }: { locked: boolean }) {
                     )}
                   />
                 ) : (
-                  <CompanyAvatar name={job.company} />
+                  <CompanyAvatar
+                    name={job.company}
+                    logoUrl={job.companyLogoUrl}
+                  />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-head text-sm font-bold">
-                    {job.role}
-                  </p>
+                  <Link
+                    href={`/jobs/${job.slug}`}
+                    className="block truncate font-head text-sm font-bold after:absolute after:inset-0 after:rounded-2xl"
+                  >
+                    {job.title}
+                  </Link>
                   <p
                     aria-hidden={locked}
                     className={cn(
@@ -178,15 +167,42 @@ function Hero({ locked }: { locked: boolean }) {
                     locked && HIDDEN,
                   )}
                 >
-                  {locked ? "₹0L" : job.salary}
+                  {locked ? "₹0L" : maxSalary(job)}
                 </span>
               </li>
             ))}
+            {Array.from(
+              { length: Math.max(0, FRESH_SLOTS - jobs.length) },
+              (_, i) => (
+                <li
+                  key={`soon-${i}`}
+                  className="flex items-center gap-3 rounded-2xl border border-dashed border-border p-3"
+                >
+                  <span className="flex size-10 flex-none items-center justify-center rounded-full bg-muted">
+                    <BriefcaseBusiness className="size-4 text-muted-foreground" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-head text-sm font-bold text-muted-foreground">
+                      New role coming soon
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      Verified employers are hiring
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-muted px-2.5 py-1 font-head text-[11px] font-bold text-muted-foreground">
+                    Soon
+                  </span>
+                </li>
+              ),
+            )}
           </ul>
 
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            and many more inside
-          </p>
+          <Link
+            href="/jobs"
+            className="mt-4 block text-center text-sm text-muted-foreground hover:text-brand"
+          >
+            {jobs.length > 0 ? "and many more inside" : "Browse the job board"}
+          </Link>
         </div>
       </div>
     </section>
@@ -262,7 +278,23 @@ function EmployerShowcase() {
   );
 }
 
-function FeaturedOpenings({ locked }: { locked: boolean }) {
+function maxSalary(job: JobListing) {
+  const top = job.salaryRange.split(" – ").pop() ?? job.salaryRange;
+  return top.startsWith("₹") ? top : `₹${top}`;
+}
+
+function FeaturedOpenings({
+  jobs,
+  locked,
+}: {
+  jobs: JobListing[];
+  locked: boolean;
+}) {
+  const featured = jobs.slice(0, 6);
+  const ghosts = jobs.length
+    ? Array.from({ length: 4 }, (_, i) => jobs[i % jobs.length])
+    : [];
+
   return (
     <section className="px-4 py-12 md:py-16  sm:px-6">
       <div className="mx-auto max-w-6xl">
@@ -284,25 +316,38 @@ function FeaturedOpenings({ locked }: { locked: boolean }) {
           ))}
         </div>
 
-        <div className="jc-hscroll -mx-4 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:snap-none lg:scroll-px-0 lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:pb-0">
-          {FEATURED_JOBS.map((job, i) => (
-            <JobCard
-              key={`${job.role}-${i}`}
-              job={job}
-              locked={locked}
-              className="w-[84%] flex-none snap-start sm:w-[60%] md:w-[46%] lg:w-auto"
-            />
-          ))}
-        </div>
+        {featured.length === 0 ? (
+          <div className="mt-6 rounded-3xl border border-dashed border-border bg-card px-6 py-14 text-center">
+            <BriefcaseBusiness className="mx-auto size-6 text-brand" />
+            <h3 className="mt-3 font-head text-lg font-bold tracking-tight">
+              No openings right now
+            </h3>
+            <p className="mx-auto mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
+              Verified employers post new roles every week. Check back soon.
+            </p>
+          </div>
+        ) : (
+          <div className="jc-hscroll -mx-4 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-1 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:grid lg:snap-none lg:scroll-px-0 lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:pb-0">
+            {featured.map((job) => (
+              <JobCard
+                key={job.slug}
+                job={job}
+                locked={locked}
+                className="w-[84%] flex-none snap-start sm:w-[60%] md:w-[46%] lg:w-auto"
+              />
+            ))}
+          </div>
+        )}
 
-        {locked ? (
+        {featured.length === 0 ? null : locked ? (
           <div className="relative mt-4 overflow-hidden rounded-3xl border border-border bg-card">
             <div
               aria-hidden
+              inert
               className="grid max-h-96 gap-4 overflow-hidden p-5 blur-[6px] select-none lg:max-h-none lg:grid-cols-2"
             >
-              {FEATURED_JOBS.slice(0, 4).map((job) => (
-                <JobCard key={`ghost-${job.role}`} job={job} locked />
+              {ghosts.map((job, i) => (
+                <JobCard key={`ghost-${i}`} job={job} locked />
               ))}
             </div>
 
@@ -327,23 +372,23 @@ function FeaturedOpenings({ locked }: { locked: boolean }) {
             </div>
           </div>
         ) : (
-          <MemberJobsBanner />
+          <MemberJobsBanner jobs={jobs} />
         )}
       </div>
     </section>
   );
 }
 
-function MemberJobsBanner() {
+function MemberJobsBanner({ jobs }: { jobs: JobListing[] }) {
   const sectors = Object.entries(
-    JOBS.reduce<Record<string, number>>((counts, job) => {
+    jobs.reduce<Record<string, number>>((counts, job) => {
       counts[job.industry] = (counts[job.industry] ?? 0) + 1;
       return counts;
     }, {}),
   ).sort(([, a], [, b]) => b - a);
 
   return (
-    <div className="jc-auth-panel relative isolate mt-4 overflow-hidden rounded-3xl p-6 text-white sm:p-8 lg:p-10">
+    <div className="jc-auth-panel relative isolate mt-4 overflow-hidden rounded-3xl p-5 text-white sm:p-8">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 font-head text-xs font-bold text-white">
@@ -351,7 +396,8 @@ function MemberJobsBanner() {
             Full access unlocked
           </span>
           <h3 className="mt-4 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {JOBS.length} live openings waiting for you
+            {jobs.length} live {jobs.length === 1 ? "opening" : "openings"}{" "}
+            waiting for you
           </h3>
           <p className="mt-2 max-w-md leading-7 text-white/75">
             See every detail, apply in one click and use your guaranteed
@@ -381,7 +427,7 @@ function MemberJobsBanner() {
           {sectors.map(([sector, count]) => (
             <li key={sector}>
               <Link
-                href="/jobs"
+                href={`/jobs?sector=${encodeURIComponent(sector)}`}
                 className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-white/12 bg-white/8 p-4 transition-colors hover:border-white/30 hover:bg-white/14"
               >
                 <span className="font-head text-sm font-semibold leading-5">
@@ -404,12 +450,12 @@ function MemberJobsBanner() {
 // so the real company, location and salary never reach the page.
 const HIDDEN = "blur-[5px] select-none";
 
-const PLACEHOLDER: Omit<Job, "role"> = {
+const PLACEHOLDER = {
   company: "Company name",
   location: "City",
-  type: "job type",
-  category: "Category",
-  salary: "₹0 LPA – 0 LPA",
+  jobType: "Job type",
+  industry: "Category",
+  salaryRange: "₹0 LPA – 0 LPA",
   postedAgo: "Recently",
 };
 
@@ -418,17 +464,17 @@ function JobCard({
   locked,
   className,
 }: {
-  job: Job;
+  job: JobListing;
   locked: boolean;
   className?: string;
 }) {
-  const shown = locked ? { ...PLACEHOLDER, role: job.role } : job;
+  const shown = locked ? PLACEHOLDER : job;
   const hidden = locked ? HIDDEN : undefined;
 
   return (
     <article
       className={cn(
-        "group min-w-0 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md",
+        "group relative min-w-0 rounded-2xl border border-border bg-card p-5 transition-shadow hover:shadow-md",
         className,
       )}
     >
@@ -439,11 +485,16 @@ function JobCard({
             className={cn("size-10 flex-none rounded-full bg-muted", HIDDEN)}
           />
         ) : (
-          <CompanyAvatar name={job.company} />
+          <CompanyAvatar name={job.company} logoUrl={job.companyLogoUrl} />
         )}
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-head font-bold tracking-tight transition-colors group-hover:text-brand">
-            {shown.role}
+            <Link
+              href={`/jobs/${job.slug}`}
+              className="after:absolute after:inset-0 after:rounded-2xl"
+            >
+              {job.title}
+            </Link>
           </h3>
           <p
             aria-hidden={locked}
@@ -464,8 +515,8 @@ function JobCard({
         className={cn("mt-4 flex flex-wrap gap-2", hidden)}
       >
         <MetaPill icon={MapPin}>{shown.location}</MetaPill>
-        <MetaPill icon={Briefcase}>{shown.type}</MetaPill>
-        <MetaPill>{shown.category}</MetaPill>
+        <MetaPill icon={Briefcase}>{shown.jobType}</MetaPill>
+        <MetaPill>{shown.industry}</MetaPill>
       </ul>
 
       <div
@@ -473,10 +524,10 @@ function JobCard({
         className="mt-4 -mx-5 px-5 flex items-center justify-between border-t border-border pt-4"
       >
         <span className={cn("font-head text-sm font-bold text-brand", hidden)}>
-          {shown.salary}
+          {shown.salaryRange}
         </span>
         <span className={cn("text-xs text-muted-foreground", hidden)}>
-          {shown.postedAgo}
+          Posted {shown.postedAgo.toLowerCase()}
         </span>
       </div>
     </article>
@@ -624,42 +675,6 @@ function Membership({
           <p className="mt-3 text-center text-xs text-muted-foreground">
             {card.note}
           </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Categories() {
-  return (
-    <section className="bg-card px-4 py-12 md:py-16 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <SectionEyebrow>Explore</SectionEyebrow>
-        <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Discover jobs across popular roles
-        </h2>
-
-        <div className={cn(CAROUSEL, "mt-8 sm:grid-cols-2 lg:grid-cols-3")}>
-          {CATEGORIES.map((category) => (
-            <Link
-              key={category.name}
-              href={`/jobs?category=${encodeURIComponent(category.name)}`}
-              className={cn(
-                CAROUSEL_ITEM,
-                "group flex items-center justify-between gap-3 rounded-2xl border border-border bg-background p-5 transition-colors hover:border-brand",
-              )}
-            >
-              <span>
-                <span className="block font-head font-bold tracking-tight transition-colors group-hover:text-brand">
-                  {category.name}
-                </span>
-                <span className="mt-0.5 block text-sm text-muted-foreground">
-                  {category.count} open roles
-                </span>
-              </span>
-              <ArrowRight className="size-4 flex-none text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-brand" />
-            </Link>
-          ))}
         </div>
       </div>
     </section>

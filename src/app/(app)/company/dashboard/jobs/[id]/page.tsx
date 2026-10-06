@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
-  CircleAlert,
   CircleCheck,
   MapPin,
   Pencil,
@@ -33,13 +32,9 @@ import { getCompanyJob } from "@/server/companies/jobs";
 import { sanitizeRichText } from "@/server/rich-text";
 
 const STATUS_NOTES: Record<JobStatus, string> = {
-  in_review:
-    "Our team is reviewing this posting. It goes live to members once approved, and you'll see the status change here.",
   live: "This posting is live on the job board and accepting applications.",
   closed:
     "This posting is closed and no longer accepts applications. Reopen it to start hiring again.",
-  rejected:
-    "This posting wasn't approved. Edit it to fix the details and it goes back for review, or contact us for help.",
 };
 
 export async function generateMetadata({
@@ -72,16 +67,15 @@ export default async function JobDetailPage({
         <ArrowLeft className="size-4" /> All job postings
       </Link>
 
-      {submitted === "1" && job.status === "in_review" && (
+      {submitted === "1" && job.status === "live" && (
         <div
           role="status"
           className="flex items-start gap-3 rounded-2xl border border-good/30 bg-good/8 p-4 text-sm"
         >
           <CircleCheck className="mt-0.5 size-4 flex-none text-good" />
           <p>
-            <span className="font-head font-bold">Submitted for review.</span>{" "}
-            We&apos;ll check the details and publish it to members once
-            approved.
+            <span className="font-head font-bold">Your posting is live.</span>{" "}
+            Members can see it on the job board and apply right away.
           </p>
         </div>
       )}
@@ -119,9 +113,7 @@ export default async function JobDetailPage({
                 <Pencil className="size-4" /> Edit
               </Button>
             )}
-            {job.status !== "rejected" && (
-              <JobOpenToggle jobId={job.id} closed={closed} />
-            )}
+            <JobOpenToggle jobId={job.id} closed={closed} />
           </div>
         </div>
 
@@ -144,24 +136,15 @@ export default async function JobDetailPage({
         <div
           className={cn(
             "mt-6 flex items-start gap-1.5 rounded-2xl p-4 text-sm",
-            job.status === "live" && "bg-good/8",
-            job.status === "in_review" && "bg-brand/6",
-            job.status === "closed" && "bg-muted/70",
-            job.status === "rejected" && "bg-destructive/6",
+            closed ? "bg-muted/70" : "bg-good/8",
           )}
         >
-          {job.status === "rejected" ? (
-            <CircleAlert className="mt-0.5 size-4 flex-none text-destructive" />
-          ) : (
-            <span
-              className={cn(
-                "mt-2 size-2 flex-none rounded-full",
-                job.status === "live" && "bg-good",
-                job.status === "in_review" && "bg-brand",
-                job.status === "closed" && "bg-muted-foreground",
-              )}
-            />
-          )}
+          <span
+            className={cn(
+              "mt-2 size-2 flex-none rounded-full",
+              closed ? "bg-muted-foreground" : "bg-good",
+            )}
+          />
           <p className="leading-6">{STATUS_NOTES[job.status]}</p>
         </div>
       </section>
@@ -178,9 +161,9 @@ export default async function JobDetailPage({
             <div>
               <p className="font-head font-bold">No applicants yet</p>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                {job.status === "live"
-                  ? "Members who apply will show up here with their skills and experience."
-                  : "Applications open once this posting is live."}
+                {closed
+                  ? "Reopen this posting to accept applications again."
+                  : "Members who apply will show up here with their skills and experience."}
               </p>
             </div>
           </div>

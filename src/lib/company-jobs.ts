@@ -2,14 +2,12 @@ import { richTextToPlain, toRichTextHtml } from "@/lib/rich-text";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
 
-export const JOB_STATUSES = ["in_review", "live", "closed", "rejected"] as const;
+export const JOB_STATUSES = ["live", "closed"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
 
 export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
-  in_review: "In review",
   live: "Live",
   closed: "Closed",
-  rejected: "Not approved",
 };
 
 export type CompanyJob = {
@@ -32,14 +30,13 @@ export type CompanyJob = {
   requirements: string[];
   benefits: string[];
   status: JobStatus;
-  approvedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export type JobInput = Omit<
   CompanyJob,
-  "id" | "slug" | "status" | "approvedAt" | "createdAt" | "updatedAt"
+  "id" | "slug" | "status" | "createdAt" | "updatedAt"
 >;
 
 const PINCODE_PATTERN = /^\d{6}$/;

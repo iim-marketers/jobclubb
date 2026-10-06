@@ -336,7 +336,7 @@ export function ActiveFilters({ query }: { query: JobQuery }) {
 
 function CountBadge({ value }: { value: number }) {
   return (
-    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] pt-0.5 font-bold text-brand-foreground">
+    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-brand-foreground">
       {value}
     </span>
   );

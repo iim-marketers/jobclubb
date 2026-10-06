@@ -1,4 +1,4 @@
-import { EyeOff, ListChecks, ShieldCheck } from "lucide-react";
+import { EyeOff, ListChecks, Zap } from "lucide-react";
 
 const STEPS = [
   {
@@ -7,9 +7,9 @@ const STEPS = [
     body: "Clear titles, pay ranges and requirements get more relevant applicants.",
   },
   {
-    icon: ShieldCheck,
-    title: "Reviewed before it goes live",
-    body: "Our team checks each posting, and again after any edit.",
+    icon: Zap,
+    title: "Live instantly",
+    body: "Your posting reaches members as soon as you publish, and edits show up right away.",
   },
   {
     icon: EyeOff,
