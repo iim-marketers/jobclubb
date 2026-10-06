@@ -442,7 +442,6 @@ function RecentPostings({
             {jobs.map((job) => (
               <TableRow key={job.id} className="group/row relative">
                 <TableCell className="max-w-0 min-w-48 py-3 pl-4">
-                  {/* after:inset-0 stretches the link over the whole row so it's clickable without client JS */}
                   <Link
                     href={`${COMPANY_JOBS}/${job.id}`}
                     className="block truncate font-head font-bold after:absolute after:inset-0 group-hover/row:text-brand focus-visible:underline focus-visible:outline-none"
