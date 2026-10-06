@@ -90,7 +90,10 @@ export function CompanySidebarContent({
 
       <nav
         aria-label="Dashboard"
-        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pt-4 pb-6"
+        className={cn(
+          "min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pb-6",
+          !collapsed && "pt-4",
+        )}
       >
         {COMPANY_NAV.map((group) => (
           <div key={group.title} className="mb-6 last:mb-0">
