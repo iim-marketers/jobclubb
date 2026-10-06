@@ -1,15 +1,16 @@
 import "server-only";
 
-import type { CompanyJob, JobInput } from "@/lib/company-jobs";
+import { jobSlug, type CompanyJob, type JobInput } from "@/lib/company-jobs";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { sanitizeRichText } from "@/server/rich-text";
 
 const COLUMNS =
-  "id, vertical, role, designation, city, pincode, job_type, work_mode, experience_min, experience_max, salary_min_lpa, salary_max_lpa, openings, description, responsibilities, requirements, benefits, status, approved_at, created_at, updated_at";
+  "id, slug, industry, role, designation, city, pincode, job_type, work_mode, experience_min, experience_max, salary_min_lpa, salary_max_lpa, openings, description, responsibilities, requirements, benefits, status, approved_at, created_at, updated_at";
 
 type JobRow = {
   id: string;
-  vertical: string;
+  slug: string;
+  industry: string;
   role: string;
   designation: string;
   city: string;
@@ -34,7 +35,8 @@ type JobRow = {
 function toJob(row: JobRow): CompanyJob {
   return {
     id: row.id,
-    vertical: row.vertical,
+    slug: row.slug,
+    industry: row.industry,
     role: row.role,
     designation: row.designation,
     city: row.city,
@@ -60,7 +62,7 @@ function toJob(row: JobRow): CompanyJob {
 
 function toRow(input: JobInput) {
   return {
-    vertical: input.vertical,
+    industry: input.industry,
     role: input.role,
     designation: input.designation,
     city: input.city,
@@ -104,13 +106,34 @@ export async function getCompanyJob(companyId: string, id: string) {
 }
 
 export async function createCompanyJob(companyId: string, input: JobInput) {
+  const admin = createAdminClient();
+  for (let attempt = 0; ; attempt++) {
+    const { data, error } = await admin
+      .from("company_jobs")
+      .insert({ ...toRow(input), company_id: companyId, slug: jobSlug(input.designation) })
+      .select("id")
+      .single();
+    if (!error) return data.id as string;
+    const slugTaken = error.code === "23505" && error.message.includes("company_jobs_slug_key");
+    if (!slugTaken || attempt >= 2) throw error;
+  }
+}
+
+export type PublicJob = CompanyJob & { companyName: string };
+
+// Bypasses RLS, so only live postings are returned.
+export async function getLiveJobBySlug(slug: string): Promise<PublicJob | null> {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null;
   const { data, error } = await createAdminClient()
     .from("company_jobs")
-    .insert({ ...toRow(input), company_id: companyId })
-    .select("id")
-    .single();
+    .select(`${COLUMNS}, companies (company_name)`)
+    .eq("slug", slug)
+    .eq("status", "live")
+    .maybeSingle();
   if (error) throw error;
-  return data.id as string;
+  if (!data) return null;
+  const row = data as unknown as JobRow & { companies: { company_name: string } | null };
+  return { ...toJob(row), companyName: row.companies?.company_name ?? "" };
 }
 
 // Any edit sends the posting back to review, including a live one.

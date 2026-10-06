@@ -50,7 +50,7 @@ export async function updateCompanyDetails(
   return saveCompany(
     {
       property_name: values.propertyName || null,
-      sector: values.sector,
+      industry: values.industry,
       city: values.city,
       pincode: values.pincode,
     },

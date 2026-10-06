@@ -25,7 +25,7 @@ export default async function CompanySettingsPage() {
   const company = await requireCompany(`${COMPANY_HOME}/settings`);
   const defaults: CompanyDefaults = {
     propertyName: company.property_name ?? "",
-    sector: company.sector,
+    industry: company.industry,
     city: company.city,
     pincode: company.pincode,
     contactName: company.contact_name,

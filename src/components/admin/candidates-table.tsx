@@ -6,7 +6,7 @@ import {
   adminTableFeatures,
   DataTable,
   formatDate,
-  verticalName,
+  industryName,
 } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ export type AdminCandidate = {
   email: string;
   phone: string;
   city: string;
-  vertical: string;
+  industry: string;
   plan: "free" | "member" | null;
   membershipExpiresAt: string | null;
   emailVerified: boolean;
@@ -50,8 +50,8 @@ const columns = helper.columns([
     sortFn: "text",
     cell: ({ getValue }) => <span className="text-muted-foreground">{getValue()}</span>,
   }),
-  helper.accessor((c) => verticalName(c.vertical), {
-    id: "vertical",
+  helper.accessor((c) => industryName(c.industry), {
+    id: "industry",
     header: "Sector",
     sortFn: "text",
     cell: ({ getValue }) => <span className="text-muted-foreground">{getValue()}</span>,
@@ -105,7 +105,7 @@ const COLUMN_CLASS: Record<string, string> = {
   email: "hidden",
   phone: "hidden lg:table-cell",
   city: "hidden md:table-cell",
-  vertical: "hidden xl:table-cell",
+  industry: "hidden xl:table-cell",
   emailVerified: "hidden sm:table-cell",
   createdAt: "hidden md:table-cell",
 };
@@ -116,7 +116,7 @@ export function CandidatesTable({ candidates }: { candidates: AdminCandidate[] }
       data={candidates}
       columns={columns}
       getRowId={(c) => c.id}
-      searchable={["name", "email", "phone", "city", "vertical"]}
+      searchable={["name", "email", "phone", "city", "industry"]}
       searchPlaceholder="Search name, email, phone or city"
       initialSort={{ id: "createdAt", desc: true }}
       columnClass={COLUMN_CLASS}

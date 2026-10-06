@@ -42,7 +42,7 @@ export async function registerCompany(formData: FormData): Promise<RegisterCompa
       role: "company",
       company_name: text(formData, "companyName"),
       property_name: text(formData, "propertyName"),
-      sector: text(formData, "sector"),
+      industry: text(formData, "industry"),
       size: text(formData, "size"),
       website,
       gstin: text(formData, "gstin").toUpperCase(),

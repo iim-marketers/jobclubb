@@ -30,9 +30,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toSquarePhoto } from "@/lib/square-photo";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 
-const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
 
 export type ProfileDefaults = {
   firstName: string;
@@ -41,14 +41,14 @@ export type ProfileDefaults = {
   phone: string;
   city: string;
   pincode: string;
-  vertical: string;
+  industry: string;
 };
 
 type ProfileKey = Exclude<keyof ProfileDefaults, "email">;
 
 const SECTION_KEYS = {
   personal: ["firstName", "lastName", "phone"],
-  preferences: ["city", "pincode", "vertical"],
+  preferences: ["city", "pincode", "industry"],
 } satisfies Record<string, ProfileKey[]>;
 
 export function submitManually(
@@ -380,19 +380,19 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
       section="preferences"
       defaults={defaults}
       title="Job preferences"
-      description="We match you to roles in this sector near this location."
+      description="We match you to roles in this industry near this location."
       successMessage="Job preferences saved"
     >
       {(errors, markDirty) => (
         <div className="grid gap-5 sm:grid-cols-2">
           <SelectField
-            id="vertical"
-            label="Sector"
+            id="industry"
+            label="Industry"
             className="sm:col-span-2"
-            options={SECTOR_OPTIONS}
-            defaultValue={initial.vertical}
-            onValueChange={() => markDirty("vertical")}
-            error={errors.vertical}
+            options={INDUSTRY_OPTIONS}
+            defaultValue={initial.industry}
+            onValueChange={() => markDirty("industry")}
+            error={errors.industry}
           />
           <Field
             id="city"

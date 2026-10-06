@@ -23,7 +23,7 @@ import {
   adminTableFeatures,
   DataTable,
   formatDate,
-  verticalName,
+  industryName,
 } from "@/components/admin/data-table";
 import {
   AlertDialog,
@@ -134,7 +134,7 @@ function buildColumns(onDecide: Decide, onView: (c: AdminCompany) => void) {
           <div className="min-w-44">
             <p className="font-head font-bold">{c.companyName}</p>
             <p className="text-xs text-muted-foreground">
-              {[c.propertyName, verticalName(c.sector)]
+              {[c.propertyName, industryName(c.industry)]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
@@ -509,7 +509,7 @@ function CompanyDialog({
                   <DialogDescription className="mt-1">
                     {[
                       company.propertyName,
-                      verticalName(company.sector),
+                      industryName(company.industry),
                       company.city,
                     ]
                       .filter(Boolean)

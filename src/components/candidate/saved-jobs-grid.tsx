@@ -37,9 +37,9 @@ export function SavedJobsGrid({
   const [sort, setSort] = useState<SortKey>("recent");
   const [sector, setSector] = useState<string | null>(null);
 
-  const sectors = [...new Set(items.map((s) => s.job.vertical))];
+  const sectors = [...new Set(items.map((s) => s.job.industry))];
   const visible = items
-    .filter((s) => !sector || s.job.vertical === sector)
+    .filter((s) => !sector || s.job.industry === sector)
     .sort((a, b) =>
       sort === "closing"
         ? a.closesInDays - b.closesInDays
@@ -49,7 +49,7 @@ export function SavedJobsGrid({
   function unsave(item: SavedJob) {
     setItems((list) => list.filter((s) => s.job.slug !== item.job.slug));
     setRemoved(item);
-    if (sector && !items.some((s) => s !== item && s.job.vertical === sector))
+    if (sector && !items.some((s) => s !== item && s.job.industry === sector))
       setSector(null);
   }
 

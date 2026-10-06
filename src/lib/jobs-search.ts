@@ -1,5 +1,5 @@
 import type { JobListing } from "@/lib/jobs-data";
-import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
+import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
 
 export const SORTS = {
   recent: "Most recent",
@@ -43,7 +43,7 @@ export function parseJobQuery(params: RawParams, member: boolean): JobQuery {
   return {
     q,
     loc: first(params.loc),
-    sectors: allowed(list(params.sector), VERTICALS.map((v) => v.name)),
+    sectors: allowed(list(params.sector), INDUSTRIES.map((v) => v.name)),
     jobTypes: allowed(list(params.type), JOB_TYPES),
     workModes: allowed(list(params.mode), WORK_MODES),
     sort: sort in SORTS ? (sort as JobSort) : "recent",
@@ -73,7 +73,7 @@ export function searchJobs(
     }
     if (query.loc && !matches([job.location, job.pincode], query.loc))
       return false;
-    if (query.sectors.length && !query.sectors.includes(job.vertical))
+    if (query.sectors.length && !query.sectors.includes(job.industry))
       return false;
     if (query.jobTypes.length && !query.jobTypes.includes(job.jobType))
       return false;
@@ -117,7 +117,7 @@ export function facetCounts(
     return counts;
   };
   return {
-    sectors: tally((j) => j.vertical),
+    sectors: tally((j) => j.industry),
     jobTypes: tally((j) => j.jobType),
     workModes: tally((j) => j.workMode),
   };

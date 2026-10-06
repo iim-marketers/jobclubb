@@ -1,6 +1,6 @@
 import { richTextToPlain, toRichTextHtml } from "@/lib/rich-text";
 import type { FieldErrors } from "@/lib/sign-up-validation";
-import { JOB_TYPES, VERTICALS, WORK_MODES } from "@/lib/taxonomy";
+import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
 
 export const JOB_STATUSES = ["in_review", "live", "closed", "rejected"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
@@ -14,7 +14,8 @@ export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
 
 export type CompanyJob = {
   id: string;
-  vertical: string;
+  slug: string;
+  industry: string;
   role: string;
   designation: string;
   city: string;
@@ -38,7 +39,7 @@ export type CompanyJob = {
 
 export type JobInput = Omit<
   CompanyJob,
-  "id" | "status" | "approvedAt" | "createdAt" | "updatedAt"
+  "id" | "slug" | "status" | "approvedAt" | "createdAt" | "updatedAt"
 >;
 
 const PINCODE_PATTERN = /^\d{6}$/;
@@ -74,7 +75,7 @@ export function validateJob(formData: FormData): {
   errors: FieldErrors;
 } {
   const values: JobInput = {
-    vertical: text(formData, "vertical"),
+    industry: text(formData, "industry"),
     role: text(formData, "role"),
     designation: text(formData, "designation"),
     city: text(formData, "city"),
@@ -93,9 +94,9 @@ export function validateJob(formData: FormData): {
   };
   const errors: FieldErrors = {};
 
-  const vertical = VERTICALS.find((v) => v.slug === values.vertical);
-  if (!vertical) errors.vertical = "Choose a sector.";
-  else if (!vertical.roles.includes(values.role)) errors.role = "Choose a role.";
+  const industry = INDUSTRIES.find((v) => v.slug === values.industry);
+  if (!industry) errors.industry = "Choose an industry.";
+  else if (!industry.roles.includes(values.role)) errors.role = "Choose a role.";
   if (!values.designation) errors.designation = "Enter the job title candidates will see.";
   else if (values.designation.length > 120) errors.designation = "Use 120 characters or fewer.";
   if (!values.city) errors.city = "Enter the city.";
@@ -162,8 +163,22 @@ export function formatPostedDate(iso: string) {
   }).format(new Date(iso));
 }
 
-export function verticalName(slug: string) {
-  return VERTICALS.find((v) => v.slug === slug)?.name ?? slug;
+// Title + random suffix only: the URL is visible to non-members, so no
+// company or city. Kept stable across edits so shared links keep working.
+export function jobSlug(designation: string) {
+  const base =
+    designation
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60)
+      .replace(/-+$/, "") || "job";
+  const suffix = Math.random().toString(36).slice(2, 8).padEnd(6, "0");
+  return `${base}-${suffix}`;
+}
+
+export function industryName(slug: string) {
+  return INDUSTRIES.find((v) => v.slug === slug)?.name ?? slug;
 }
 
 export type JobFormDefaults = Record<
@@ -173,11 +188,11 @@ export type JobFormDefaults = Record<
 
 export function jobFormDefaults(
   job: CompanyJob | null,
-  company: { sector: string; city: string; pincode: string },
+  company: { industry: string; city: string; pincode: string },
 ): JobFormDefaults {
   if (!job)
     return {
-      vertical: company.sector,
+      industry: company.industry,
       role: null,
       designation: "",
       openings: "1",
@@ -196,7 +211,7 @@ export function jobFormDefaults(
     };
 
   return {
-    vertical: job.vertical,
+    industry: job.industry,
     role: job.role,
     designation: job.designation,
     openings: String(job.openings),

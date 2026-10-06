@@ -5,6 +5,7 @@ import {
   Building2,
   CalendarClock,
   Check,
+  ChevronRight,
   ListChecks,
   MapPin,
   Plus,
@@ -21,6 +22,14 @@ import { JobStatusPill } from "@/components/company/job-status";
 import { COMPANY_HOME, COMPANY_JOBS } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   formatInterviewDate,
   formatInterviewTime,
 } from "@/lib/candidate-activity";
@@ -30,7 +39,7 @@ import {
   upcomingCompanyInterviews,
   type CompanyInterview,
 } from "@/lib/company-activity";
-import { formatPostedDate, verticalName, type CompanyJob } from "@/lib/company-jobs";
+import { industryName, type CompanyJob } from "@/lib/company-jobs";
 import { greeting } from "@/lib/greeting";
 import { cn } from "@/lib/utils";
 import { requireCompany } from "@/server/auth/current-company";
@@ -147,7 +156,7 @@ export default async function CompanyDashboard() {
           companyName={company.company_name}
           logoUrl={getCompanyLogoUrl(company.logo_path)}
           propertyName={company.property_name}
-          sector={verticalName(company.sector)}
+          sector={industryName(company.industry)}
           city={company.city}
           hiringFor={[...new Set(live.map((j) => j.designation))].slice(0, 5)}
           nextInterview={upcoming[0]}
@@ -411,30 +420,53 @@ function RecentPostings({
         </Link>
       }
     >
-      <ul className="divide-y divide-border">
-        {jobs.map((job) => (
-          <li key={job.id} className="first:*:pt-0 last:*:pb-0">
-            <Link
-              href={`${COMPANY_JOBS}/${job.id}`}
-              className="group flex items-center gap-3 py-3"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-head text-sm font-bold group-hover:text-brand">
-                  {job.designation}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {job.city} · {job.jobType} · {job.workMode} · Posted{" "}
-                  {formatPostedDate(job.createdAt)}
-                </p>
-              </div>
-              <span className="hidden text-xs text-muted-foreground sm:inline">
-                {applicantCount(job.id)} applicants
-              </span>
-              <JobStatusPill status={job.status} />
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="overflow-hidden rounded-2xl border border-border">
+        <Table>
+          <TableHeader className="bg-muted/40">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-10 pl-4 text-xs font-semibold text-muted-foreground">
+                Job
+              </TableHead>
+              <TableHead className="h-10 px-3 text-xs font-semibold text-muted-foreground">
+                Status
+              </TableHead>
+              <TableHead className="h-10 px-3 text-right text-xs font-semibold text-muted-foreground">
+                Applicants
+              </TableHead>
+              <TableHead className="h-10 w-10 pr-4">
+                <span className="sr-only">Open</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {jobs.map((job) => (
+              <TableRow key={job.id} className="group/row relative">
+                <TableCell className="max-w-0 min-w-48 py-3 pl-4">
+                  {/* after:inset-0 stretches the link over the whole row so it's clickable without client JS */}
+                  <Link
+                    href={`${COMPANY_JOBS}/${job.id}`}
+                    className="block truncate font-head font-bold after:absolute after:inset-0 group-hover/row:text-brand focus-visible:underline focus-visible:outline-none"
+                  >
+                    {job.designation}
+                  </Link>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {job.role}
+                  </p>
+                </TableCell>
+                <TableCell className="px-3 py-3">
+                  <JobStatusPill status={job.status} />
+                </TableCell>
+                <TableCell className="px-3 py-3 text-right font-head font-bold">
+                  {applicantCount(job.id)}
+                </TableCell>
+                <TableCell className="w-10 py-3 pr-4">
+                  <ChevronRight className="ml-auto size-4 text-muted-foreground transition-transform group-hover/row:translate-x-0.5 group-hover/row:text-brand" />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </Panel>
   );
 }

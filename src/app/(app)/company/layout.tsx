@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { SIDEBAR_COOKIE } from "@/components/candidate/candidate-shell";
 import { CompanyShell } from "@/components/company/company-shell";
 import { COMPANY_HOME } from "@/components/company/nav";
-import { verticalName } from "@/lib/company-jobs";
+import { industryName } from "@/lib/company-jobs";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
 
@@ -21,7 +21,7 @@ export default async function CompanyLayout({
         propertyName: company.property_name,
         contactName: company.contact_name,
         email: company.email,
-        sector: verticalName(company.sector),
+        sector: industryName(company.industry),
         city: company.city,
         logoUrl: getCompanyLogoUrl(company.logo_path),
       }}

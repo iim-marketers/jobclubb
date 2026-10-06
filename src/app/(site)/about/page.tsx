@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { PageHeader, Section, SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 
 export const metadata = {
   title: "About — JobClubb",
@@ -106,7 +106,7 @@ export default function AboutPage() {
         </p>
 
         <div className="mt-8 space-y-6">
-          {VERTICALS.map((v) => (
+          {INDUSTRIES.map((v) => (
             <div
               key={v.slug}
               className="rounded-2xl border border-border bg-card p-6"

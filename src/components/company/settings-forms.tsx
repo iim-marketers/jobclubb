@@ -42,9 +42,9 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { Field, SelectField, useFieldErrors } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 import { toSquarePhoto } from "@/lib/square-photo";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 
-const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
 
 const SECTIONS: SettingsSection[] = [
   { id: "logo", label: "Company logo", icon: ImageIcon },
@@ -61,7 +61,7 @@ export function CompanySettingsNav() {
 
 export type CompanyDefaults = {
   propertyName: string;
-  sector: string;
+  industry: string;
   city: string;
   pincode: string;
   contactName: string;
@@ -145,7 +145,7 @@ export function CompanyDetailsForm({ defaults }: { defaults: CompanyDefaults }) 
     <SectionForm
       id="details"
       title="Company details"
-      description="Where you hire and the sector we match candidates from."
+      description="Where you hire and the industry we match candidates from."
       action={updateCompanyDetails}
       successMessage="Company details saved"
     >
@@ -162,13 +162,13 @@ export function CompanyDetailsForm({ defaults }: { defaults: CompanyDefaults }) 
             className="sm:col-span-2"
           />
           <SelectField
-            id="sector"
-            label="Sector"
+            id="industry"
+            label="Industry"
             className="sm:col-span-2"
-            options={SECTOR_OPTIONS}
-            defaultValue={initial.sector}
-            onValueChange={() => markDirty("sector")}
-            error={errors.sector}
+            options={INDUSTRY_OPTIONS}
+            defaultValue={initial.industry}
+            onValueChange={() => markDirty("industry")}
+            error={errors.industry}
           />
           <Field
             id="city"

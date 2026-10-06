@@ -27,7 +27,7 @@ export default async function SettingsPage() {
     phone: candidate.phone,
     city: candidate.city,
     pincode: candidate.pincode,
-    vertical: candidate.vertical,
+    industry: candidate.industry,
   };
 
   return (

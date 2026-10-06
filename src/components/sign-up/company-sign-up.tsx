@@ -37,9 +37,9 @@ import {
   type VerificationRoute,
 } from "@/lib/company-verification";
 import { COMPANY_STEPS, validateCompany } from "@/lib/sign-up-validation";
-import { VERTICALS } from "@/lib/taxonomy";
+import { INDUSTRIES } from "@/lib/taxonomy";
 
-const SECTOR_OPTIONS = VERTICALS.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
 
 const ROUTE_STYLES: Record<
   VerificationRoute,
@@ -81,7 +81,7 @@ export function CompanySignUp() {
     validate: validateCompany,
     action: registerCompany,
   });
-  const [sector, setSector] = useState<string | null>("hotels");
+  const [industry, setIndustry] = useState<string | null>("hotels");
   const [size, setSize] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
@@ -111,7 +111,7 @@ export function CompanySignUp() {
             name={values.companyName}
             property={values.propertyName}
             city={values.city}
-            sector={sector}
+            industry={industry}
             size={size}
             email={values.email}
             route={assessment?.route}
@@ -168,16 +168,16 @@ export function CompanySignUp() {
               className="sm:col-span-2"
             />
             <SelectField
-              id="sector"
-              label="Sector"
-              options={SECTOR_OPTIONS}
-              value={sector}
+              id="industry"
+              label="Industry"
+              options={INDUSTRY_OPTIONS}
+              value={industry}
               onValueChange={(v) => {
-                setSector(v);
-                clearError("sector");
+                setIndustry(v);
+                clearError("industry");
               }}
               required
-              error={errors.sector}
+              error={errors.industry}
             />
             <SelectField
               id="size"
@@ -375,7 +375,7 @@ function EmployerBadge({
   name,
   property,
   city,
-  sector,
+  industry,
   size,
   email,
   route,
@@ -383,13 +383,13 @@ function EmployerBadge({
   name?: string;
   property?: string;
   city?: string;
-  sector: string | null;
+  industry: string | null;
   size: string | null;
   email?: string;
   route?: VerificationRoute;
 }) {
   const companyName = name?.trim() || "Your company";
-  const sectorName = VERTICALS.find((v) => v.slug === sector)?.name;
+  const industryLabel = INDUSTRIES.find((v) => v.slug === industry)?.name;
   const sizeLabel = COMPANY_SIZES.find((s) => s.value === size)?.label;
   const status = route ? ROUTE_STYLES[route] : null;
   const StatusIcon = status?.icon;
@@ -420,8 +420,8 @@ function EmployerBadge({
         <div className="min-w-0">
           <p className="truncate font-head text-lg font-bold">{companyName}</p>
           <p className="truncate text-xs text-white/60">
-            {[sectorName, city?.trim()].filter(Boolean).join(" · ") ||
-              "Sector · City"}
+            {[industryLabel, city?.trim()].filter(Boolean).join(" · ") ||
+              "Industry · City"}
           </p>
         </div>
       </div>
