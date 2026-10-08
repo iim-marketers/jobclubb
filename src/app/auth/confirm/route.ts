@@ -2,14 +2,16 @@ import { createClient, type EmailOtpType } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { SITE_URL } from "@/lib/site-url";
 import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  // Behind the host's reverse proxy, request.nextUrl.origin can resolve to localhost.
+  const { searchParams } = request.nextUrl;
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const expired = () =>
-    NextResponse.redirect(new URL("/sign-in?error=link-expired", origin));
+    NextResponse.redirect(new URL("/sign-in?error=link-expired", SITE_URL));
 
   if (!tokenHash || !type) return expired();
 
@@ -33,5 +35,5 @@ export async function GET(request: NextRequest) {
     path: "/",
     maxAge: 60 * 60,
   });
-  return NextResponse.redirect(new URL("/sign-in?verified=1", origin));
+  return NextResponse.redirect(new URL("/sign-in?verified=1", SITE_URL));
 }

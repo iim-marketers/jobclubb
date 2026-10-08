@@ -6,7 +6,8 @@ import { sendEmail } from "@/lib/email/mailer";
 import { resetPasswordEmail } from "@/lib/email/templates/reset-password";
 import { validateNewPassword, type FieldErrors } from "@/lib/sign-up-validation";
 import { createAdminClient } from "@/lib/supabase/server";
-import { SITE_URL, isRateLimited } from "@/server/auth/confirmation-email";
+import { SITE_URL } from "@/lib/site-url";
+import { isRateLimited } from "@/server/auth/confirmation-email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

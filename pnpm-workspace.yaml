@@ -1,4 +1,0 @@
-allowBuilds:
-  sharp: false
-  supabase: true
-  unrs-resolver: false
