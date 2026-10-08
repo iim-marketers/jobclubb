@@ -32,19 +32,19 @@ The secret key bypasses Row Level Security. Keep it server-only and never commit
 Migrations live in `migrations/` and are applied with the Supabase CLI (installed as a dev dependency):
 
 ```
-pnpm db:status    # which migrations are applied on the database
-pnpm db:migrate   # apply the pending ones (add --dry-run to preview)
+npm run db:status    # which migrations are applied on the database
+npm run db:migrate   # apply the pending ones (add `-- --dry-run` to preview)
 ```
 
 Both read `DATABASE_URL` from `.env`: dashboard → **Connect** → **Session pooler** connection string, with your database password filled in (percent-encode any special characters in it).
 
-The CLI records applied migrations in `supabase_migrations.schema_migrations`. On a database whose earlier migrations were run by hand in the SQL Editor, mark those as applied once before the first `pnpm db:migrate`, or it will try to run them again:
+The CLI records applied migrations in `supabase_migrations.schema_migrations`. On a database whose earlier migrations were run by hand in the SQL Editor, mark those as applied once before the first `npm run db:migrate`, or it will try to run them again:
 
 ```
-pnpm db migration repair --status applied 20260922000000 20260922010000 20260922020000 20260922030000 20260922040000 20260922050000 20260922060000 20260922070000 20260922080000 20260925000000 20260928000000 20260928010000 20260930000000
+npm run db -- migration repair --status applied 20260922000000 20260922010000 20260922020000 20260922030000 20260922040000 20260922050000 20260922060000 20260922070000 20260922080000 20260925000000 20260928000000 20260928010000 20260930000000
 ```
 
-To add a migration, create `migrations/<YYYYMMDDHHMMSS>_<name>.sql` (or run `pnpm exec supabase migration new <name>`).
+To add a migration, create `migrations/<YYYYMMDDHHMMSS>_<name>.sql` (or run `npx supabase migration new <name>`).
 
 ### Deleting candidates
 
