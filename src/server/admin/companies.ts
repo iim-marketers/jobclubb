@@ -3,7 +3,7 @@ import "server-only";
 import { sendEmail } from "@/lib/email/mailer";
 import { companyApprovedEmail } from "@/lib/email/templates/company-approved";
 import { createAdminClient } from "@/lib/supabase/server";
-import { SITE_URL } from "@/server/auth/confirmation-email";
+import { SITE_URL } from "@/lib/site-url";
 
 export const COMPANY_STATUSES = ["pending_email", "pending_review", "verified", "rejected"] as const;
 export type CompanyStatus = (typeof COMPANY_STATUSES)[number];

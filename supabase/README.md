@@ -63,7 +63,7 @@ Company sign-ups land in `public.companies`, with the proof document in the priv
 
 ## 3. Auth settings (dashboard → Authentication)
 
-- **URL Configuration:** set **Site URL** to `http://localhost:3000` for now and to the live domain later. Add `http://localhost:3000/auth/confirm` (and the live equivalent) to **Redirect URLs**.
+- **URL Configuration:** set **Site URL** to `https://www.jobclubb.com` (use `http://localhost:3000` only for local testing). Add `https://www.jobclubb.com/auth/confirm` and `http://localhost:3000/auth/confirm` to **Redirect URLs**.
 - **Sign In / Providers → Email:** leave **Confirm email** on. Supabase won't sign in unconfirmed accounts; the sign-in page shows a "Verify your email" screen with a resend button.
 - **Emails → SMTP Settings / Templates:** not used. Supabase never sends the candidate emails, because the app creates accounts with `auth.admin.generateLink()`, which returns the link without emailing it.
 

@@ -5,9 +5,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email/mailer";
 import { createAdminClient } from "@/lib/supabase/server";
 import { confirmSignupEmail } from "@/lib/email/templates/confirm-signup";
+import { SITE_URL } from "@/lib/site-url";
 
-// Never the request's Origin header: it can be forged to point email links elsewhere.
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_GAP_SECONDS = 60;
