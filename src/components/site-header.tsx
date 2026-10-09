@@ -24,7 +24,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:h-[72px] lg:gap-8">
+      <div className="mx-auto flex h-16 max-w-300 items-center gap-3 px-4 sm:px-6 lg:h-[72px] lg:gap-8">
         <Link
           href="/"
           aria-label="JobClubb — home"
@@ -36,7 +36,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             width={142}
             height={26}
             priority
-            className="h-5 w-auto object-contain sm:h-[26px] dark:hidden"
+            className="h-5 w-auto object-contain sm:h-6.5 dark:hidden"
           />
           <Image
             src="/brand/jobclubb-logo-dark.png"
@@ -45,24 +45,24 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             width={142}
             height={26}
             priority
-            className="hidden h-5 w-auto object-contain sm:h-[26px] dark:block"
+            className="hidden h-5 w-auto object-contain sm:h-6.5 dark:block"
           />
         </Link>
 
         {search ? (
           <div className="min-w-0 flex-1 lg:max-w-xl">{search}</div>
         ) : (
-        <nav className="hidden flex-1 items-center gap-7 lg:flex">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="relative py-2 font-head text-sm font-semibold whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-brand focus-visible:text-brand after:absolute after:inset-x-0 after:bottom-0 after:h-[2px] after:origin-right after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-out hover:after:origin-left hover:after:scale-x-100 focus-visible:after:origin-left focus-visible:after:scale-x-100 motion-reduce:after:transition-none"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+          <nav className="hidden flex-1 items-center gap-7 lg:flex">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="relative py-2 font-head text-sm font-semibold whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-brand focus-visible:text-brand after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-right after:scale-x-0 after:rounded-full after:bg-brand after:transition-transform after:duration-300 after:ease-out hover:after:origin-left hover:after:scale-x-100 focus-visible:after:origin-left focus-visible:after:scale-x-100 motion-reduce:after:transition-none"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
         )}
 
         <div className="ml-auto flex flex-none items-center gap-2 sm:gap-3">
