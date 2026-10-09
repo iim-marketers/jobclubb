@@ -3,9 +3,27 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      { source: "/dashboard", destination: "/candidate/dashboard", permanent: false },
-      { source: "/dashboard/:path*", destination: "/candidate/dashboard/:path*", permanent: false },
-      { source: "/company", destination: "/company/dashboard", permanent: false },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "jobclubb.com" }],
+        destination: "https://www.jobclubb.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/dashboard",
+        destination: "/candidate/dashboard",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/:path*",
+        destination: "/candidate/dashboard/:path*",
+        permanent: false,
+      },
+      {
+        source: "/company",
+        destination: "/company/dashboard",
+        permanent: false,
+      },
     ];
   },
   experimental: {
