@@ -1,21 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { TERMS_SECTIONS, termsLabel, termsSlug } from "@/lib/terms-content";
+import { termsLabel, termsSlug } from "@/lib/terms-content";
 
-const ITEMS = TERMS_SECTIONS.map((s, i) => ({
-  id: termsSlug(s.heading),
-  label: termsLabel(s.heading),
-  index: i + 1,
-}));
-
-export function TermsNav() {
-  const [active, setActive] = useState(ITEMS[0].id);
+export function SectionNav({
+  headings,
+  label,
+}: {
+  headings: string[];
+  label: string;
+}) {
+  const items = useMemo(
+    () =>
+      headings.map((heading, i) => ({
+        id: termsSlug(heading),
+        label: termsLabel(heading),
+        index: i + 1,
+      })),
+    [headings]
+  );
+  const [active, setActive] = useState(items[0].id);
   const listRef = useRef<HTMLOListElement>(null);
 
   useEffect(() => {
-    const sections = ITEMS.map((i) => document.getElementById(i.id)).filter(
+    const sections = items.map((i) => document.getElementById(i.id)).filter(
       (el): el is HTMLElement => Boolean(el)
     );
     if (!sections.length) return;
@@ -26,7 +35,7 @@ export function TermsNav() {
         window.innerHeight + window.scrollY >=
         document.documentElement.scrollHeight - 2;
       if (atBottom) {
-        setActive(ITEMS[ITEMS.length - 1].id);
+        setActive(items[items.length - 1].id);
         return;
       }
       const line = 140;
@@ -45,7 +54,7 @@ export function TermsNav() {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, []);
+  }, [items]);
 
   useEffect(() => {
     const el = listRef.current?.querySelector<HTMLElement>(
@@ -61,7 +70,7 @@ export function TermsNav() {
   }, [active]);
 
   return (
-    <nav aria-label="Terms sections" className="lg:sticky lg:top-24">
+    <nav aria-label={label} className="lg:sticky lg:top-24">
       <p className="font-head text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
         On this page
       </p>
@@ -70,7 +79,7 @@ export function TermsNav() {
         ref={listRef}
         className="mt-3 max-h-[60vh] space-y-0.5 overflow-y-auto pr-1 lg:max-h-[calc(100vh-11rem)]"
       >
-        {ITEMS.map((item) => {
+        {items.map((item) => {
           const isActive = item.id === active;
           return (
             <li key={item.id} data-id={item.id}>

@@ -8,7 +8,7 @@ const QUICK_LINKS = [
   { label: "Home", href: "/" },
   { label: "Jobs", href: "/jobs" },
   { label: "About Us", href: "/about" },
-  { label: "Terms of Use", href: "/terms" },
+  { label: "Contact Us", href: "/contact" },
 ];
 
 const EXPLORE_LINKS = [
@@ -17,7 +17,13 @@ const EXPLORE_LINKS = [
   { label: "Franchise", href: "/franchise" },
 ];
 
-const CONTACT_ITEMS = [
+const LEGAL_LINKS = [
+  { label: "Terms of Use", href: "/terms" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Refund Policy", href: "/refund-policy" },
+];
+
+export const CONTACT_ITEMS = [
   { icon: MapPin, text: "Kolkata, India", href: null },
   {
     icon: Mail,
@@ -29,6 +35,19 @@ const CONTACT_ITEMS = [
 ];
 
 export function SiteFooter() {
+  const socialLinks = [
+    {
+      label: "Facebook",
+      href: process.env.NEXT_PUBLIC_FACEBOOK_URL,
+      icon: FacebookIcon,
+    },
+    {
+      label: "Instagram",
+      href: process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+      icon: InstagramIcon,
+    },
+  ].filter((link): link is typeof link & { href: string } => !!link.href);
+
   return (
     <footer className="footer-surface border-t border-border bg-card">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
@@ -45,22 +64,20 @@ export function SiteFooter() {
               Where talent meets opportunity. We connect job seekers with the
               right employers and help careers begin.
             </p>
-            <div className="mt-5 flex items-center gap-3">
-              <Link
-                href="https://facebook.com"
-                aria-label="JobClubb on Facebook"
-                className="flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand hover:text-brand sm:size-9"
-              >
-                <FacebookIcon className="size-4" />
-              </Link>
-              <Link
-                href="https://instagram.com"
-                aria-label="JobClubb on Instagram"
-                className="flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand hover:text-brand sm:size-9"
-              >
-                <InstagramIcon className="size-4" />
-              </Link>
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="mt-5 flex items-center gap-3">
+                {socialLinks.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={label}
+                    href={href}
+                    aria-label={`JobClubb on ${label}`}
+                    className="flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand hover:text-brand sm:size-9"
+                  >
+                    <Icon className="size-4" />
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           <FooterColumn title="Quick links" links={QUICK_LINKS} />
@@ -100,7 +117,18 @@ export function SiteFooter() {
             </span>{" "}
             © {new Date().getFullYear()}. All rights reserved.
           </p>
-          <p>Where careers begin and businesses thrive.</p>
+          <ul className="flex flex-wrap gap-x-5 gap-y-1">
+            {LEGAL_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className="-my-1 inline-block py-1 transition-colors hover:text-brand"
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </footer>
