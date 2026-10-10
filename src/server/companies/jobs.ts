@@ -123,11 +123,13 @@ export type PublicJob = CompanyJob & {
   companyLogoUrl: string | null;
 };
 
-type PublicJobRow = JobRow & {
+export type PublicJobRow = JobRow & {
   companies: { company_name: string; logo_path: string | null } | null;
 };
 
-function toPublicJob(row: PublicJobRow): PublicJob {
+export const PUBLIC_JOB_COLUMNS = `${COLUMNS}, companies (company_name, logo_path)`;
+
+export function toPublicJob(row: PublicJobRow): PublicJob {
   return {
     ...toJob(row),
     companyName: row.companies?.company_name ?? "",
@@ -139,7 +141,7 @@ function toPublicJob(row: PublicJobRow): PublicJob {
 export async function listLiveJobs(limit?: number): Promise<PublicJob[]> {
   let query = createAdminClient()
     .from("company_jobs")
-    .select(`${COLUMNS}, companies (company_name, logo_path)`)
+    .select(PUBLIC_JOB_COLUMNS)
     .eq("status", "live")
     .order("created_at", { ascending: false });
   if (limit) query = query.limit(limit);
@@ -152,7 +154,7 @@ export async function getLiveJobBySlug(slug: string): Promise<PublicJob | null> 
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null;
   const { data, error } = await createAdminClient()
     .from("company_jobs")
-    .select(`${COLUMNS}, companies (company_name, logo_path)`)
+    .select(PUBLIC_JOB_COLUMNS)
     .eq("slug", slug)
     .eq("status", "live")
     .maybeSingle();

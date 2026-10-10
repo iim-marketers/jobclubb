@@ -5,7 +5,7 @@ import { DashboardHeader, StatTile } from "@/components/candidate/dashboard-ui";
 import { JobsList } from "@/components/company/jobs-list";
 import { COMPANY_JOBS } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
-import { applicantsFor } from "@/lib/company-activity";
+import { listCompanyApplicants } from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
 import { listCompanyJobs } from "@/server/companies/jobs";
 
@@ -13,7 +13,13 @@ export const metadata = { title: "Job postings — JobClubb" };
 
 export default async function JobPostingsPage() {
   const company = await requireCompany(COMPANY_JOBS);
-  const jobs = await listCompanyJobs(company.id);
+  const [jobs, applicants] = await Promise.all([
+    listCompanyJobs(company.id),
+    listCompanyApplicants(company.id),
+  ]);
+  const applicantCounts = new Map<string, number>();
+  for (const a of applicants)
+    applicantCounts.set(a.jobId, (applicantCounts.get(a.jobId) ?? 0) + 1);
   const live = jobs.filter((j) => j.status === "live");
 
   return (
@@ -63,7 +69,10 @@ export default async function JobPostingsPage() {
       </div>
 
       <JobsList
-        jobs={jobs.map((j) => ({ ...j, applicants: applicantsFor(j.id).length }))}
+        jobs={jobs.map((j) => ({
+          ...j,
+          applicants: applicantCounts.get(j.id) ?? 0,
+        }))}
       />
     </div>
   );

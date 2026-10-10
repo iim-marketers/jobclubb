@@ -19,7 +19,6 @@ import { EmptyState, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
 import {
-  APPLICATIONS,
   GUARANTEED_INTERVIEWS,
   SAVED_JOBS,
   formatInterviewDate,
@@ -33,6 +32,7 @@ import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
 import type { Resume } from "@/lib/resume";
+import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 import { getSavedResume } from "@/server/resume/ats-resume";
@@ -61,31 +61,33 @@ export default async function CandidateDashboard() {
   const sector = industry?.name;
   const now = new Date();
 
-  const [photoUrl, saved] = await Promise.all([
+  const [photoUrl, saved, applications] = await Promise.all([
     getCandidatePhotoUrl(candidate.photo_path),
     getSavedResume(candidate.id),
+    listCandidateApplications(candidate.id),
   ]);
   const checklist = profileChecklist(saved?.resume, !!candidate.photo_path);
   const completed = checklist.filter((c) => c.done).length;
   const strength = Math.round((completed / checklist.length) * 100);
 
-  const inReview = APPLICATIONS.filter((a) => a.status === "active").length;
+  const inReview = applications.filter((a) => a.status === "active").length;
+  const viewed = applications.filter((a) => a.stage >= 1).length;
   const upcoming = upcomingInterviews(now);
   const weekAhead = upcoming.filter(
     (i) => +new Date(i.startsAt) - +now < 7 * 86_400_000,
   ).length;
-  const recent = APPLICATIONS.slice(0, 4);
+  const recent = applications.slice(0, 4);
   const stats = [
     {
       label: "Applications sent",
-      value: APPLICATIONS.length,
+      value: applications.length,
       note: "Since you joined",
       icon: Send,
     },
     {
       label: "Profile views",
-      value: "—",
-      note: "Shows once employers view you",
+      value: viewed || "—",
+      note: viewed ? "Employers who opened your profile" : "Shows once employers view you",
       icon: Eye,
     },
     {

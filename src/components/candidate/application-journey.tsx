@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Search, Send } from "lucide-react";
 
-import { Panel, StageMeter } from "@/components/candidate/dashboard-ui";
+import { Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,7 @@ export function ApplicationJourney({
                   key={id}
                   className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5"
                 >
-                  <CompanyAvatar name={job.company} />
+                  <CompanyAvatar name={job.company} logoUrl={job.companyLogoUrl} />
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`${CANDIDATE_HOME}/applications/${id}`}
@@ -82,25 +82,22 @@ export function ApplicationJourney({
                       {formatShortDate(appliedOn)}
                     </p>
                   </div>
-                  <div className="flex w-full items-center gap-3 pl-14 sm:w-auto sm:pl-0">
-                    <StageMeter stage={stage} closed={closed} />
-                    <span
-                      className={cn(
-                        "w-20 text-right font-head text-xs font-bold",
-                        closed
-                          ? "text-muted-foreground"
-                          : stage >= 3
-                            ? "text-good"
-                            : "text-brand",
-                      )}
-                    >
-                      {status === "rejected"
-                        ? "Not selected"
-                        : closed
-                          ? "Closed"
-                          : STAGES[stage]}
-                    </span>
-                  </div>
+                  <span
+                    className={cn(
+                      "ml-14 rounded-full px-2.5 py-0.5 font-head text-xs font-bold whitespace-nowrap sm:ml-0",
+                      closed
+                        ? "bg-muted text-muted-foreground"
+                        : stage >= 3
+                          ? "bg-good/12 text-good"
+                          : "bg-brand/10 text-brand",
+                    )}
+                  >
+                    {status === "rejected"
+                      ? "Not selected"
+                      : closed
+                        ? "Closed"
+                        : STAGES[stage]}
+                  </span>
                 </li>
               );
             })}
@@ -130,11 +127,6 @@ export function ApplicationJourney({
                       </>
                     )}
                   </div>
-                  <StageMeter
-                    stage={-1}
-                    className="hidden opacity-60 sm:flex"
-                  />
-                  <span className="hidden w-20 sm:block" />
                 </li>
               ),
             )}

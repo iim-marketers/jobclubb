@@ -34,7 +34,6 @@ import {
   formatInterviewTime,
 } from "@/lib/candidate-activity";
 import {
-  APPLICANTS,
   STAGES,
   upcomingCompanyInterviews,
   type CompanyInterview,
@@ -42,6 +41,7 @@ import {
 import { industryName, type CompanyJob } from "@/lib/company-jobs";
 import { greeting } from "@/lib/greeting";
 import { cn } from "@/lib/utils";
+import { listCompanyApplicants } from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
 import { listCompanyJobs } from "@/server/companies/jobs";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
@@ -50,11 +50,12 @@ export const metadata = { title: "Company dashboard — JobClubb" };
 
 export default async function CompanyDashboard() {
   const company = await requireCompany(COMPANY_HOME);
-  const jobs = await listCompanyJobs(company.id);
+  const [jobs, applicants] = await Promise.all([
+    listCompanyJobs(company.id),
+    listCompanyApplicants(company.id),
+  ]);
   const now = new Date();
 
-  const ownJobs = new Set(jobs.map((j) => j.id));
-  const applicants = APPLICANTS.filter((a) => ownJobs.has(a.jobId));
   const active = applicants.filter((a) => a.status === "active");
   const live = jobs.filter((j) => j.status === "live");
   const upcoming = upcomingCompanyInterviews(now);

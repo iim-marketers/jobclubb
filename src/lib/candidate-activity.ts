@@ -1,6 +1,3 @@
-// TODO: load the candidate's real applications, saved jobs and interviews
-// once those tables exist. Until then the dashboard renders empty states.
-
 import type { JobListing } from "@/lib/jobs-data";
 
 export const STAGES = [
@@ -24,20 +21,10 @@ export type Application = {
   history: { label: string; date: string }[];
 };
 
-export const APPLICATIONS: Application[] = [];
-
-export function getApplication(id: string) {
-  return APPLICATIONS.find((a) => a.id === id);
-}
-
 export function applicationStatus(a: Application) {
   if (a.status === "closed") return "Job closed";
   if (a.status === "rejected") return "Not selected";
   return STAGES[a.stage];
-}
-
-export function applicationFor(jobSlug: string) {
-  return APPLICATIONS.find((a) => a.job.slug === jobSlug);
 }
 
 export function interviewsFor(jobSlug: string) {
@@ -59,6 +46,7 @@ export type Interview = {
   company: string;
   role: string;
   jobSlug: string;
+  applicationId?: string;
   startsAt: string;
   durationMins: number;
   mode: InterviewMode;

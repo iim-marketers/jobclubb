@@ -32,7 +32,6 @@ import { Button } from "@/components/ui/button";
 import {
   GUARANTEED_INTERVIEWS,
   INTERVIEWS,
-  applicationFor,
   formatInterviewTime,
   pastInterviews,
   upcomingInterviews,
@@ -297,7 +296,6 @@ function NextInterview({
   now: Date;
 }) {
   const ModeIcon = MODE_ICONS[i.mode];
-  const application = applicationFor(i.jobSlug);
 
   return (
     <section
@@ -405,14 +403,14 @@ function NextInterview({
               <Navigation className="size-4" /> Directions
             </Button>
           )}
-          {application && (
+          {i.applicationId && (
             <Button
               variant="ghost"
               className="font-head text-brand"
               nativeButton={false}
               render={
                 <Link
-                  href={`${CANDIDATE_HOME}/applications/${application.id}`}
+                  href={`${CANDIDATE_HOME}/applications/${i.applicationId}`}
                 />
               }
             >
@@ -495,7 +493,6 @@ function AgendaItem({
   past?: boolean;
 }) {
   const ModeIcon = MODE_ICONS[i.mode];
-  const application = applicationFor(i.jobSlug);
 
   return (
     <li className="flex gap-3 sm:gap-4">
@@ -574,9 +571,9 @@ function AgendaItem({
               Directions
             </a>
           )}
-          {application && (
+          {i.applicationId && (
             <Link
-              href={`${CANDIDATE_HOME}/applications/${application.id}`}
+              href={`${CANDIDATE_HOME}/applications/${i.applicationId}`}
               className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
             >
               View application

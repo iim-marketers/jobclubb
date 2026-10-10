@@ -11,16 +11,18 @@ import { ApplicationsTable } from "@/components/candidate/applications-table";
 import { DashboardHeader, StatTile } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
-import { APPLICATIONS, STAGES } from "@/lib/candidate-activity";
+import { STAGES } from "@/lib/candidate-activity";
 import { cn } from "@/lib/utils";
+import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 
 export const metadata = { title: "Applications — JobClubb" };
 
 export default async function ApplicationsPage() {
-  await requireMember(`${CANDIDATE_HOME}/applications`);
+  const candidate = await requireMember(`${CANDIDATE_HOME}/applications`);
+  const applications = await listCandidateApplications(candidate.id);
 
-  const active = APPLICATIONS.filter((a) => a.status === "active");
+  const active = applications.filter((a) => a.status === "active");
   const interviewing = active.filter((a) => a.stage >= 3).length;
   const pipeline = STAGES.map(
     (_, i) => active.filter((a) => a.stage >= i).length,
@@ -46,7 +48,7 @@ export default async function ApplicationsPage() {
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatTile
           label="Total applied"
-          value={APPLICATIONS.length}
+          value={applications.length}
           note="Since you joined"
           icon={Send}
         />
@@ -66,10 +68,10 @@ export default async function ApplicationsPage() {
         <StatTile
           label="Response rate"
           value={
-            APPLICATIONS.length
+            applications.length
               ? `${Math.round(
-                  (APPLICATIONS.filter((a) => a.stage >= 1).length /
-                    APPLICATIONS.length) *
+                  (applications.filter((a) => a.stage >= 1).length /
+                    applications.length) *
                     100,
                 )}%`
               : "—"
@@ -80,7 +82,7 @@ export default async function ApplicationsPage() {
         />
       </div>
 
-      <ApplicationsTable applications={APPLICATIONS} />
+      <ApplicationsTable applications={applications} />
     </div>
   );
 }

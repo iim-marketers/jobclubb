@@ -61,6 +61,15 @@ Without these secrets, deletes still work but the files stay in Storage. The dat
 
 Company sign-ups land in `public.companies`, with the proof document in the private `company-proofs` bucket. `status` moves from `pending_email` to `verified` (corporate email on the company's domain) or `pending_review` (personal email or mismatched domain) once the email is confirmed. Approve a reviewed company by setting its `status` to `verified`, or `rejected`. Only `verified` companies can sign in. Deleting a company also deletes its login and files.
 
+### Job applications
+
+Members apply from a job page into `public.job_applications`. The table has no RLS policies: only the server (secret key) reads or writes it, because a company must never see `candidate_id`, the candidate's email or phone, or the unmasked resume.
+
+- Applying snapshots the resume twice: `resume` (as written) and `masked_resume` (name, email, phone and LinkedIn links replaced). Company pages only ever read `masked_resume`, `skills`, `city` and `experience_months`.
+- Shortlisting rebuilds `masked_resume` with the name restored, and company pages then show the name. Email and phone stay hidden at every stage.
+- `job_title`, `company_name` and `candidate_name` are filled in by the insert trigger and kept in step by triggers on `company_jobs`, `companies` and `candidates`. They are for reading the table in the dashboard; company pages never select `candidate_name`.
+- `stage` follows Applied (0) → Viewed (1) → Shortlisted (2) → Interview (3) → Offer (4), and check constraints require the matching `viewed_at` / `shortlisted_at` / `rejected_at` timestamps. An insert trigger takes `company_id` from the job and rejects jobs that aren't `live`.
+
 ## 3. Auth settings (dashboard → Authentication)
 
 - **URL Configuration:** set **Site URL** to `https://www.jobclubb.com` (use `http://localhost:3000` only for local testing). Add `https://www.jobclubb.com/auth/confirm` and `http://localhost:3000/auth/confirm` to **Redirect URLs**.

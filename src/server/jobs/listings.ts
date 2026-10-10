@@ -14,7 +14,7 @@ import {
 
 const DAY = 24 * 60 * 60 * 1000;
 
-function postedAgo(iso: string) {
+export function postedAgo(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / DAY);
   if (days < 1) return "Today";
   if (days === 1) return "1 day ago";
@@ -25,7 +25,7 @@ function postedAgo(iso: string) {
   return months <= 1 ? "1 month ago" : `${months} months ago`;
 }
 
-function toListing(job: PublicJob): JobListing {
+export function toListing(job: PublicJob): JobListing {
   return {
     slug: job.slug,
     title: job.role,

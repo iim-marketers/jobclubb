@@ -185,7 +185,7 @@ function SavedCard({
   return (
     <li className="group relative flex min-w-0 flex-col rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg hover:shadow-brand/5">
       <div className="flex items-start gap-3">
-        <CompanyAvatar name={job.company} />
+        <CompanyAvatar name={job.company} logoUrl={job.companyLogoUrl} />
         <div className="min-w-0 flex-1">
           <Link
             href={`/jobs/${job.slug}`}

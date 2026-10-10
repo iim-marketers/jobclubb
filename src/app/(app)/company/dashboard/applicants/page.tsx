@@ -10,13 +10,12 @@ import {
 import {
   DashboardHeader,
   EmptyState,
-  Panel,
   StatTile,
 } from "@/components/candidate/dashboard-ui";
 import { ApplicantsTable, IdentityNotice } from "@/components/company/applicants-table";
 import { COMPANY_HOME, COMPANY_JOBS } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
-import { APPLICANTS } from "@/lib/company-activity";
+import { listCompanyApplicants } from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
 import { listCompanyJobs } from "@/server/companies/jobs";
 
@@ -24,9 +23,11 @@ export const metadata = { title: "Applicants — JobClubb" };
 
 export default async function ApplicantsPage() {
   const company = await requireCompany(`${COMPANY_HOME}/applicants`);
-  const jobs = await listCompanyJobs(company.id);
-  const jobTitles = new Map(jobs.map((j) => [j.id, j.designation]));
-  const applicants = APPLICANTS.filter((a) => jobTitles.has(a.jobId));
+  const [jobs, applicants] = await Promise.all([
+    listCompanyJobs(company.id),
+    listCompanyApplicants(company.id),
+  ]);
+  const jobTitles = Object.fromEntries(jobs.map((j) => [j.id, j.designation]));
   const active = applicants.filter((a) => a.status === "active");
   const hasLive = jobs.some((j) => j.status === "live");
 
@@ -82,17 +83,10 @@ export default async function ApplicantsPage() {
         >
           {hasLive
             ? "Members who apply to your live postings will show up here."
-            : "Once a posting is approved and live, members who apply will show up here."}
+            : "Once you post a job, members who apply will show up here."}
         </EmptyState>
       ) : (
-        <Panel title="All applicants" description="Newest first">
-          <ApplicantsTable
-            applicants={[...applicants].sort((a, b) =>
-              b.appliedOn.localeCompare(a.appliedOn),
-            )}
-            jobTitles={jobTitles}
-          />
-        </Panel>
+        <ApplicantsTable applicants={applicants} jobTitles={jobTitles} />
       )}
 
       <IdentityNotice />

@@ -30,7 +30,7 @@ import {
   type Column,
 } from "@tanstack/react-table";
 
-import { EmptyState, StageMeter } from "@/components/candidate/dashboard-ui";
+import { EmptyState } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
@@ -101,6 +101,7 @@ const columns = helper.columns([
         <div className="flex min-w-0 items-center gap-3">
           <CompanyAvatar
             name={a.job.company}
+            logoUrl={a.job.companyLogoUrl}
             className={cn("size-9", archived && "opacity-60 grayscale")}
           />
           <div className="min-w-0">
@@ -154,25 +155,18 @@ const columns = helper.columns([
       const a = row.original;
       const archived = a.status !== "active";
       return (
-        <div className="flex items-center gap-3">
-          <StageMeter
-            stage={a.stage}
-            closed={archived}
-            className="w-20 flex-none sm:w-20"
-          />
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 font-head text-[11px] font-bold",
-              archived
-                ? "bg-muted text-muted-foreground"
-                : a.stage >= 3
-                  ? "bg-good/12 text-good"
-                  : "bg-brand/10 text-brand",
-            )}
-          >
-            {applicationStatus(a)}
-          </span>
-        </div>
+        <span
+          className={cn(
+            "rounded-full px-2 py-0.5 font-head text-[11px] font-bold whitespace-nowrap",
+            archived
+              ? "bg-muted text-muted-foreground"
+              : a.stage >= 3
+                ? "bg-good/12 text-good"
+                : "bg-brand/10 text-brand",
+          )}
+        >
+          {applicationStatus(a)}
+        </span>
       );
     },
   }),
