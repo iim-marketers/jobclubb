@@ -5,13 +5,15 @@ import { DashboardHeader } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { SavedJobsGrid } from "@/components/candidate/saved-jobs-grid";
 import { Button } from "@/components/ui/button";
-import { APPLICATIONS, SAVED_JOBS } from "@/lib/candidate-activity";
+import { SAVED_JOBS } from "@/lib/candidate-activity";
+import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 
 export const metadata = { title: "Saved jobs — JobClubb" };
 
 export default async function SavedJobsPage() {
-  await requireMember(`${CANDIDATE_HOME}/saved`);
+  const candidate = await requireMember(`${CANDIDATE_HOME}/saved`);
+  const applications = await listCandidateApplications(candidate.id);
   const closingSoon = SAVED_JOBS.filter((s) => s.closesInDays <= 5).length;
 
   return (
@@ -46,7 +48,7 @@ export default async function SavedJobsPage() {
 
       <SavedJobsGrid
         saved={SAVED_JOBS}
-        appliedSlugs={APPLICATIONS.map((a) => a.job.slug)}
+        appliedSlugs={applications.map((a) => a.job.slug)}
       />
     </div>
   );

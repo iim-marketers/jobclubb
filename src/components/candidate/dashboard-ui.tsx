@@ -1,4 +1,3 @@
-import { STAGES } from "@/lib/candidate-activity";
 import { cn } from "@/lib/utils";
 
 export function DashboardHeader({
@@ -130,44 +129,6 @@ export function Chip({
       {Icon && <Icon className="size-3 flex-none" />}
       <span className="truncate">{children}</span>
     </span>
-  );
-}
-
-export function StageMeter({
-  stage,
-  closed,
-  className,
-}: {
-  stage: number;
-  closed?: boolean;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn("flex flex-1 gap-1 sm:w-28 sm:flex-none", className)}
-      role="img"
-      aria-label={
-        closed
-          ? "Closed"
-          : `Stage ${stage + 1} of ${STAGES.length}: ${STAGES[stage]}`
-      }
-    >
-      {STAGES.map((s, i) => (
-        <span
-          key={s}
-          className={cn(
-            "h-1.5 flex-1 rounded-full",
-            closed
-              ? "bg-muted-foreground/25"
-              : i <= stage
-                ? stage >= 3
-                  ? "bg-good"
-                  : "bg-brand"
-                : "bg-muted",
-          )}
-        />
-      ))}
-    </div>
   );
 }
 

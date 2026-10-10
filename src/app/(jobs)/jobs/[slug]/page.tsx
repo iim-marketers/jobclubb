@@ -4,7 +4,9 @@ import {
   ArrowLeft,
   Briefcase,
   Check,
+  CircleCheck,
   Clock,
+  FileText,
   IndianRupee,
   Lock,
   MapPin,
@@ -12,12 +14,22 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { ApplyNowButton } from "@/components/apply-now-button";
+import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
-import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
+import {
+  getApplyState,
+  type ApplyState,
+} from "@/server/applications/candidate";
+import {
+  CHECKOUT_PATH,
+  getCurrentCandidate,
+  getJobAccess,
+} from "@/server/auth/current-candidate";
 import { getJob } from "@/server/jobs/listings";
 import { sanitizeRichText } from "@/server/rich-text";
 
@@ -35,6 +47,8 @@ export default async function JobDetailPage({
   const unlock = access.signedIn
     ? { href: CHECKOUT_PATH, label: "Complete payment to apply" }
     : { href: "/sign-up", label: "Join to apply" };
+  const candidate = access.member ? await getCurrentCandidate() : null;
+  const applyState = candidate ? await getApplyState(candidate.id, slug) : null;
 
   return (
     <section className="px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
@@ -67,10 +81,10 @@ export default async function JobDetailPage({
                   </p>
                 </div>
               )}
-              <ApplyButton member={access.member} unlock={unlock} />
+              <ApplyButton slug={slug} state={applyState} unlock={unlock} />
               <p className="mt-3 text-xs leading-5 text-muted-foreground">
-                Your application goes straight to the employer, with no
-                intermediaries.
+                One click sends your resume to the employer. Track every step
+                from your dashboard.
               </p>
             </div>
             <PrivacyNote />
@@ -89,7 +103,8 @@ export default async function JobDetailPage({
             </div>
           )}
           <ApplyButton
-            member={access.member}
+            slug={slug}
+            state={applyState}
             unlock={unlock}
             className={access.member ? "w-auto" : "w-full"}
           />
@@ -245,22 +260,45 @@ function LockedDetails({
 }
 
 function ApplyButton({
-  member,
+  slug,
+  state,
   unlock,
   className = "w-full",
 }: {
-  member: boolean;
+  slug: string;
+  state: ApplyState | null;
   unlock: { href: string; label: string };
   className?: string;
 }) {
-  if (member) {
-    // TODO: wire up one-click apply once applications are stored.
+  if (state?.kind === "ready")
+    return <ApplyNowButton slug={slug} className={cn(BRAND_BUTTON, className)} />;
+
+  if (state?.kind === "applied")
     return (
-      <Button className={cn(BRAND_BUTTON, className)} disabled>
-        Apply — coming soon
+      <Button
+        variant="outline"
+        className={cn("font-head", className)}
+        nativeButton={false}
+        render={
+          <Link href={`${CANDIDATE_HOME}/applications/${state.ref}`} />
+        }
+      >
+        <CircleCheck className="size-4 text-good" />
+        Applied · View status
       </Button>
     );
-  }
+
+  if (state?.kind === "no-resume")
+    return (
+      <Button
+        className={cn(BRAND_BUTTON, className)}
+        nativeButton={false}
+        render={<Link href={`${CANDIDATE_HOME}/resume`} />}
+      >
+        <FileText className="size-4" />
+        Build your resume to apply
+      </Button>
+    );
 
   return (
     <Button
@@ -278,8 +316,9 @@ function PrivacyNote() {
     <div className="flex gap-3 rounded-2xl bg-muted/50 p-4">
       <ShieldCheck className="mt-0.5 size-4 flex-none text-brand" />
       <p className="text-xs leading-5 text-muted-foreground">
-        Employers see only your skills and experience. Your name and contact
-        details stay hidden until you choose to reveal them.
+        Employers see your skills and experience first. Your name is shared
+        only if they shortlist you, and your phone number and email are never
+        shared.
       </p>
     </div>
   );

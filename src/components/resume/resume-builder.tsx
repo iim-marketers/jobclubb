@@ -11,7 +11,6 @@ import {
   Field,
   FieldError,
   FileField,
-  SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
@@ -83,12 +82,10 @@ function MoreOptions({
 export function ResumeBuilder({
   targetRole,
   jobDescription,
-  roleSuggestions,
   hasResume,
 }: {
   targetRole: string;
   jobDescription: string;
-  roleSuggestions: string[];
   hasResume: boolean;
 }) {
   const [state, formAction, pending] = useActionState<
@@ -100,12 +97,6 @@ export function ResumeBuilder({
     state.fieldErrors,
     state.error,
   );
-  const roleOptions = (
-    targetRole && !roleSuggestions.includes(targetRole)
-      ? [targetRole, ...roleSuggestions]
-      : roleSuggestions
-  ).map((role) => ({ value: role, label: role }));
-
   const jobDescriptionField = (
     <TextareaField
       id="jobDescription"
@@ -145,28 +136,15 @@ export function ResumeBuilder({
       }}
       className="space-y-5"
     >
-      {roleOptions.length > 0 ? (
-        <SelectField
-          id="targetRole"
-          label="Role you're applying for"
-          required
-          options={roleOptions}
-          defaultValue={targetRole || undefined}
-          placeholder="Select a role"
-          onValueChange={() => clear("targetRole")}
-          error={errors.targetRole}
-        />
-      ) : (
-        <Field
-          id="targetRole"
-          label="Role you're applying for"
-          required
-          defaultValue={targetRole}
-          maxLength={120}
-          placeholder="e.g. Front Office Executive"
-          error={errors.targetRole}
-        />
-      )}
+      <Field
+        id="targetRole"
+        label="Role you're applying for"
+        required
+        defaultValue={targetRole}
+        maxLength={120}
+        placeholder="e.g. Front Office Executive"
+        error={errors.targetRole}
+      />
 
       {hasResume ? (
         <>

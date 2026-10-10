@@ -20,19 +20,24 @@ import {
   applicationStatus,
   formatInterviewDate,
   formatInterviewTime,
-  getApplication,
   interviewsFor,
   type Application,
 } from "@/lib/candidate-activity";
+import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
-import { requireMember } from "@/server/auth/current-candidate";
+import { getCandidateApplication } from "@/server/applications/candidate";
+import { sanitizeRichText } from "@/server/rich-text";
+import {
+  getCurrentCandidate,
+  requireMember,
+} from "@/server/auth/current-candidate";
 
 const APPLICATIONS_PATH = `${CANDIDATE_HOME}/applications`;
 
 const NEXT_STEPS = [
   "Your application has been delivered. Most employers open new applications within 3 days, and you'll be notified the moment they do.",
   "The recruiter has seen your profile. Keep your resume up to date, since shortlisting usually happens within a week of the first view.",
-  "You're on the shortlist. Watch your email and phone: the employer will reach out to schedule an interview.",
+  "You're on the shortlist. When the employer proposes an interview time, JobClubb will contact you to confirm it before it's scheduled.",
   "Your interview is set. Use the prep checklist on the Interviews page and join 5 minutes early.",
   "Congratulations! Review the offer details and reply to the employer before the deadline they share.",
 ];
@@ -40,7 +45,10 @@ const NEXT_STEPS = [
 export async function generateMetadata({
   params,
 }: PageProps<"/candidate/dashboard/applications/[id]">) {
-  const application = getApplication((await params).id);
+  const candidate = await getCurrentCandidate();
+  const application = candidate
+    ? await getCandidateApplication(candidate.id, (await params).id)
+    : null;
   return {
     title: application
       ? `${application.job.designation} at ${application.job.company} — JobClubb`
@@ -52,8 +60,8 @@ export default async function ApplicationDetailPage({
   params,
 }: PageProps<"/candidate/dashboard/applications/[id]">) {
   const { id } = await params;
-  await requireMember(`${APPLICATIONS_PATH}/${id}`);
-  const application = getApplication(id);
+  const candidate = await requireMember(`${APPLICATIONS_PATH}/${id}`);
+  const application = await getCandidateApplication(candidate.id, id);
   if (!application) notFound();
 
   const { job } = application;
@@ -74,6 +82,7 @@ export default async function ApplicationDetailPage({
         <div className="flex flex-col gap-5 md:flex-row md:items-start">
           <CompanyAvatar
             name={job.company}
+            logoUrl={job.companyLogoUrl}
             className={cn(
               "size-16 rounded-2xl text-lg",
               archived && "opacity-60 grayscale",
@@ -94,7 +103,7 @@ export default async function ApplicationDetailPage({
                 {applicationStatus(application)}
               </span>
               <span className="font-head text-xs font-semibold text-muted-foreground">
-                Application #{application.id}
+                Application {application.id}
               </span>
             </div>
             <h1 className="mt-2 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
@@ -108,7 +117,8 @@ export default async function ApplicationDetailPage({
                 <MapPin className="size-3.5" /> {job.location}
               </span>
               <span className="flex items-center gap-1">
-                <Clock className="size-3.5" /> Updated {application.updatedAgo}
+                <Clock className="size-3.5" /> Updated{" "}
+                {application.updatedAgo.toLowerCase()}
               </span>
             </p>
           </div>
@@ -195,11 +205,13 @@ export default async function ApplicationDetailPage({
             </Panel>
           )}
 
-          <Panel
-            title="About the role"
-            description={job.description}
-            className="flex-1"
-          >
+          <Panel title="About the role" className="flex-1">
+            <div
+              className="rich-text mb-6 text-sm leading-7 text-muted-foreground"
+              dangerouslySetInnerHTML={{
+                __html: sanitizeRichText(toRichTextHtml(job.description)),
+              }}
+            />
             <div className="grid gap-6 sm:grid-cols-2">
               <DetailList
                 title="Responsibilities"
@@ -301,7 +313,7 @@ function StageStepper({ application: a }: { application: Application }) {
   return (
     <ol
       aria-label="Application progress"
-      className="mt-7 grid grid-cols-5 border-t border-border pt-6"
+      className="mt-7 grid grid-cols-5 pt-2"
     >
       {STAGES.map((stage, i) => {
         const reached = i <= a.stage;

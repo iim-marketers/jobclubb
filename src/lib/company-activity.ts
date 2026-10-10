@@ -1,15 +1,14 @@
-// TODO: load real applicants and interviews once applications are stored.
-// Until then the company dashboard renders empty states for them.
-
 import { STAGES, type InterviewMode } from "@/lib/candidate-activity";
 
 export { STAGES };
 
-// SOP §4.2: companies see skills and experience only, never candidate PII.
+// SOP §4.2: companies see skills and experience only. The name is filled in
+// once they shortlist; email and phone are never part of this type.
 export type Applicant = {
   ref: string;
   jobId: string;
-  experienceYears: number;
+  name: string | null;
+  experienceMonths: number;
   city: string;
   skills: string[];
   stage: number;
@@ -17,10 +16,11 @@ export type Applicant = {
   appliedOn: string;
 };
 
-export const APPLICANTS: Applicant[] = [];
-
-export function applicantsFor(jobId: string) {
-  return APPLICANTS.filter((a) => a.jobId === jobId);
+export function formatExperienceMonths(months: number) {
+  if (months === 0) return "Fresher";
+  if (months < 12) return `${months} ${months === 1 ? "month" : "months"}`;
+  const years = Math.floor(months / 12);
+  return `${years}${months % 12 ? "+" : ""} ${years === 1 ? "year" : "years"}`;
 }
 
 export type CompanyInterview = {

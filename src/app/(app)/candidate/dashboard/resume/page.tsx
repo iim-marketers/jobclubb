@@ -13,7 +13,6 @@ import {
   resumeToText,
   type ResumeContact,
 } from "@/lib/resume";
-import { INDUSTRIES } from "@/lib/taxonomy";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
@@ -23,7 +22,6 @@ export const maxDuration = 60;
 
 export default async function ResumePage() {
   const candidate = await requireMember(`${CANDIDATE_HOME}/resume`);
-  const industry = INDUSTRIES.find((v) => v.slug === candidate.industry);
   const saved = await getSavedResume(candidate.id);
 
   const contact: ResumeContact = {
@@ -39,9 +37,8 @@ export default async function ResumePage() {
   const builder = (
     <ResumeBuilder
       key={saved?.generatedAt ?? "new"}
-      targetRole={saved?.targetRole ?? industry?.roles[0] ?? ""}
+      targetRole={saved?.targetRole ?? ""}
       jobDescription={saved?.jobDescription ?? ""}
-      roleSuggestions={industry?.roles ?? []}
       hasResume={!!saved}
     />
   );

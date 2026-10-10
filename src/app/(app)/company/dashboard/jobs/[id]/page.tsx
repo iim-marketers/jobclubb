@@ -18,7 +18,6 @@ import { JobOpenToggle } from "@/components/company/job-open-toggle";
 import { JobStatusPill } from "@/components/company/job-status";
 import { COMPANY_JOBS } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
-import { applicantsFor } from "@/lib/company-activity";
 import {
   formatExperience,
   formatPostedDate,
@@ -27,6 +26,7 @@ import {
   type JobStatus,
 } from "@/lib/company-jobs";
 import { cn } from "@/lib/utils";
+import { listCompanyApplicants } from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyJob } from "@/server/companies/jobs";
 import { sanitizeRichText } from "@/server/rich-text";
@@ -55,7 +55,7 @@ export default async function JobDetailPage({
   const job = await getCompanyJob(company.id, id);
   if (!job) notFound();
 
-  const applicants = applicantsFor(job.id);
+  const applicants = await listCompanyApplicants(company.id, job.id);
   const closed = job.status === "closed";
 
   return (
