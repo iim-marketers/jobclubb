@@ -10,6 +10,7 @@ import {
   formatShortDate,
   type Application,
 } from "@/lib/candidate-activity";
+import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
 
 const MIN_ROWS = 4;
@@ -85,11 +86,13 @@ export function ApplicationJourney({
                   <span
                     className={cn(
                       "ml-14 rounded-full px-2.5 py-0.5 font-head text-xs font-bold whitespace-nowrap sm:ml-0",
-                      closed
-                        ? "bg-muted text-muted-foreground"
-                        : stage >= 3
-                          ? "bg-good/12 text-good"
-                          : "bg-brand/10 text-brand",
+                      status === "rejected"
+                        ? NOT_SELECTED_BADGE
+                        : closed
+                          ? "bg-muted text-muted-foreground"
+                          : stage >= 3
+                            ? "bg-good/12 text-good"
+                            : "bg-brand/10 text-brand",
                     )}
                   >
                     {status === "rejected"

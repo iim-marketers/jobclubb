@@ -234,15 +234,17 @@ export default async function CandidateDashboard() {
                 ))}
               </ul>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-5 w-full font-head"
-              nativeButton={false}
-              render={<Link href={`${CANDIDATE_HOME}/resume`} />}
-            >
-              Complete profile
-            </Button>
+            {strength < 100 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-5 w-full font-head"
+                nativeButton={false}
+                render={<Link href={`${CANDIDATE_HOME}/resume`} />}
+              >
+                Complete profile
+              </Button>
+            )}
           </Panel>
 
           <Panel
@@ -387,12 +389,14 @@ function ProfileSummary({
         <div className="mt-auto pt-6">
           <div className="flex items-baseline justify-between gap-3 text-sm">
             <p className="font-head font-bold">Profile {strength}% complete</p>
-            <Link
-              href={`${CANDIDATE_HOME}/resume`}
-              className="flex-none font-head text-xs font-bold text-white/80 underline-offset-4 hover:text-white hover:underline"
-            >
-              Complete profile
-            </Link>
+            {strength < 100 && (
+              <Link
+                href={`${CANDIDATE_HOME}/resume`}
+                className="flex-none font-head text-xs font-bold text-white/80 underline-offset-4 hover:text-white hover:underline"
+              >
+                Complete profile
+              </Link>
+            )}
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
             <div

@@ -49,6 +49,7 @@ import {
   type Applicant,
 } from "@/lib/company-activity";
 import { cn } from "@/lib/utils";
+import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 
 export const applicantHref = (ref: string) =>
   `${COMPANY_HOME}/applicants/${ref}`;
@@ -202,7 +203,7 @@ const columns = helper.columns([
             className={cn(
               "rounded-full px-2 py-0.5 font-head text-[11px] font-bold whitespace-nowrap",
               rejected
-                ? "bg-muted text-muted-foreground"
+                ? NOT_SELECTED_BADGE
                 : a.stage >= 2
                   ? "bg-good/12 text-good"
                   : "bg-brand/10 text-brand",
@@ -434,36 +435,34 @@ export function ApplicantsTable({
             </TableBody>
           </Table>
 
-          {total > PAGE_SIZE && (
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5">
-              <p className="text-xs text-muted-foreground">
-                Showing {from}–{to} of {total}
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  Page {pageIndex + 1} of {Math.max(table.getPageCount(), 1)}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  aria-label="Previous page"
-                  disabled={!table.getCanPreviousPage()}
-                  onClick={() => table.previousPage()}
-                >
-                  <ChevronLeft className="size-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  aria-label="Next page"
-                  disabled={!table.getCanNextPage()}
-                  onClick={() => table.nextPage()}
-                >
-                  <ChevronRight className="size-4" />
-                </Button>
-              </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5">
+            <p className="text-xs text-muted-foreground">
+              Showing {from}–{to} of {total}
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                Page {pageIndex + 1} of {Math.max(table.getPageCount(), 1)}
+              </span>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Previous page"
+                disabled={!table.getCanPreviousPage()}
+                onClick={() => table.previousPage()}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Next page"
+                disabled={!table.getCanNextPage()}
+                onClick={() => table.nextPage()}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </section>

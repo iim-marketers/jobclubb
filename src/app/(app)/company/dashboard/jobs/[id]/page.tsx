@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowRight,
   CalendarDays,
   CircleCheck,
   MapPin,
@@ -10,13 +11,9 @@ import {
 } from "lucide-react";
 
 import { Panel } from "@/components/candidate/dashboard-ui";
-import {
-  ApplicantsTable,
-  IdentityNotice,
-} from "@/components/company/applicants-table";
 import { JobOpenToggle } from "@/components/company/job-open-toggle";
 import { JobStatusPill } from "@/components/company/job-status";
-import { COMPANY_JOBS } from "@/components/company/nav";
+import { COMPANY_JOBS, jobApplicantsHref } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
 import {
   formatExperience,
@@ -56,6 +53,7 @@ export default async function JobDetailPage({
   if (!job) notFound();
 
   const applicants = await listCompanyApplicants(company.id, job.id);
+  const active = applicants.filter((a) => a.status === "active");
   const closed = job.status === "closed";
 
   return (
@@ -152,6 +150,16 @@ export default async function JobDetailPage({
       <Panel
         title="Applicants"
         description={`${applicants.length} ${applicants.length === 1 ? "person has" : "people have"} applied`}
+        action={
+          applicants.length > 0 && (
+            <Link
+              href={jobApplicantsHref(job.id)}
+              className="inline-flex flex-none items-center gap-1 font-head text-sm font-bold whitespace-nowrap text-brand hover:text-brand-dark"
+            >
+              View all <ArrowRight className="size-3.5" />
+            </Link>
+          )
+        }
       >
         {applicants.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border px-6 py-6 text-center sm:flex-row sm:text-left">
@@ -168,9 +176,31 @@ export default async function JobDetailPage({
             </div>
           </div>
         ) : (
-          <ApplicantsTable applicants={applicants} />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <dl className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                ["New", active.filter((a) => a.stage === 0).length],
+                ["Shortlisted", active.filter((a) => a.stage === 2).length],
+                ["Interviewing", active.filter((a) => a.stage >= 3).length],
+                ["Not selected", applicants.length - active.length],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-2xl bg-muted/50 px-4 py-3">
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
+                  <dd className="mt-0.5 font-head text-xl font-extrabold tabular-nums">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <Button
+              className="flex-none bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+              nativeButton={false}
+              render={<Link href={jobApplicantsHref(job.id)} />}
+            >
+              Review applicants <ArrowRight className="size-4" />
+            </Button>
+          </div>
         )}
-        <IdentityNotice className="mt-4" />
       </Panel>
 
       <Panel title="About the role">

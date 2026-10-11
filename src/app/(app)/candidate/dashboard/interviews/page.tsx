@@ -40,6 +40,7 @@ import {
 } from "@/lib/candidate-activity";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
+import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 import { requireMember } from "@/server/auth/current-candidate";
 
 export const metadata = { title: "Interviews — JobClubb" };
@@ -607,7 +608,7 @@ function StatusPill({
         i.outcome === "Cleared"
           ? "bg-good/12 text-good"
           : i.outcome === "Not selected"
-            ? "bg-muted text-muted-foreground"
+            ? NOT_SELECTED_BADGE
             : "bg-amber-500/12 text-amber-700 dark:text-amber-300",
       )}
     >
