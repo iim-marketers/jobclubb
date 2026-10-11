@@ -6,21 +6,20 @@ import {
   ApplicantActions,
   MarkViewed,
 } from "@/components/company/applicant-actions";
-import { COMPANY_HOME } from "@/components/company/nav";
+import { COMPANY_APPLICANTS, jobApplicantsHref } from "@/components/company/nav";
 import { ResumeDocument } from "@/components/resume/resume-document";
 import { formatShortDate } from "@/lib/candidate-activity";
 import { STAGES, formatExperienceMonths } from "@/lib/company-activity";
 import { cn } from "@/lib/utils";
+import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyApplicant } from "@/server/applications/company";
-
-const APPLICANTS_PATH = `${COMPANY_HOME}/applicants`;
 
 export async function generateMetadata({
   params,
 }: PageProps<"/company/dashboard/applicants/[ref]">) {
   const { ref } = await params;
-  const company = await requireCompany(`${APPLICANTS_PATH}/${ref}`);
+  const company = await requireCompany(`${COMPANY_APPLICANTS}/${ref}`);
   const applicant = await getCompanyApplicant(company.id, ref);
   return { title: `${applicant?.name ?? applicant?.ref ?? "Applicant"} — JobClubb` };
 }
@@ -29,7 +28,7 @@ export default async function ApplicantPage({
   params,
 }: PageProps<"/company/dashboard/applicants/[ref]">) {
   const { ref } = await params;
-  const company = await requireCompany(`${APPLICANTS_PATH}/${ref}`);
+  const company = await requireCompany(`${COMPANY_APPLICANTS}/${ref}`);
   const applicant = await getCompanyApplicant(company.id, ref);
   if (!applicant) notFound();
 
@@ -41,10 +40,11 @@ export default async function ApplicantPage({
       {applicant.stage === 0 && !rejected && <MarkViewed applicantRef={applicant.ref} />}
 
       <Link
-        href={APPLICANTS_PATH}
-        className="inline-flex items-center gap-1.5 font-head text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        href={jobApplicantsHref(applicant.jobId)}
+        className="inline-flex max-w-full items-center gap-1.5 font-head text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="size-4" /> All applicants
+        <ArrowLeft className="size-4 flex-none" />
+        <span className="truncate">{applicant.designation} applicants</span>
       </Link>
 
       <section className="rounded-3xl border border-border bg-card p-5 sm:p-7">
@@ -55,7 +55,7 @@ export default async function ApplicantPage({
                 className={cn(
                   "rounded-full px-2.5 py-0.5 font-head text-xs font-bold",
                   rejected
-                    ? "bg-muted text-muted-foreground"
+                    ? NOT_SELECTED_BADGE
                     : applicant.stage >= 2
                       ? "bg-good/12 text-good"
                       : "bg-brand/10 text-brand",

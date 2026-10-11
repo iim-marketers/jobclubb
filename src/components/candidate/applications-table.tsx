@@ -47,6 +47,7 @@ import {
   formatShortDate,
   type Application,
 } from "@/lib/candidate-activity";
+import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
 
 const features = tableFeatures({
@@ -158,11 +159,13 @@ const columns = helper.columns([
         <span
           className={cn(
             "rounded-full px-2 py-0.5 font-head text-[11px] font-bold whitespace-nowrap",
-            archived
-              ? "bg-muted text-muted-foreground"
-              : a.stage >= 3
-                ? "bg-good/12 text-good"
-                : "bg-brand/10 text-brand",
+            a.status === "rejected"
+              ? NOT_SELECTED_BADGE
+              : archived
+                ? "bg-muted text-muted-foreground"
+                : a.stage >= 3
+                  ? "bg-good/12 text-good"
+                  : "bg-brand/10 text-brand",
           )}
         >
           {applicationStatus(a)}

@@ -9,6 +9,7 @@ import {
   Clock,
   MapPin,
   Video,
+  X,
 } from "lucide-react";
 
 import { Panel } from "@/components/candidate/dashboard-ui";
@@ -24,6 +25,7 @@ import {
   type Application,
 } from "@/lib/candidate-activity";
 import { toRichTextHtml } from "@/lib/rich-text";
+import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
 import { getCandidateApplication } from "@/server/applications/candidate";
 import { sanitizeRichText } from "@/server/rich-text";
@@ -66,6 +68,7 @@ export default async function ApplicationDetailPage({
 
   const { job } = application;
   const archived = application.status !== "active";
+  const rejected = application.status === "rejected";
   const good = !archived && application.stage >= 3;
   const interviews = interviewsFor(job.slug);
 
@@ -79,34 +82,33 @@ export default async function ApplicationDetailPage({
       </Link>
 
       <section className="rounded-3xl border border-border bg-card p-5 sm:p-7">
-        <div className="flex flex-col gap-5 md:flex-row md:items-start">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-start md:gap-x-5 md:gap-y-2">
           <CompanyAvatar
             name={job.company}
             logoUrl={job.companyLogoUrl}
-            className={cn(
-              "size-16 rounded-2xl text-lg",
-              archived && "opacity-60 grayscale",
-            )}
+            className="size-16 rounded-2xl text-lg md:row-span-2"
           />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={cn(
-                  "rounded-full px-2.5 py-0.5 font-head text-xs font-bold",
-                  archived
+          <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+            <span
+              className={cn(
+                "rounded-full px-2.5 py-0.5 font-head text-xs font-bold",
+                rejected
+                  ? NOT_SELECTED_BADGE
+                  : archived
                     ? "bg-muted text-muted-foreground"
                     : good
                       ? "bg-good/12 text-good"
                       : "bg-brand/10 text-brand",
-                )}
-              >
-                {applicationStatus(application)}
-              </span>
-              <span className="font-head text-xs font-semibold text-muted-foreground">
-                Application {application.id}
-              </span>
-            </div>
-            <h1 className="mt-2 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
+              )}
+            >
+              {applicationStatus(application)}
+            </span>
+            <span className="font-head text-xs font-semibold text-muted-foreground">
+              Application {application.id}
+            </span>
+          </div>
+          <div className="col-span-2 min-w-0 md:col-span-1 md:col-start-2">
+            <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
               {job.designation}
             </h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -124,11 +126,11 @@ export default async function ApplicationDetailPage({
           </div>
           <Button
             variant="outline"
-            className="flex-none font-head"
+            className="col-span-2 font-head md:col-span-1 md:col-start-3 md:row-span-2 md:row-start-1"
             nativeButton={false}
             render={<Link href={`/jobs/${job.slug}`} />}
           >
-            View job posting <ArrowUpRight className="size-4" />
+            View job posting
           </Button>
         </div>
 
@@ -195,7 +197,14 @@ export default async function ApplicationDetailPage({
                       </p>
                     </div>
                     {i.outcome && (
-                      <span className="rounded-full bg-muted px-2.5 py-1 font-head text-[11px] font-bold text-muted-foreground">
+                      <span
+                        className={cn(
+                          "rounded-full px-2.5 py-1 font-head text-[11px] font-bold",
+                          i.outcome === "Not selected"
+                            ? NOT_SELECTED_BADGE
+                            : "bg-muted text-muted-foreground",
+                        )}
+                      >
                         {i.outcome}
                       </span>
                     )}
@@ -279,11 +288,13 @@ export default async function ApplicationDetailPage({
                     className={cn(
                       "absolute top-1 -left-5 size-2.75 rounded-full ring-3 ring-card",
                       i === 0
-                        ? archived
-                          ? "bg-muted-foreground"
-                          : good
-                            ? "bg-good"
-                            : "bg-brand"
+                        ? rejected
+                          ? "bg-destructive"
+                          : archived
+                            ? "bg-muted-foreground"
+                            : good
+                              ? "bg-good"
+                              : "bg-brand"
                         : "bg-border",
                     )}
                   />
@@ -309,26 +320,28 @@ export default async function ApplicationDetailPage({
 function StageStepper({ application: a }: { application: Application }) {
   const archived = a.status !== "active";
   const good = a.stage >= 3;
+  const rejectedAt = a.status === "rejected" ? a.stage + 1 : -1;
 
   return (
     <ol
       aria-label="Application progress"
-      className="mt-7 grid grid-cols-5 pt-2"
+      className="mt-6 flex flex-col sm:mt-7 sm:grid sm:grid-cols-5 sm:pt-2"
     >
       {STAGES.map((stage, i) => {
         const reached = i <= a.stage;
         const current = i === a.stage && !archived;
+        const rejected = i === rejectedAt;
         return (
           <li
             key={stage}
-            aria-current={current ? "step" : undefined}
-            className="relative flex min-w-0 flex-col items-center text-center"
+            aria-current={current || rejected ? "step" : undefined}
+            className="relative flex min-w-0 items-center gap-3 py-1.5 sm:flex-col sm:gap-0 sm:py-0 sm:text-center"
           >
             {i > 0 && (
               <span
                 aria-hidden
                 className={cn(
-                  "absolute top-4 right-1/2 h-0.5 w-full -translate-y-1/2",
+                  "absolute bottom-1/2 left-4 h-full w-0.5 -translate-x-1/2 sm:top-4 sm:right-1/2 sm:bottom-auto sm:left-auto sm:h-0.5 sm:w-full sm:translate-x-0 sm:-translate-y-1/2",
                   reached && !archived
                     ? good
                       ? "bg-good"
@@ -340,39 +353,53 @@ function StageStepper({ application: a }: { application: Application }) {
             <span
               className={cn(
                 "relative z-10 flex size-8 items-center justify-center rounded-full font-head text-xs font-extrabold",
-                !reached
-                  ? "border-2 border-border bg-card text-muted-foreground"
-                  : archived
-                    ? "bg-border text-muted-foreground"
-                    : current
-                      ? cn(
-                          "text-white ring-4",
-                          good
-                            ? "bg-good ring-good/20"
-                            : "bg-brand ring-brand/20",
-                        )
-                      : good
-                        ? "bg-good text-white"
-                        : "bg-brand text-white",
+                rejected
+                  ? "border-2 border-[color-mix(in_oklab,var(--color-destructive)_40%,var(--color-card))] bg-[color-mix(in_oklab,var(--color-destructive)_8%,var(--color-card))] text-destructive"
+                  : !reached
+                    ? "border-2 border-border bg-card text-muted-foreground"
+                    : archived
+                      ? "bg-border text-muted-foreground"
+                      : current
+                        ? cn(
+                            "text-white ring-4",
+                            good
+                              ? "bg-good ring-good/20"
+                              : "bg-brand ring-brand/20",
+                          )
+                        : good
+                          ? "bg-good text-white"
+                          : "bg-brand text-white",
               )}
             >
-              {reached && !current ? (
+              {rejected ? (
+                <X className="size-4" strokeWidth={3} />
+              ) : reached && !current ? (
                 <Check className="size-4" strokeWidth={3} />
               ) : (
                 i + 1
               )}
             </span>
-            <p
-              className={cn(
-                "mt-2 truncate px-1 font-head text-[11px] sm:text-xs",
-                current ? "font-bold" : "font-semibold text-muted-foreground",
-              )}
-            >
-              {stage}
-            </p>
-            <p className="hidden text-[11px] text-muted-foreground sm:block">
-              {reached ? (a.history[i]?.date ?? "") : "—"}
-            </p>
+            <div className="flex min-w-0 flex-1 items-baseline justify-between gap-3 sm:block sm:w-full">
+              <p
+                className={cn(
+                  "truncate font-head text-sm sm:mt-2 sm:px-1 sm:text-xs",
+                  rejected
+                    ? "font-bold text-destructive"
+                    : current
+                      ? "font-bold"
+                      : "font-semibold text-muted-foreground",
+                )}
+              >
+                {rejected ? "Not selected" : stage}
+              </p>
+              <p className="flex-none text-xs text-muted-foreground sm:text-[11px]">
+                {rejected
+                  ? a.history[a.history.length - 1].date
+                  : reached
+                    ? (a.history[i]?.date ?? "")
+                    : "—"}
+              </p>
+            </div>
           </li>
         );
       })}

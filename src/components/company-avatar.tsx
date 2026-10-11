@@ -17,11 +17,13 @@ export function CompanyAvatar({
       <span
         aria-hidden
         className={cn(
-          "relative flex size-10 flex-none overflow-hidden rounded-full bg-white",
+          "relative flex size-10 flex-none overflow-hidden rounded-full border border-border bg-white",
           className,
         )}
       >
-        <Image src={logoUrl} alt="" fill unoptimized className="object-contain" />
+        <span className="absolute inset-[12%]">
+          <Image src={logoUrl} alt="" fill unoptimized className="object-contain" />
+        </span>
       </span>
     );
 
