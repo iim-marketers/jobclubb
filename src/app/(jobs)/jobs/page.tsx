@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BriefcaseBusiness, Lock, SearchX } from "lucide-react";
 
 import { JobCard } from "@/components/job-card";
@@ -8,10 +10,19 @@ import {
   JobFiltersSheet,
   JobSortSelect,
 } from "@/components/job-filters";
+import { LoadMoreJobs } from "@/components/load-more-jobs";
 import { Button } from "@/components/ui/button";
-import { facetCounts, parseJobQuery, searchJobs } from "@/lib/jobs-search";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  MAX_RESULTS,
+  jobsHref,
+  parseJobQuery,
+  parsePaging,
+  type JobQuery,
+  type Paging,
+} from "@/lib/jobs-search";
 import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
-import { listJobs } from "@/server/jobs/listings";
+import { jobFacetCounts, searchJobListings } from "@/server/jobs/listings";
 
 export const metadata = {
   title: "Jobs — JobClubb",
@@ -21,18 +32,52 @@ export const metadata = {
 
 const PREVIEW_LIMIT = 6;
 
+// page=N renders the first N pages, so a refresh or Back lands on the same list.
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
-  const [access, params, allJobs] = await Promise.all([
-    getJobAccess(),
-    searchParams,
-    listJobs(),
-  ]);
+  const [access, params] = await Promise.all([getJobAccess(), searchParams]);
   const query = parseJobQuery(params, access.member);
-  const matches = searchJobs(allJobs, query, access.member);
-  const jobs = access.member ? matches : matches.slice(0, PREVIEW_LIMIT);
-  const counts = access.member
-    ? facetCounts(allJobs, query, access.member)
-    : undefined;
+  const paging = parsePaging(params);
+  if (
+    access.member &&
+    (params.page !== String(paging.page) ||
+      params.limit !== String(paging.limit))
+  ) {
+    const canonical = new URLSearchParams();
+    for (const [key, value] of Object.entries(params))
+      for (const v of [value ?? []].flat()) canonical.append(key, v);
+    canonical.set("page", String(paging.page));
+    canonical.set("limit", String(paging.limit));
+    redirect(`/jobs?${canonical}`);
+  }
+
+  // The page stays mounted across search param changes, so this fallback only
+  // shows on the first visit; later loads keep the current list on screen.
+  return (
+    <Suspense fallback={<JobsSkeleton member={access.member} />}>
+      <JobResults access={access} query={query} paging={paging} />
+    </Suspense>
+  );
+}
+
+async function JobResults({
+  access,
+  query,
+  paging,
+}: {
+  access: Awaited<ReturnType<typeof getJobAccess>>;
+  query: JobQuery;
+  paging: Paging;
+}) {
+  const [{ jobs, total }, counts] = await Promise.all([
+    searchJobListings(
+      query,
+      access.member,
+      access.member ? paging.page * paging.limit : PREVIEW_LIMIT,
+    ),
+    access.member ? jobFacetCounts(query) : undefined,
+  ]);
+  const noOpenings = total === 0 && isBlank(query);
+  const hasMore = access.member && jobs.length < total;
   const unlock = access.signedIn
     ? { href: CHECKOUT_PATH, label: "Complete payment" }
     : { href: "/sign-up", label: "Join JobClubb" };
@@ -68,7 +113,7 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
             <ActiveFilters query={query} />
           </div>
 
-          {allJobs.length === 0 ? (
+          {noOpenings ? (
             <NoOpenings />
           ) : jobs.length === 0 ? (
             <EmptyState />
@@ -82,7 +127,28 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
             </ul>
           )}
 
-          {!access.member && allJobs.length > 0 && (
+          {hasMore &&
+            (paging.page < Math.floor(MAX_RESULTS / paging.limit) ? (
+              <LoadMoreJobs
+                href={jobsHref(query, { ...paging, page: paging.page + 1 })}
+                shown={jobs.length}
+                total={total}
+              />
+            ) : (
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Showing the first {jobs.length.toLocaleString("en-IN")} of{" "}
+                {total.toLocaleString("en-IN")} jobs. Add a filter to narrow
+                them down.
+              </p>
+            ))}
+
+          {access.member && !hasMore && total > paging.limit && (
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              You&apos;ve seen all {total.toLocaleString("en-IN")} jobs
+            </p>
+          )}
+
+          {!access.member && !noOpenings && (
             <div className="mt-4 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center">
               <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-brand/10">
                 <Lock className="size-4 text-brand" />
@@ -108,6 +174,74 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
         </div>
       </div>
     </section>
+  );
+}
+
+function JobsSkeleton({ member }: { member: boolean }) {
+  return (
+    <section aria-busy className="px-4 pb-12 sm:px-6">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[260px_1fr]">
+        <aside className="hidden lg:block lg:pt-6">
+          <div className="rounded-2xl border border-border bg-card">
+            <div className="flex h-14 items-center border-b border-border px-5">
+              <Skeleton className="h-4 w-20" />
+            </div>
+            {[5, 2, 3].map((rows, i) => (
+              <div key={i} className="space-y-3 border-b border-border px-5 py-4 last:border-b-0">
+                <Skeleton className="h-4 w-16" />
+                {Array.from({ length: rows }, (_, j) => (
+                  <Skeleton key={j} className="h-6 w-full" />
+                ))}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <div className="min-w-0">
+          <div className="-mx-4 flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 lg:pt-6">
+            <h1 className="font-head text-xl font-extrabold tracking-tight sm:text-2xl">
+              Jobs
+            </h1>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-10 rounded-lg lg:hidden" />
+              {member && <Skeleton className="h-8 w-36 rounded-lg sm:w-45" />}
+            </div>
+          </div>
+
+          <ul className="mt-4 grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 6 }, (_, i) => (
+              <li
+                key={i}
+                className="flex flex-col rounded-2xl border border-border bg-card p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <Skeleton className="size-11 flex-none rounded-xl" />
+                  <div className="flex-1 space-y-2 pt-0.5">
+                    <Skeleton className="h-4 w-3/5" />
+                    <Skeleton className="h-3.5 w-2/5" />
+                  </div>
+                </div>
+                <Skeleton className="mt-4 h-3.5 w-4/5" />
+                <Skeleton className="my-4 h-8 w-36 rounded-lg" />
+                <div className="-mx-4 border-t border-border px-4 pt-4">
+                  <Skeleton className="h-3.5 w-28" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function isBlank(query: JobQuery) {
+  return (
+    !query.q &&
+    !query.loc &&
+    !query.sectors.length &&
+    !query.jobTypes.length &&
+    !query.workModes.length
   );
 }
 

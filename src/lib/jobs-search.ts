@@ -1,4 +1,3 @@
-import type { JobListing } from "@/lib/jobs-data";
 import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
 
 export const SORTS = {
@@ -37,61 +36,27 @@ function allowed(values: string[], options: readonly string[]) {
 export function parseJobQuery(params: RawParams, member: boolean): JobQuery {
   const q = first(params.q);
   if (!member) {
-    return { q, loc: "", sectors: [], jobTypes: [], workModes: [], sort: "recent" };
+    return {
+      q,
+      loc: "",
+      sectors: [],
+      jobTypes: [],
+      workModes: [],
+      sort: "recent",
+    };
   }
   const sort = first(params.sort);
   return {
     q,
     loc: first(params.loc),
-    sectors: allowed(list(params.sector), INDUSTRIES.map((v) => v.name)),
+    sectors: allowed(
+      list(params.sector),
+      INDUSTRIES.map((v) => v.name),
+    ),
     jobTypes: allowed(list(params.type), JOB_TYPES),
     workModes: allowed(list(params.mode), WORK_MODES),
     sort: sort in SORTS ? (sort as JobSort) : "recent",
   };
-}
-
-function leadingNumber(text: string) {
-  return parseFloat(text.replace(/[^\d.]+/, "")) || 0;
-}
-
-function matches(haystack: string[], needle: string) {
-  const n = needle.toLowerCase();
-  return haystack.some((h) => h.toLowerCase().includes(n));
-}
-
-export function searchJobs(
-  jobs: JobListing[],
-  query: JobQuery,
-  member: boolean,
-) {
-  const results = jobs.filter((job) => {
-    if (query.q) {
-      const fields = member
-        ? [job.title, job.designation, job.company]
-        : [job.title];
-      if (!matches(fields, query.q)) return false;
-    }
-    if (query.loc && !matches([job.location, job.pincode], query.loc))
-      return false;
-    if (query.sectors.length && !query.sectors.includes(job.industry))
-      return false;
-    if (query.jobTypes.length && !query.jobTypes.includes(job.jobType))
-      return false;
-    if (query.workModes.length && !query.workModes.includes(job.workMode))
-      return false;
-    return true;
-  });
-
-  if (query.sort === "salary") {
-    results.sort(
-      (a, b) => leadingNumber(b.salaryRange) - leadingNumber(a.salaryRange),
-    );
-  } else if (query.sort === "experience") {
-    results.sort(
-      (a, b) => leadingNumber(a.experience) - leadingNumber(b.experience),
-    );
-  }
-  return results;
 }
 
 export type FacetCounts = Record<
@@ -99,31 +64,32 @@ export type FacetCounts = Record<
   Record<string, number>
 >;
 
-// Counts ignore the selected facets so they stay stable while the mobile sheet
-// edits a draft that hasn't hit the server yet.
-export function facetCounts(
-  jobs: JobListing[],
-  query: JobQuery,
-  member: boolean,
-): FacetCounts {
-  const base = searchJobs(
-    jobs,
-    { ...query, sectors: [], jobTypes: [], workModes: [] },
-    member,
-  );
-  const tally = (pick: (job: JobListing) => string) => {
-    const counts: Record<string, number> = {};
-    for (const job of base) counts[pick(job)] = (counts[pick(job)] ?? 0) + 1;
-    return counts;
-  };
-  return {
-    sectors: tally((j) => j.industry),
-    jobTypes: tally((j) => j.jobType),
-    workModes: tally((j) => j.workMode),
-  };
+export const PAGE_SIZE = 20;
+export const MAX_RESULTS = 1000;
+
+export type Paging = { page: number; limit: number };
+
+function clamp(value: number, min: number, max: number, fallback: number) {
+  return Number.isInteger(value)
+    ? Math.min(Math.max(value, min), max)
+    : fallback;
 }
 
-export function jobsHref(query: JobQuery) {
+export function parsePaging(params: RawParams): Paging {
+  const limit = clamp(parseInt(first(params.limit), 10), 1, 50, PAGE_SIZE);
+  const page = clamp(
+    parseInt(first(params.page), 10),
+    1,
+    Math.floor(MAX_RESULTS / limit),
+    1,
+  );
+  return { page, limit };
+}
+
+export function jobsHref(
+  query: JobQuery,
+  paging: Paging = { page: 1, limit: PAGE_SIZE },
+) {
   const params = new URLSearchParams();
   if (query.q) params.set("q", query.q);
   if (query.loc) params.set("loc", query.loc);
@@ -131,5 +97,7 @@ export function jobsHref(query: JobQuery) {
   query.jobTypes.forEach((t) => params.append("type", t));
   query.workModes.forEach((m) => params.append("mode", m));
   if (query.sort !== "recent") params.set("sort", query.sort);
-  return params.size ? `/jobs?${params}` : "/jobs";
+  params.set("page", String(paging.page));
+  params.set("limit", String(paging.limit));
+  return `/jobs?${params}`;
 }

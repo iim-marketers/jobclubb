@@ -6,9 +6,13 @@ import {
   industryName,
 } from "@/lib/company-jobs";
 import type { JobListing } from "@/lib/jobs-data";
+import type { FacetCounts, JobQuery } from "@/lib/jobs-search";
+import { INDUSTRIES } from "@/lib/taxonomy";
 import {
   getLiveJobBySlug,
   listLiveJobs,
+  liveJobFacets,
+  searchLiveJobs,
   type PublicJob,
 } from "@/server/companies/jobs";
 
@@ -49,6 +53,36 @@ export function toListing(job: PublicJob): JobListing {
 
 export async function listJobs(limit?: number): Promise<JobListing[]> {
   return (await listLiveJobs(limit)).map(toListing);
+}
+
+export async function searchJobListings(
+  query: JobQuery,
+  member: boolean,
+  limit: number,
+) {
+  const { jobs, total } = await searchLiveJobs({
+    q: query.q,
+    loc: query.loc,
+    industries: INDUSTRIES.filter((v) => query.sectors.includes(v.name)).map(
+      (v) => v.slug,
+    ),
+    jobTypes: query.jobTypes,
+    workModes: query.workModes,
+    titlesOnly: !member,
+    sort: query.sort,
+    limit,
+  });
+  return { jobs: jobs.map(toListing), total };
+}
+
+export async function jobFacetCounts(query: JobQuery): Promise<FacetCounts> {
+  const counts: FacetCounts = { sectors: {}, jobTypes: {}, workModes: {} };
+  for (const { facet, value, jobs } of await liveJobFacets(query.q, query.loc)) {
+    if (facet === "industry") counts.sectors[industryName(value)] = jobs;
+    else if (facet === "job_type") counts.jobTypes[value] = jobs;
+    else counts.workModes[value] = jobs;
+  }
+  return counts;
 }
 
 export async function getJob(slug: string): Promise<JobListing | null> {

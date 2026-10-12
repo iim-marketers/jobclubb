@@ -87,7 +87,7 @@ export async function MemberHome({
               action="/jobs"
               className="mt-7 flex max-w-2xl flex-col gap-1 rounded-2xl bg-card p-1.5 text-foreground shadow-xl sm:flex-row sm:items-center"
             >
-              <label className="flex h-11 min-w-0 flex-1 items-center gap-2 px-3">
+              <label className="flex h-11 min-w-0 items-center gap-2 px-3 sm:flex-1">
                 <Search className="size-4 flex-none text-muted-foreground" />
                 <input
                   name="q"
@@ -96,7 +96,7 @@ export async function MemberHome({
                   className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 />
               </label>
-              <span className="mx-3 h-px bg-border sm:mx-0 sm:h-6 sm:w-px" />
+              <span className="-mx-1.5 h-px bg-border sm:mx-0 sm:h-6 sm:w-px" />
               <label className="flex h-11 items-center gap-2 px-3 sm:w-44">
                 <MapPin className="size-4 flex-none text-muted-foreground" />
                 <input

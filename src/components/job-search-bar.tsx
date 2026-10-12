@@ -26,6 +26,7 @@ function useJobSearch() {
 
   function submit(values: { q: string; loc: string }) {
     const next = new URLSearchParams(params);
+    next.delete("page");
     for (const key of ["q", "loc"] as const) {
       const value = values[key].trim();
       if (value) next.set(key, value);
