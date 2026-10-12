@@ -221,8 +221,6 @@ export async function MemberHome({
   );
 }
 
-// Same sector outranks a preferred-role match, which outranks same city;
-// ties keep listJobs' newest-first order.
 function recommend(
   jobs: JobListing[],
   profile: { sector?: string; city: string; roles: string[] },
