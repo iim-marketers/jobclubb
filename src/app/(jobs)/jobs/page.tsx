@@ -19,6 +19,8 @@ export const metadata = {
     "Live openings across Airlines, Hospitality and Travel & Tourism from verified employers.",
 };
 
+const PREVIEW_LIMIT = 6;
+
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
   const [access, params, allJobs] = await Promise.all([
     getJobAccess(),
@@ -26,7 +28,8 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
     listJobs(),
   ]);
   const query = parseJobQuery(params, access.member);
-  const jobs = searchJobs(allJobs, query, access.member);
+  const matches = searchJobs(allJobs, query, access.member);
+  const jobs = access.member ? matches : matches.slice(0, PREVIEW_LIMIT);
   const counts = access.member
     ? facetCounts(allJobs, query, access.member)
     : undefined;
@@ -70,7 +73,7 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
           ) : jobs.length === 0 ? (
             <EmptyState />
           ) : (
-            <ul className="mt-5 grid gap-4 md:grid-cols-2">
+            <ul className="mt-4 grid gap-4 md:grid-cols-2">
               {jobs.map((job) => (
                 <li key={job.slug} className="min-w-0">
                   <JobCard job={job} locked={!access.member} />
@@ -80,7 +83,7 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
           )}
 
           {!access.member && allJobs.length > 0 && (
-            <div className="mt-6 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-6">
+            <div className="mt-4 flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center">
               <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-brand/10">
                 <Lock className="size-4 text-brand" />
               </span>
@@ -88,7 +91,7 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
                 <p className="font-head font-bold tracking-tight">
                   See the full picture
                 </p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                <p className="text-xs leading-6 text-muted-foreground">
                   Members see the company, location and salary, filter openings,
                   and apply in one click.
                 </p>

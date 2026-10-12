@@ -13,6 +13,7 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import { MemberHome } from "@/components/candidate/member-home";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,22 +52,24 @@ const STAT_ICONS = {
 
 export default async function Home() {
   const [view, jobs] = await Promise.all([getMembershipView(), listJobs()]);
-  const member = view.kind === "member";
+  if (view.kind === "member") return <MemberHome view={view} jobs={jobs} />;
 
   return (
     <>
-      <Hero jobs={jobs.slice(0, 3)} locked={!member} />
+      <Hero jobs={jobs.slice(0, 3)} locked />
       <StatsBand />
       <EmployerShowcase />
-      <FeaturedOpenings jobs={jobs} locked={!member} />
+      <FeaturedOpenings jobs={jobs} locked />
       <HowItWorks />
-      {view.kind !== "member" && <Membership view={view} />}
+      <Membership view={view} />
       <Franchise />
       <About />
       <ClosingCta view={view} />
     </>
   );
 }
+
+type NonMemberView = Exclude<MembershipView, { kind: "member" }>;
 
 const FRESH_SLOTS = 3;
 
@@ -371,78 +374,9 @@ function FeaturedOpenings({
               </Button>
             </div>
           </div>
-        ) : (
-          <MemberJobsBanner jobs={jobs} />
-        )}
+        ) : null}
       </div>
     </section>
-  );
-}
-
-function MemberJobsBanner({ jobs }: { jobs: JobListing[] }) {
-  const sectors = Object.entries(
-    jobs.reduce<Record<string, number>>((counts, job) => {
-      counts[job.industry] = (counts[job.industry] ?? 0) + 1;
-      return counts;
-    }, {}),
-  ).sort(([, a], [, b]) => b - a);
-
-  return (
-    <div className="jc-auth-panel relative isolate mt-4 overflow-hidden rounded-3xl p-5 text-white sm:p-8">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center">
-        <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 font-head text-xs font-bold text-white">
-            <CheckCircle2 className="size-3.5 text-brand-accent" />
-            Full access unlocked
-          </span>
-          <h3 className="mt-4 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {jobs.length} live {jobs.length === 1 ? "opening" : "openings"}{" "}
-            waiting for you
-          </h3>
-          <p className="mt-2 max-w-md leading-7 text-white/75">
-            See every detail, apply in one click and use your guaranteed
-            interviews with hiring employers.
-          </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Button
-              className="bg-white font-head text-brand hover:bg-white/90"
-              nativeButton={false}
-              render={<Link href="/jobs" />}
-            >
-              Browse all jobs
-              <ArrowRight className="size-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white/30 bg-transparent font-head text-white hover:bg-white/10 hover:text-white"
-              nativeButton={false}
-              render={<Link href="/candidate/dashboard/applications" />}
-            >
-              My applications
-            </Button>
-          </div>
-        </div>
-
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {sectors.map(([sector, count]) => (
-            <li key={sector}>
-              <Link
-                href={`/jobs?sector=${encodeURIComponent(sector)}`}
-                className="group flex h-full flex-col justify-between gap-3 rounded-2xl border border-white/12 bg-white/8 p-4 transition-colors hover:border-white/30 hover:bg-white/14"
-              >
-                <span className="font-head text-sm font-semibold leading-5">
-                  {sector}
-                </span>
-                <span className="flex items-center justify-between text-xs text-white/65">
-                  {count} open {count === 1 ? "role" : "roles"}
-                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
   );
 }
 
@@ -584,11 +518,7 @@ function HowItWorks() {
   );
 }
 
-function Membership({
-  view,
-}: {
-  view: Exclude<MembershipView, { kind: "member" }>;
-}) {
+function Membership({ view }: { view: NonMemberView }) {
   const plan = view.kind === "guest" ? "member" : view.plan;
   const details = PLAN_DETAILS[plan];
   const card = {
@@ -792,11 +722,10 @@ function About() {
   );
 }
 
-function ClosingCta({ view }: { view: MembershipView }) {
+function ClosingCta({ view }: { view: NonMemberView }) {
   const primary = {
     guest: { label: "Become a Member", href: "/membership" },
     unpaid: { label: "Complete payment", href: CHECKOUT_PATH },
-    member: { label: "Go to dashboard", href: "/candidate/dashboard" },
   }[view.kind];
 
   return (
@@ -806,9 +735,7 @@ function ClosingCta({ view }: { view: MembershipView }) {
           Looking for a career change?
         </h2>
         <p className="mx-auto mt-3 max-w-xl leading-7 text-white/80">
-          {view.kind === "member"
-            ? "Browse the latest openings and apply in one click — JobClubb gets you hired faster."
-            : "Browse our job listings, become a member, and let JobClubb get you hired faster."}
+          Browse our job listings, become a member, and let JobClubb get you hired faster.
         </p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <Button

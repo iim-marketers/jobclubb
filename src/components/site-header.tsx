@@ -6,7 +6,10 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getCandidateSession } from "@/server/auth/current-candidate";
+import {
+  getCandidateSession,
+  getMembershipView,
+} from "@/server/auth/current-candidate";
 import { getCompanySession } from "@/server/auth/current-company";
 
 const NAV_LINKS = [
@@ -18,9 +21,16 @@ const NAV_LINKS = [
   { label: "About", href: "/about" },
 ];
 
+const MEMBER_NAV_LINKS = NAV_LINKS.filter(
+  (link) => link.href === "/jobs" || link.href === "/companies",
+);
+
 export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const candidate = await getCandidateSession();
   const company = candidate ? null : await getCompanySession();
+  const member =
+    !!candidate && (await getMembershipView()).kind === "member";
+  const links = member ? MEMBER_NAV_LINKS : NAV_LINKS;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
@@ -53,7 +63,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
           <div className="min-w-0 flex-1 lg:max-w-xl">{search}</div>
         ) : (
           <nav className="hidden flex-1 items-center gap-7 lg:flex">
-            {NAV_LINKS.map((link) => (
+            {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -116,7 +126,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             </>
           )}
           <MobileNav
-            links={NAV_LINKS}
+            links={links}
             account={
               candidate
                 ? { kind: "candidate", ...candidate }
