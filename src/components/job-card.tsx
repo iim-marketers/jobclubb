@@ -87,7 +87,7 @@ export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
         </div>
       </div>
 
-      <div className="-mx-5 mt-auto flex items-center justify-between gap-3 border-t border-border px-4 pt-4">
+      <div className="-mx-4 mt-auto flex items-center justify-between gap-3 border-t border-border px-4 pt-4">
         <span
           aria-hidden={locked}
           className={cn("text-xs text-muted-foreground", hidden)}

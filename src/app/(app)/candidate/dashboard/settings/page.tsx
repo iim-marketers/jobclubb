@@ -28,6 +28,7 @@ export default async function SettingsPage() {
     city: candidate.city,
     pincode: candidate.pincode,
     industry: candidate.industry,
+    roles: candidate.preferred_roles ?? [],
   };
 
   return (

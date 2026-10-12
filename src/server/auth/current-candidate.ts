@@ -22,7 +22,7 @@ export const getCurrentCandidate = cache(async () => {
   const { data: candidate } = await supabase
     .from("candidates")
     .select(
-      "id, first_name, last_name, email, phone, city, pincode, industry, email_verified, code, membership_plan, membership_expires_at, photo_path",
+      "id, first_name, last_name, email, phone, city, pincode, industry, preferred_roles, email_verified, code, membership_plan, membership_expires_at, photo_path",
     )
     .eq("id", userId)
     .maybeSingle();
