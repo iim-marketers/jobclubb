@@ -150,6 +150,57 @@ export async function listLiveJobs(limit?: number): Promise<PublicJob[]> {
   return (data as unknown as PublicJobRow[]).map(toPublicJob);
 }
 
+export type LiveJobSearch = {
+  q: string;
+  loc: string;
+  industries: string[];
+  jobTypes: string[];
+  workModes: string[];
+  titlesOnly: boolean;
+  sort: "recent" | "salary" | "experience";
+  limit: number;
+};
+
+type SearchRow = JobRow & {
+  company_name: string;
+  logo_path: string | null;
+  total_count: number;
+};
+
+export async function searchLiveJobs(
+  search: LiveJobSearch,
+): Promise<{ jobs: PublicJob[]; total: number }> {
+  const { data, error } = await createAdminClient().rpc("search_live_jobs", {
+    search_text: search.q,
+    place: search.loc,
+    industries: search.industries,
+    job_types: search.jobTypes,
+    work_modes: search.workModes,
+    titles_only: search.titlesOnly,
+    sort_by: search.sort,
+    max_rows: search.limit,
+  });
+  if (error) throw error;
+  const rows = data as SearchRow[];
+  return {
+    jobs: rows.map(({ company_name, logo_path, ...row }) =>
+      toPublicJob({ ...row, companies: { company_name, logo_path } }),
+    ),
+    total: Number(rows[0]?.total_count ?? 0),
+  };
+}
+
+export async function liveJobFacets(q: string, loc: string) {
+  const { data, error } = await createAdminClient().rpc("live_job_facets", {
+    search_text: q,
+    place: loc,
+  });
+  if (error) throw error;
+  return (data as { facet: string; value: string; jobs: number }[]).map(
+    (row) => ({ ...row, jobs: Number(row.jobs) }),
+  );
+}
+
 export async function getLiveJobBySlug(slug: string): Promise<PublicJob | null> {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null;
   const { data, error } = await createAdminClient()

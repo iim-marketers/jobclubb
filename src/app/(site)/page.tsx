@@ -1,3 +1,4 @@
+import Form from "next/form";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { MemberHome } from "@/components/candidate/member-home";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { CompanyHome } from "@/components/company/company-home";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RecruiterBoard } from "@/components/recruiter-board";
@@ -26,6 +28,7 @@ import {
   getMembershipView,
   type MembershipView,
 } from "@/server/auth/current-candidate";
+import { getCurrentCompany } from "@/server/auth/current-company";
 import { listJobs } from "@/server/jobs/listings";
 import {
   ABOUT_STATS,
@@ -51,6 +54,9 @@ const STAT_ICONS = {
 } as const;
 
 export default async function Home() {
+  const company = await getCurrentCompany();
+  if (company) return <CompanyHome company={company} />;
+
   const [view, jobs] = await Promise.all([getMembershipView(), listJobs()]);
   if (view.kind === "member") return <MemberHome view={view} jobs={jobs} />;
 
@@ -95,12 +101,16 @@ function Hero({ jobs, locked }: { jobs: JobListing[]; locked: boolean }) {
             upskilling, and land the role that&apos;s right for you.
           </p>
 
-          <form className="mt-7 flex max-w-xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row">
+          <Form
+            action="/jobs"
+            className="mt-7 flex max-w-xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row"
+          >
             <div className="relative flex-1 border-b border-border sm:border-b-0 -mx-2 px-2">
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                aria-label="Job title or company"
-                placeholder="Job title or company"
+                name="q"
+                aria-label="Role"
+                placeholder="Search jobs by role"
                 className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
               />
             </div>
@@ -110,7 +120,7 @@ function Hero({ jobs, locked }: { jobs: JobListing[]; locked: boolean }) {
             >
               Search Jobs
             </Button>
-          </form>
+          </Form>
         </div>
 
         <div className="min-w-0 rounded-3xl border border-border bg-card p-6 shadow-lg">

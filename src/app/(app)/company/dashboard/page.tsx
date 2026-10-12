@@ -108,7 +108,7 @@ export default async function CompanyDashboard() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-            {greeting(now)}, {company.contact_name.split(" ")[0]}
+            {greeting(now)}, {company.property_name ?? company.company_name}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {jobs.length === 0 ? (

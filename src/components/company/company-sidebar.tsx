@@ -15,7 +15,6 @@ import { cn } from "@/lib/utils";
 export type CompanyProfile = {
   companyName: string;
   propertyName: string | null;
-  contactName: string;
   email: string;
   sector?: string;
   city: string;
@@ -197,15 +196,9 @@ export function CompanySidebarContent({
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl px-2 py-1.5">
-            <CompanyAvatar
-              name={company.contactName}
-              className="size-9 bg-linear-to-br from-brand-accent to-[#38b6dd] text-[#032a36]"
-            />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-head text-sm font-bold">
-                {company.contactName}
-              </p>
-              <p className="truncate text-xs text-white/55">{company.email}</p>
+              <p className="text-[11px] text-white/45">Signed in as</p>
+              <p className="truncate text-xs text-white/75">{company.email}</p>
             </div>
             <SignOutDialog
               description={COMPANY_SIGN_OUT_DESCRIPTION}

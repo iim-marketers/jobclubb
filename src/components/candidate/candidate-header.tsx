@@ -93,7 +93,7 @@ export function CandidateHeader({
         </Sheet>
 
         <Link
-          href={CANDIDATE_HOME}
+          href={"/"}
           className="flex-none lg:hidden"
           aria-label="JobClubb — dashboard"
         >
