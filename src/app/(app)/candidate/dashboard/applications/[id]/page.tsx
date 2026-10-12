@@ -7,6 +7,7 @@ import {
   Check,
   CircleAlert,
   Clock,
+  Lock,
   MapPin,
   Video,
   X,
@@ -124,14 +125,24 @@ export default async function ApplicationDetailPage({
               </span>
             </p>
           </div>
-          <Button
-            variant="outline"
-            className="col-span-2 font-head md:col-span-1 md:col-start-3 md:row-span-2 md:row-start-1"
-            nativeButton={false}
-            render={<Link href={`/jobs/${job.slug}`} />}
-          >
-            View job posting
-          </Button>
+          {application.jobClosed ? (
+            <Button
+              variant="outline"
+              className="col-span-2 font-head md:col-span-1 md:col-start-3 md:row-span-2 md:row-start-1"
+              disabled
+            >
+              Job closed
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="col-span-2 font-head md:col-span-1 md:col-start-3 md:row-span-2 md:row-start-1"
+              nativeButton={false}
+              render={<Link href={`/jobs/${job.slug}`} />}
+            >
+              View job posting
+            </Button>
+          )}
         </div>
 
         <StageStepper application={application} />

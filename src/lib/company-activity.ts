@@ -7,6 +7,7 @@ export { STAGES };
 export type Applicant = {
   ref: string;
   jobId: string;
+  label: string;
   name: string | null;
   experienceMonths: number;
   city: string;
@@ -15,6 +16,8 @@ export type Applicant = {
   status: "active" | "rejected";
   appliedOn: string;
 };
+
+export const candidateLabel = (no: number) => `CAND-${String(no).padStart(4, "0")}`;
 
 export function formatExperienceMonths(months: number) {
   if (months === 0) return "Fresher";

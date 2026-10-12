@@ -160,6 +160,7 @@ function toApplication(row: ApplicationRow): Application {
     job: toListing(job),
     stage: row.stage,
     status: row.status === "rejected" ? "rejected" : job.status === "closed" ? "closed" : "active",
+    jobClosed: job.status === "closed",
     appliedOn: row.created_at,
     updatedAgo: postedAgo(events[events.length - 1].at),
     update: "",

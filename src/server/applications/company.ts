@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Applicant } from "@/lib/company-activity";
+import { candidateLabel, type Applicant } from "@/lib/company-activity";
 import type { Resume } from "@/lib/resume";
 import { createAdminClient } from "@/lib/supabase/server";
 import { maskResume } from "@/server/applications/masking";
@@ -13,12 +13,13 @@ const REF = /^JC-[0-9A-Z]{6}$/;
 const UUID = /^[0-9a-f-]{36}$/i;
 
 const APPLICANT_COLUMNS =
-  "ref, job_id, candidate_id, city, experience_months, skills, stage, status, created_at, shortlisted_at";
+  "ref, job_id, candidate_id, candidate_no, city, experience_months, skills, stage, status, created_at, shortlisted_at";
 
 type ApplicantRow = {
   ref: string;
   job_id: string;
   candidate_id: string;
+  candidate_no: number;
   city: string;
   experience_months: number;
   skills: string[];
@@ -43,6 +44,7 @@ function toApplicant(row: ApplicantRow, names: Map<string, string>): Applicant {
   return {
     ref: row.ref,
     jobId: row.job_id,
+    label: candidateLabel(row.candidate_no),
     name: row.shortlisted_at ? (names.get(row.candidate_id) ?? null) : null,
     experienceMonths: row.experience_months,
     city: row.city,

@@ -15,6 +15,8 @@ export type Application = {
   job: JobListing;
   stage: number;
   status: ApplicationStatus;
+  // Separate from status, which shows "rejected" even when the job has also closed.
+  jobClosed: boolean;
   appliedOn: string;
   updatedAgo: string;
   update: string;

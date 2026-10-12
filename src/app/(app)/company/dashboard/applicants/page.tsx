@@ -16,7 +16,10 @@ import {
   ApplicantJobsList,
   type ApplicantJob,
 } from "@/components/company/applicant-jobs-list";
-import { ApplicantsTable, IdentityNotice } from "@/components/company/applicants-table";
+import {
+  ApplicantsTable,
+  IdentityNotice,
+} from "@/components/company/applicants-table";
 import { COMPANY_APPLICANTS, COMPANY_JOBS } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
 import type { Applicant } from "@/lib/company-activity";
@@ -29,7 +32,11 @@ export const metadata = { title: "Applicants — JobClubb" };
 
 const VIEWS = [
   { key: "jobs", label: "By job", href: COMPANY_APPLICANTS },
-  { key: "all", label: "All applicants", href: `${COMPANY_APPLICANTS}?view=all` },
+  {
+    key: "all",
+    label: "All applicants",
+    href: `${COMPANY_APPLICANTS}?view=all`,
+  },
 ] as const;
 
 export default async function ApplicantsPage({
@@ -129,7 +136,9 @@ export default async function ApplicantsPage({
             <Button
               className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
               nativeButton={false}
-              render={<Link href={hasLive ? COMPANY_JOBS : `${COMPANY_JOBS}/new`} />}
+              render={
+                <Link href={hasLive ? COMPANY_JOBS : `${COMPANY_JOBS}/new`} />
+              }
             >
               {hasLive ? "View job postings" : "Post a job"}
             </Button>
