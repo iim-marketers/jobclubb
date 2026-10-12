@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, EyeOff, MapPin, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  EyeOff,
+  MapPin,
+  ShieldCheck,
+} from "lucide-react";
 
 import {
   ApplicantActions,
   MarkViewed,
 } from "@/components/company/applicant-actions";
-import { COMPANY_APPLICANTS, jobApplicantsHref } from "@/components/company/nav";
+import {
+  COMPANY_APPLICANTS,
+  jobApplicantsHref,
+} from "@/components/company/nav";
 import { ResumeDocument } from "@/components/resume/resume-document";
 import { formatShortDate } from "@/lib/candidate-activity";
 import { STAGES, formatExperienceMonths } from "@/lib/company-activity";
@@ -21,7 +30,9 @@ export async function generateMetadata({
   const { ref } = await params;
   const company = await requireCompany(`${COMPANY_APPLICANTS}/${ref}`);
   const applicant = await getCompanyApplicant(company.id, ref);
-  return { title: `${applicant?.name ?? applicant?.ref ?? "Applicant"} — JobClubb` };
+  return {
+    title: `${applicant?.name ?? applicant?.label ?? "Applicant"} — JobClubb`,
+  };
 }
 
 export default async function ApplicantPage({
@@ -37,7 +48,9 @@ export default async function ApplicantPage({
 
   return (
     <div className="space-y-6">
-      {applicant.stage === 0 && !rejected && <MarkViewed applicantRef={applicant.ref} />}
+      {applicant.stage === 0 && !rejected && (
+        <MarkViewed applicantRef={applicant.ref} />
+      )}
 
       <Link
         href={jobApplicantsHref(applicant.jobId)}
@@ -71,7 +84,7 @@ export default async function ApplicantPage({
               {applicant.name ?? (
                 <>
                   <EyeOff className="size-6 flex-none text-muted-foreground" />
-                  Name hidden
+                  {applicant.label}
                 </>
               )}
             </h1>
@@ -115,9 +128,10 @@ export default async function ApplicantPage({
           <ShieldCheck className="mt-0.5 size-4 flex-none text-brand" />
           <p className="leading-6 text-muted-foreground">
             {applicant.name
-              ? "You shortlisted this applicant, so their name is visible. Their phone number and email stay with JobClubb, which coordinates the interview."
-              : "The name, phone number and email are hidden. Shortlist this applicant to see their name; contact details stay with JobClubb."}
-            {applicant.jobClosed && " This posting is closed, but you can still review its applicants."}
+              ? "You shortlisted this applicant."
+              : "Shortlist this applicant to see their name."}
+            {applicant.jobClosed &&
+              " This posting is closed, but you can still review its applicants."}
           </p>
         </div>
       </section>
@@ -125,7 +139,7 @@ export default async function ApplicantPage({
       <ResumeDocument
         resume={applicant.resume}
         contact={{
-          name: applicant.name ?? applicant.ref,
+          name: applicant.name ?? applicant.label,
           city: applicant.city,
           email: "",
           phone: "",

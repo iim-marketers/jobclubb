@@ -100,7 +100,7 @@ function initials(name: string) {
 const helper = createColumnHelper<typeof features, Row>();
 
 const columns = helper.columns([
-  helper.accessor((a) => `${a.name ?? ""} ${a.ref} ${a.city}`, {
+  helper.accessor((a) => `${a.name ?? a.label} ${a.ref} ${a.city}`, {
     id: "applicant",
     header: "Applicant",
     enableSorting: false,
@@ -128,7 +128,7 @@ const columns = helper.columns([
                 rejected && "text-muted-foreground",
               )}
             >
-              {a.name ?? "Name hidden"}
+              {a.name ?? a.label}
             </Link>
             <p className="truncate text-xs whitespace-nowrap text-muted-foreground">
               <span className="font-mono">{a.ref}</span> · {a.city}
@@ -499,8 +499,7 @@ export function IdentityNotice({ className }: { className?: string }) {
     >
       <EyeOff className="mt-0.5 size-3.5 flex-none" />
       You assess applicants on skills and experience first. Names appear once
-      you shortlist someone; phone numbers and emails are never shared, and
-      JobClubb coordinates every interview.
+      you shortlist someone.
     </p>
   );
 }
