@@ -113,6 +113,8 @@ export function validateCandidate(formData: FormData): FieldErrors {
   return errors;
 }
 
+export const MAX_PREFERRED_ROLES = 5;
+
 export function validateCandidateProfile(formData: FormData) {
   const values = {
     firstName: readText(formData, "firstName"),
@@ -121,6 +123,7 @@ export function validateCandidateProfile(formData: FormData) {
     city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
     industry: readText(formData, "industry"),
+    roles: [...new Set(formData.getAll("roles").map((r) => String(r)))],
   };
   const errors: FieldErrors = {};
 
@@ -132,7 +135,12 @@ export function validateCandidateProfile(formData: FormData) {
   if (!values.city) errors.city = "Enter your city.";
   else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
   if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
-  if (!INDUSTRIES.some((s) => s.slug === values.industry)) errors.industry = "Choose an industry.";
+  const industry = INDUSTRIES.find((s) => s.slug === values.industry);
+  if (!industry) errors.industry = "Choose an industry.";
+  else if (values.roles.some((r) => !industry.roles.includes(r)))
+    errors.roles = "Choose roles from your industry.";
+  else if (values.roles.length > MAX_PREFERRED_ROLES)
+    errors.roles = `Choose up to ${MAX_PREFERRED_ROLES} roles.`;
 
   return { values, errors };
 }

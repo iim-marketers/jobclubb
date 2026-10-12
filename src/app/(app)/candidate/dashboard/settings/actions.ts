@@ -42,6 +42,7 @@ export async function updateProfile(
       city: values.city,
       pincode: values.pincode,
       industry: values.industry,
+      preferred_roles: values.roles,
     })
     .eq("id", candidate.id);
 

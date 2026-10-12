@@ -70,7 +70,10 @@ export function ApplicationJourney({
                   key={id}
                   className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5"
                 >
-                  <CompanyAvatar name={job.company} logoUrl={job.companyLogoUrl} />
+                  <CompanyAvatar
+                    name={job.company}
+                    logoUrl={job.companyLogoUrl}
+                  />
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`${CANDIDATE_HOME}/applications/${id}`}
@@ -136,7 +139,7 @@ export function ApplicationJourney({
           </ul>
 
           <div className="mt-auto pt-5">
-            <div className="flex flex-col gap-4 rounded-2xl bg-linear-to-br from-brand/8 to-brand-accent/12 p-4 sm:flex-row sm:items-center sm:p-5">
+            <div className="flex flex-col gap-4 rounded-2xl bg-linear-to-br from-brand/8 to-brand-accent/12 p-4 sm:flex-row sm:items-center">
               <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-card text-brand shadow-sm">
                 <Search className="size-4.5" />
               </span>
@@ -153,9 +156,9 @@ export function ApplicationJourney({
                         .join(" ")
                     : "New roles are added every day"}
                 </p>
-                <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+                {/* <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
                   More applications mean more chances at a shortlist.
-                </p>
+                </p> */}
               </div>
               <Button
                 size="sm"

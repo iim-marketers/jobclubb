@@ -8,6 +8,8 @@ import {
   FileText,
   Heart,
   MapPin,
+  Pencil,
+  Plus,
   Sparkles,
   Send,
   Video,
@@ -18,6 +20,11 @@ import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { EmptyState, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   GUARANTEED_INTERVIEWS,
   SAVED_JOBS,
@@ -36,6 +43,8 @@ import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 import { getSavedResume } from "@/server/resume/ats-resume";
+
+const PREFERENCES_HREF = `${CANDIDATE_HOME}/settings#preferences`;
 
 export const metadata = { title: "Dashboard — JobClubb" };
 
@@ -87,7 +96,9 @@ export default async function CandidateDashboard() {
     {
       label: "Profile views",
       value: viewed || "—",
-      note: viewed ? "Employers who opened your profile" : "Shows once employers view you",
+      note: viewed
+        ? "Employers who opened your profile"
+        : "Shows once employers view you",
       icon: Eye,
     },
     {
@@ -158,7 +169,7 @@ export default async function CandidateDashboard() {
           photoUrl={photoUrl}
           city={candidate.city}
           sector={sector}
-          roles={industry?.roles.slice(0, 4) ?? []}
+          roles={candidate.preferred_roles ?? []}
           strength={strength}
           nextStep={checklist.find((c) => !c.done)?.label}
           nextInterview={upcoming[0]}
@@ -370,21 +381,40 @@ function ProfileSummary({
           </div>
         </div>
 
-        {roles.length > 0 && (
-          <div className="mt-6">
+        <div className="mt-6">
+          <div className="flex items-baseline justify-between gap-3">
             <p className="text-xs font-medium text-white/70">Looking for</p>
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {roles.map((role) => (
-                <li
-                  key={role}
-                  className="rounded-full border border-white/20 px-3 py-1 text-xs font-medium"
-                >
-                  {role}
-                </li>
-              ))}
-            </ul>
+            {roles.length > 0 && (
+              <Link
+                href={PREFERENCES_HREF}
+                className="flex items-center gap-1 font-head text-xs font-bold text-white/80 underline-offset-4 hover:text-white hover:underline"
+              >
+                <Pencil className="size-3" /> Edit
+              </Link>
+            )}
           </div>
-        )}
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {roles.map((role) => (
+              <li
+                key={role}
+                className="rounded-full border border-white/20 px-3 py-1 text-xs font-medium"
+              >
+                {role}
+              </li>
+            ))}
+
+            {roles.length === 0 && (
+              <li>
+                <Link
+                  href={PREFERENCES_HREF}
+                  className="flex items-center gap-1 rounded-full border border-dashed border-white/40 px-3 py-1 text-xs font-medium text-white/80 transition-colors hover:border-white/70 hover:text-white"
+                >
+                  <Plus className="size-3.5" /> Add roles you want
+                </Link>
+              </li>
+            )}
+          </ul>
+        </div>
 
         <div className="mt-auto pt-6">
           <div className="flex items-baseline justify-between gap-3 text-sm">

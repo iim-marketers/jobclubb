@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Camera, Loader2, Lock, Trash2 } from "lucide-react";
+import { Camera, Check, Loader2, Lock, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -22,6 +22,7 @@ import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { Panel } from "@/components/candidate/dashboard-ui";
 import {
   Field,
+  FieldError,
   PasswordField,
   SelectField,
   useFieldErrors,
@@ -29,10 +30,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MAX_PREFERRED_ROLES } from "@/lib/sign-up-validation";
 import { toSquarePhoto } from "@/lib/square-photo";
 import { INDUSTRIES } from "@/lib/taxonomy";
+import { cn } from "@/lib/utils";
 
-const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({
+  value: v.slug,
+  label: v.name,
+}));
 
 export type ProfileDefaults = {
   firstName: string;
@@ -42,13 +48,14 @@ export type ProfileDefaults = {
   city: string;
   pincode: string;
   industry: string;
+  roles: string[];
 };
 
 type ProfileKey = Exclude<keyof ProfileDefaults, "email">;
 
 const SECTION_KEYS = {
   personal: ["firstName", "lastName", "phone"],
-  preferences: ["city", "pincode", "industry"],
+  preferences: ["city", "pincode", "industry", "roles"],
 } satisfies Record<string, ProfileKey[]>;
 
 export function submitManually(
@@ -61,7 +68,13 @@ export function submitManually(
   };
 }
 
-export function FormStatus({ error, pending }: { error?: string; pending?: string }) {
+export function FormStatus({
+  error,
+  pending,
+}: {
+  error?: string;
+  pending?: string;
+}) {
   return (
     <p role="status" className="min-h-5 text-sm">
       {error ? (
@@ -149,9 +162,13 @@ function ProfileSectionForm({
       }}
       noValidate
     >
-      {hidden.map((k) => (
-        <input key={k} type="hidden" name={k} value={defaults[k]} />
-      ))}
+      {hidden.flatMap((k) =>
+        [defaults[k]]
+          .flat()
+          .map((v) => (
+            <input key={`${k}-${v}`} type="hidden" name={k} value={v} />
+          )),
+      )}
       <Panel
         id={section === "personal" ? "profile" : "preferences"}
         title={title}
@@ -375,6 +392,11 @@ export function PersonalDetailsForm({
 
 export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
   const [initial] = useState(defaults);
+  const [industry, setIndustry] = useState(initial.industry);
+  const [roles, setRoles] = useState(initial.roles);
+  const options = INDUSTRIES.find((v) => v.slug === industry)?.roles ?? [];
+  const full = roles.length >= MAX_PREFERRED_ROLES;
+
   return (
     <ProfileSectionForm
       section="preferences"
@@ -390,10 +412,57 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
             label="Industry"
             className="sm:col-span-2"
             options={INDUSTRY_OPTIONS}
-            defaultValue={initial.industry}
-            onValueChange={() => markDirty("industry")}
+            value={industry}
+            onValueChange={(v) => {
+              if (!v) return;
+              const next = INDUSTRIES.find((i) => i.slug === v)?.roles ?? [];
+              setIndustry(v);
+              setRoles((r) => r.filter((role) => next.includes(role)));
+              markDirty("industry");
+              markDirty("roles");
+            }}
             error={errors.industry}
           />
+          <fieldset className="space-y-2 sm:col-span-2">
+            <legend className="text-sm font-medium">
+              Roles you&apos;re looking for
+            </legend>
+            <p className="text-xs text-muted-foreground">
+              Pick up to {MAX_PREFERRED_ROLES}.
+            </p>
+            {roles.map((role) => (
+              <input key={role} type="hidden" name="roles" value={role} />
+            ))}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {options.map((role) => {
+                const selected = roles.includes(role);
+                return (
+                  <button
+                    key={role}
+                    type="button"
+                    aria-pressed={selected}
+                    disabled={!selected && full}
+                    onClick={() => {
+                      setRoles((r) =>
+                        selected ? r.filter((x) => x !== role) : [...r, role],
+                      );
+                      markDirty("roles");
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+                      selected
+                        ? "border-brand bg-brand/10 font-medium text-brand"
+                        : "border-border bg-card text-muted-foreground hover:border-brand/40 hover:text-foreground",
+                    )}
+                  >
+                    {selected && <Check className="size-3.5" />}
+                    {role}
+                  </button>
+                );
+              })}
+            </div>
+            <FieldError id="roles-error" message={errors.roles} />
+          </fieldset>
           <Field
             id="city"
             label="City"
