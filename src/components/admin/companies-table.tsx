@@ -370,7 +370,7 @@ export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
                   aria-selected={selected}
                   onClick={() => setTab(t.key)}
                   className={cn(
-                    "flex flex-none items-center gap-1.5 rounded-full px-3.5 py-1.5 font-head text-xs font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 font-head text-xs lg:flex-none font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                     selected
                       ? "bg-brand text-brand-foreground"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",

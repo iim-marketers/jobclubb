@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { MemberHome } from "@/components/candidate/member-home";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { CompanyHome } from "@/components/company/company-home";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RecruiterBoard } from "@/components/recruiter-board";
@@ -26,6 +27,7 @@ import {
   getMembershipView,
   type MembershipView,
 } from "@/server/auth/current-candidate";
+import { getCurrentCompany } from "@/server/auth/current-company";
 import { listJobs } from "@/server/jobs/listings";
 import {
   ABOUT_STATS,
@@ -51,6 +53,9 @@ const STAT_ICONS = {
 } as const;
 
 export default async function Home() {
+  const company = await getCurrentCompany();
+  if (company) return <CompanyHome company={company} />;
+
   const [view, jobs] = await Promise.all([getMembershipView(), listJobs()]);
   if (view.kind === "member") return <MemberHome view={view} jobs={jobs} />;
 

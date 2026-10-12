@@ -19,7 +19,6 @@ export default async function CompanyLayout({
       company={{
         companyName: company.company_name,
         propertyName: company.property_name,
-        contactName: company.contact_name,
         email: company.email,
         sector: industryName(company.industry),
         city: company.city,

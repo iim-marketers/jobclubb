@@ -56,7 +56,7 @@ export function CompanyHeader({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [signOutOpen, setSignOutOpen] = useState(false);
   const current = activeNavItem(pathname);
-  const firstName = company.contactName.split(" ")[0];
+  const displayName = company.propertyName ?? company.companyName;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -88,7 +88,7 @@ export function CompanyHeader({
         </Sheet>
 
         <Link
-          href={COMPANY_HOME}
+          href={"/"}
           className="flex-none lg:hidden"
           aria-label="JobClubb — dashboard"
         >
@@ -169,11 +169,12 @@ export function CompanyHeader({
               aria-label="Account menu"
             >
               <CompanyAvatar
-                name={company.contactName}
-                className="size-7 bg-linear-to-br from-brand to-brand-accent text-[11px]"
+                name={displayName}
+                logoUrl={company.logoUrl}
+                className="size-7 text-[11px]"
               />
-              <span className="hidden font-head text-sm font-semibold sm:inline">
-                {firstName}
+              <span className="hidden max-w-40 truncate font-head text-sm font-semibold sm:inline">
+                {displayName}
               </span>
               <ChevronDown className="size-3.5 text-muted-foreground" />
             </MenuPrimitive.Trigger>
@@ -184,18 +185,25 @@ export function CompanyHeader({
                 className="z-50"
               >
                 <MenuPrimitive.Popup className={`${popupClass} w-64`}>
-                  <div className="px-2.5 pt-1.5 pb-2.5">
-                    <p className="truncate font-head text-sm font-bold">
-                      {company.contactName}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {company.email}
-                    </p>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">
-                      {company.propertyName
-                        ? `${company.propertyName} · ${company.companyName}`
-                        : company.companyName}
-                    </p>
+                  <div className="flex items-center gap-3 px-2.5 pt-1.5 pb-2.5">
+                    <CompanyAvatar
+                      name={displayName}
+                      logoUrl={company.logoUrl}
+                      className="size-10 rounded-xl text-xs"
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate font-head text-sm font-bold">
+                        {displayName}
+                      </p>
+                      {company.propertyName && (
+                        <p className="truncate text-xs text-muted-foreground">
+                          {company.companyName}
+                        </p>
+                      )}
+                      <p className="truncate text-xs text-muted-foreground">
+                        {company.email}
+                      </p>
+                    </div>
                   </div>
                   <MenuPrimitive.Separator className="-mx-1.5 my-1 h-px bg-border" />
                   <MenuPrimitive.LinkItem
