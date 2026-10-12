@@ -32,7 +32,6 @@ export const metadata = {
 
 const PREVIEW_LIMIT = 6;
 
-// page=N renders the first N pages, so a refresh or Back lands on the same list.
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
   const [access, params] = await Promise.all([getJobAccess(), searchParams]);
   const query = parseJobQuery(params, access.member);
@@ -50,8 +49,6 @@ export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
     redirect(`/jobs?${canonical}`);
   }
 
-  // The page stays mounted across search param changes, so this fallback only
-  // shows on the first visit; later loads keep the current list on screen.
   return (
     <Suspense fallback={<JobsSkeleton member={access.member} />}>
       <JobResults access={access} query={query} paging={paging} />

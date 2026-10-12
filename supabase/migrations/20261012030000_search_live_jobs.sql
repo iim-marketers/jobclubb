@@ -2,7 +2,6 @@ create index company_jobs_live_created_at_idx
   on public.company_jobs (created_at desc, id desc)
   where status = 'live';
 
--- Escapes LIKE wildcards so a search for "50%" or "f_b" matches literally.
 create function public.like_pattern(term text)
 returns text
 language sql
@@ -110,8 +109,6 @@ as $$
   limit least(greatest(max_rows, 0), 1000);
 $$;
 
--- Counts ignore the selected facets so they stay stable while the mobile sheet
--- edits a draft that hasn't hit the server yet.
 create function public.live_job_facets(
   search_text text default '',
   place text default ''
