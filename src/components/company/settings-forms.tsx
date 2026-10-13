@@ -8,8 +8,10 @@ import {
   useRef,
   useState,
 } from "react";
+import Link from "next/link";
 import {
   Building2,
+  CircleAlert,
   ImageIcon,
   KeyRound,
   Loader2,
@@ -39,6 +41,7 @@ import {
   type SettingsSection,
 } from "@/components/candidate/settings-nav";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { COMPANY_INTERVIEWS } from "@/components/company/nav";
 import { Field, SelectField, useFieldErrors } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
 import { toSquarePhoto } from "@/lib/square-photo";
@@ -62,7 +65,6 @@ export function CompanySettingsNav() {
 export type CompanyDefaults = {
   propertyName: string;
   industry: string;
-  city: string;
   pincode: string;
   contactName: string;
   designation: string;
@@ -139,13 +141,21 @@ function SectionForm({
   );
 }
 
-export function CompanyDetailsForm({ defaults }: { defaults: CompanyDefaults }) {
+export function CompanyDetailsForm({
+  defaults,
+  city,
+  walkInsElsewhere,
+}: {
+  defaults: CompanyDefaults;
+  city: string;
+  walkInsElsewhere: number;
+}) {
   const [initial] = useState(defaults);
   return (
     <SectionForm
       id="details"
       title="Company details"
-      description="Where you hire and the industry we match candidates from."
+      description="Your property's area and the industry we match candidates from."
       action={updateCompanyDetails}
       successMessage="Company details saved"
     >
@@ -171,22 +181,38 @@ export function CompanyDetailsForm({ defaults }: { defaults: CompanyDefaults }) 
             error={errors.industry}
           />
           <Field
-            id="city"
-            label="City"
-            autoComplete="address-level2"
-            defaultValue={initial.city}
-            maxLength={80}
-            error={errors.city}
-          />
-          <Field
             id="pincode"
             label="Pincode"
             inputMode="numeric"
             autoComplete="postal-code"
             defaultValue={initial.pincode}
             maxLength={6}
+            hint={`Moved offices within ${city}? Your job postings move with the pincode.`}
             error={errors.pincode}
           />
+          {walkInsElsewhere > 0 && (
+            <div className="flex items-start gap-3 rounded-2xl bg-amber-50 p-4 sm:col-span-2 dark:bg-amber-500/10">
+              <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-amber-500/15 text-amber-600">
+                <CircleAlert className="size-4.5" />
+              </span>
+              <p className="min-w-0 flex-1 text-sm leading-6 text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {walkInsElsewhere === 1
+                    ? "1 upcoming walk-in interview is"
+                    : `${walkInsElsewhere} upcoming walk-in interviews are`}{" "}
+                  at a different pincode.
+                </span>{" "}
+                If they were at your old office,{" "}
+                <Link
+                  href={COMPANY_INTERVIEWS}
+                  className="font-semibold text-foreground underline underline-offset-2"
+                >
+                  reschedule them
+                </Link>{" "}
+                with the new address so candidates go to the right place.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </SectionForm>

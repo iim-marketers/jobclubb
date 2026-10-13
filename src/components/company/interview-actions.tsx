@@ -17,6 +17,7 @@ import {
 } from "@/components/candidate/settings-forms";
 import {
   Field,
+  ReadOnlyField,
   SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
@@ -192,7 +193,7 @@ function InterviewForm({
         value={mode}
         onValueChange={(v) => {
           if (v) setMode(v as InterviewModeValue);
-          clear("mode", "place", "address", "landmark", "city", "pincode");
+          clear("mode", "place", "address", "landmark", "pincode");
         }}
         error={errors.mode}
       />
@@ -210,15 +211,7 @@ function InterviewForm({
             defaultValue={interview?.venue?.address}
             error={errors.address}
           />
-          <Field
-            id="city"
-            label="City"
-            required
-            autoComplete="address-level2"
-            maxLength={80}
-            defaultValue={venue.city}
-            error={errors.city}
-          />
+          <ReadOnlyField label="City" value={jobLocation.city} />
           <Field
             id="pincode"
             label="Pincode"

@@ -22,8 +22,10 @@ export type CompanyJob = {
   workMode: (typeof WORK_MODES)[number];
   experienceMin: number;
   experienceMax: number;
-  salaryMinLpa: number;
-  salaryMaxLpa: number;
+  // Both null when the company doesn't disclose pay; max alone null for
+  // a minimum-only salary.
+  salaryMinLpa: number | null;
+  salaryMaxLpa: number | null;
   openings: number;
   description: string;
   responsibilities: string[];
@@ -36,10 +38,9 @@ export type CompanyJob = {
 
 export type JobInput = Omit<
   CompanyJob,
-  "id" | "slug" | "status" | "createdAt" | "updatedAt"
+  "id" | "slug" | "status" | "createdAt" | "updatedAt" | "city" | "pincode"
 >;
 
-const PINCODE_PATTERN = /^\d{6}$/;
 const MAX_LIST_ITEMS = 15;
 const MAX_LIST_ITEM_LENGTH = 200;
 
@@ -71,18 +72,20 @@ export function validateJob(formData: FormData): {
   values: JobInput;
   errors: FieldErrors;
 } {
+  const salaryUndisclosed = text(formData, "salaryUndisclosed") === "yes";
   const values: JobInput = {
     industry: text(formData, "industry"),
     role: text(formData, "role"),
     designation: text(formData, "designation"),
-    city: text(formData, "city"),
-    pincode: text(formData, "pincode"),
     jobType: text(formData, "jobType") as JobInput["jobType"],
     workMode: text(formData, "workMode") as JobInput["workMode"],
     experienceMin: wholeNumber(text(formData, "experienceMin")),
     experienceMax: wholeNumber(text(formData, "experienceMax")),
-    salaryMinLpa: lakhs(text(formData, "salaryMinLpa")),
-    salaryMaxLpa: lakhs(text(formData, "salaryMaxLpa")),
+    salaryMinLpa: salaryUndisclosed ? null : lakhs(text(formData, "salaryMinLpa")),
+    salaryMaxLpa:
+      salaryUndisclosed || !text(formData, "salaryMaxLpa")
+        ? null
+        : lakhs(text(formData, "salaryMaxLpa")),
     openings: wholeNumber(text(formData, "openings")),
     description: text(formData, "description"),
     responsibilities: lines(formData, "responsibilities"),
@@ -96,9 +99,6 @@ export function validateJob(formData: FormData): {
   else if (!industry.roles.includes(values.role)) errors.role = "Choose a role.";
   if (!values.designation) errors.designation = "Enter the job title candidates will see.";
   else if (values.designation.length > 120) errors.designation = "Use 120 characters or fewer.";
-  if (!values.city) errors.city = "Enter the city.";
-  else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
-  if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
   if (!JOB_TYPES.includes(values.jobType)) errors.jobType = "Choose a job type.";
   if (!WORK_MODES.includes(values.workMode)) errors.workMode = "Choose a work mode.";
 
@@ -109,12 +109,15 @@ export function validateJob(formData: FormData): {
   else if (values.experienceMax < values.experienceMin)
     errors.experienceMax = "Can't be less than the minimum.";
 
-  if (!(values.salaryMinLpa > 0 && values.salaryMinLpa <= 100))
-    errors.salaryMinLpa = "Enter lakhs per year, like 3.5.";
-  if (!(values.salaryMaxLpa > 0 && values.salaryMaxLpa <= 100))
-    errors.salaryMaxLpa = "Enter lakhs per year, like 5.";
-  else if (values.salaryMaxLpa < values.salaryMinLpa)
-    errors.salaryMaxLpa = "Can't be less than the minimum.";
+  const { salaryMinLpa, salaryMaxLpa } = values;
+  if (salaryMinLpa !== null) {
+    if (!(salaryMinLpa > 0 && salaryMinLpa <= 100))
+      errors.salaryMinLpa = "Enter lakhs per year, like 3.5.";
+    if (salaryMaxLpa !== null && !(salaryMaxLpa > 0 && salaryMaxLpa <= 100))
+      errors.salaryMaxLpa = "Enter lakhs per year, like 5.";
+    else if (salaryMaxLpa !== null && salaryMaxLpa < salaryMinLpa)
+      errors.salaryMaxLpa = "Can't be less than the minimum.";
+  }
 
   if (!(values.openings >= 1 && values.openings <= 999))
     errors.openings = "Enter from 1 to 999 openings.";
@@ -137,7 +140,11 @@ export function validateJob(formData: FormData): {
 
 const lpa = (n: number) => `₹${Number(n.toFixed(2))} LPA`;
 
+const SALARY_UNDISCLOSED = "Not disclosed";
+
 export function formatSalary(job: Pick<CompanyJob, "salaryMinLpa" | "salaryMaxLpa">) {
+  if (job.salaryMinLpa === null) return SALARY_UNDISCLOSED;
+  if (job.salaryMaxLpa === null) return `From ${lpa(job.salaryMinLpa)}`;
   return job.salaryMinLpa === job.salaryMaxLpa
     ? lpa(job.salaryMinLpa)
     : `${lpa(job.salaryMinLpa)} – ${lpa(job.salaryMaxLpa)}`;
@@ -181,11 +188,11 @@ export function industryName(slug: string) {
 export type JobFormDefaults = Record<
   Exclude<keyof JobInput, "role">,
   string
-> & { role: string | null };
+> & { role: string | null; salaryUndisclosed: boolean };
 
 export function jobFormDefaults(
   job: CompanyJob | null,
-  company: { industry: string; city: string; pincode: string },
+  company: { industry: string },
 ): JobFormDefaults {
   if (!job)
     return {
@@ -193,14 +200,13 @@ export function jobFormDefaults(
       role: null,
       designation: "",
       openings: "1",
-      city: company.city,
-      pincode: company.pincode,
       jobType: "Full time",
       workMode: "Onsite",
       experienceMin: "0",
       experienceMax: "",
       salaryMinLpa: "",
       salaryMaxLpa: "",
+      salaryUndisclosed: false,
       description: "",
       responsibilities: "",
       requirements: "",
@@ -212,14 +218,13 @@ export function jobFormDefaults(
     role: job.role,
     designation: job.designation,
     openings: String(job.openings),
-    city: job.city,
-    pincode: job.pincode,
     jobType: job.jobType,
     workMode: job.workMode,
     experienceMin: String(job.experienceMin),
     experienceMax: String(job.experienceMax),
-    salaryMinLpa: String(job.salaryMinLpa),
-    salaryMaxLpa: String(job.salaryMaxLpa),
+    salaryMinLpa: job.salaryMinLpa === null ? "" : String(job.salaryMinLpa),
+    salaryMaxLpa: job.salaryMaxLpa === null ? "" : String(job.salaryMaxLpa),
+    salaryUndisclosed: job.salaryMinLpa === null,
     description: toRichTextHtml(job.description),
     responsibilities: job.responsibilities.join("\n"),
     requirements: job.requirements.join("\n"),

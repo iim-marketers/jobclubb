@@ -197,6 +197,20 @@ export async function listCompanyInterviews(
   });
 }
 
+export async function countWalkInsAwayFrom(companyId: string, pincode: string) {
+  const { count, error } = await createAdminClient()
+    .from("job_interviews")
+    .select("id", { count: "exact", head: true })
+    .eq("company_id", companyId)
+    .eq("mode", "in_person")
+    .neq("pincode", pincode)
+    .gt("starts_at", now())
+    .is("cancelled_at", null)
+    .is("outcome", null);
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function listSelectedCandidates(companyId: string): Promise<SelectedCandidate[]> {
   const { data, error } = await createAdminClient()
     .from("job_interviews")

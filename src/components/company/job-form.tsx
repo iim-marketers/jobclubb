@@ -10,20 +10,26 @@ import {
   SubmitButton,
   submitManually,
 } from "@/components/candidate/settings-forms";
+import { COMPANY_HOME } from "@/components/company/nav";
 import {
   Field,
   FieldError,
+  ReadOnlyField,
   SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { JobFormDefaults } from "@/lib/company-jobs";
 import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
 
-const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({
+  value: v.slug,
+  label: v.name,
+}));
 const JOB_TYPE_OPTIONS = JOB_TYPES.map((t) => ({ value: t, label: t }));
 const WORK_MODE_LABELS: Record<(typeof WORK_MODES)[number], string> = {
   WFO: "Work from office",
@@ -40,11 +46,13 @@ const WORK_MODE_OPTIONS = WORK_MODES.map((m) => ({
 export function JobForm({
   action,
   defaults,
+  location,
   submitLabel,
   cancelHref,
 }: {
   action: (prev: JobFormState, formData: FormData) => Promise<JobFormState>;
   defaults: JobFormDefaults;
+  location: { city: string; pincode: string };
   submitLabel: string;
   cancelHref: string;
 }) {
@@ -52,6 +60,9 @@ export function JobForm({
   const [initial] = useState(defaults);
   const [industry, setIndustry] = useState<string | null>(defaults.industry);
   const [role, setRole] = useState<string | null>(defaults.role);
+  const [salaryUndisclosed, setSalaryUndisclosed] = useState(
+    defaults.salaryUndisclosed,
+  );
   const { errors, formError, clear, clearAll, onChange } = useFieldErrors(
     state,
     state.errors,
@@ -72,7 +83,10 @@ export function JobForm({
       noValidate
       className="space-y-6"
     >
-      <Panel title="Role" description="What you're hiring for and how many people you need.">
+      <Panel
+        title="Role"
+        description="What you're hiring for and how many people you need."
+      >
         <div className="grid gap-5 sm:grid-cols-2">
           <SelectField
             id="industry"
@@ -122,26 +136,27 @@ export function JobForm({
         </div>
       </Panel>
 
-      <Panel title="Location and type" description="Candidates near this pincode see the role first.">
+      <Panel
+        title="Location and type"
+        description="Candidates near this pincode see the role first."
+      >
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field
-            id="city"
-            label="City"
-            required
-            autoComplete="address-level2"
-            defaultValue={initial.city}
-            maxLength={80}
-            error={errors.city}
-          />
-          <Field
-            id="pincode"
-            label="Pincode"
-            required
-            inputMode="numeric"
-            autoComplete="postal-code"
-            defaultValue={initial.pincode}
-            maxLength={6}
-            error={errors.pincode}
+          <ReadOnlyField
+            label="Location"
+            value={`${location.city} · ${location.pincode}`}
+            className="sm:col-span-2"
+            hint={
+              <>
+                Jobs are posted at your property. Moved offices?{" "}
+                <Link
+                  href={`${COMPANY_HOME}/settings#details`}
+                  className="font-medium text-foreground underline underline-offset-2"
+                >
+                  Update your pincode
+                </Link>
+                . Hiring for a property in another city? It signs up separately.
+              </>
+            }
           />
           <SelectField
             id="jobType"
@@ -164,7 +179,10 @@ export function JobForm({
         </div>
       </Panel>
 
-      <Panel title="Experience and pay" description="Ranges are fine. Use 0 years for freshers.">
+      <Panel
+        title="Experience and pay"
+        description="Ranges are fine. Use 0 years for freshers."
+      >
         <div className="grid gap-5 sm:grid-cols-2">
           <Field
             id="experienceMin"
@@ -184,6 +202,7 @@ export function JobForm({
             maxLength={2}
             error={errors.experienceMax}
           />
+          {/* Hidden rather than unmounted so typed values survive toggling. */}
           <Field
             id="salaryMinLpa"
             label="Minimum salary (₹ LPA)"
@@ -191,19 +210,41 @@ export function JobForm({
             inputMode="decimal"
             placeholder="e.g. 3.5"
             defaultValue={initial.salaryMinLpa}
+            hint="Please enter the salary in lakhs per year. For e.g., 3.5 means ₹3,50,000 per year."
             maxLength={6}
             error={errors.salaryMinLpa}
+            className={salaryUndisclosed ? "hidden" : undefined}
           />
           <Field
             id="salaryMaxLpa"
             label="Maximum salary (₹ LPA)"
-            required
+            optional
             inputMode="decimal"
             placeholder="e.g. 5"
             defaultValue={initial.salaryMaxLpa}
             maxLength={6}
+            hint="Leave blank to show it as “From ₹X LPA”."
             error={errors.salaryMaxLpa}
+            className={salaryUndisclosed ? "hidden" : undefined}
           />
+          <label className="flex cursor-pointer items-start gap-2.5 sm:col-span-2">
+            <Checkbox
+              name="salaryUndisclosed"
+              value="yes"
+              className="mt-0.5"
+              checked={salaryUndisclosed}
+              onCheckedChange={(checked) => {
+                setSalaryUndisclosed(checked);
+                clear("salaryMinLpa", "salaryMaxLpa");
+              }}
+            />
+            <span className="text-sm">
+              Don&apos;t disclose salary
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                Candidates see &ldquo;Not disclosed&rdquo; instead of a range.
+              </span>
+            </span>
+          </label>
         </div>
       </Panel>
 
@@ -215,7 +256,9 @@ export function JobForm({
             <FormStatus
               error={
                 formError ??
-                (hasErrors ? "Fix the highlighted fields and try again." : undefined)
+                (hasErrors
+                  ? "Fix the highlighted fields and try again."
+                  : undefined)
               }
             />
             <div className="flex flex-col-reverse gap-2 sm:flex-row">
@@ -325,7 +368,9 @@ function TextareaField({
         className="min-h-32 max-h-80 flex-1 bg-card"
         {...props}
       />
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && !error && (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      )}
       <FieldError id={`${id}-error`} message={error} />
     </div>
   );

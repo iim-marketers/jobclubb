@@ -1,5 +1,5 @@
 import type { InterviewMode } from "@/lib/candidate-activity";
-import type { FieldErrors } from "@/lib/sign-up-validation";
+import { propertyPincodeError, type FieldErrors } from "@/lib/sign-up-validation";
 
 export const INTERVIEW_MODES = [
   { value: "video", label: "Video call" },
@@ -147,8 +147,11 @@ function placeError(mode: RemoteMode, place: string) {
   }
 }
 
+// Walk-ins happen in the property's city; the pincode may differ, e.g. for a
+// hiring venue across town, but must stay in the property's state.
 export function validateInterview(
   formData: FormData,
+  property: { city: string; pincode: string },
   now = new Date(),
 ): { values: InterviewInput; errors: FieldErrors } {
   const date = text(formData, "date");
@@ -159,7 +162,7 @@ export function validateInterview(
   const venue: Venue = {
     address: text(formData, "address"),
     landmark: text(formData, "landmark") || null,
-    city: text(formData, "city"),
+    city: property.city,
     pincode: text(formData, "pincode"),
   };
   const values: InterviewInput = {
@@ -191,11 +194,8 @@ export function validateInterview(
       errors.address = "Use 200 characters or fewer.";
     if (venue.landmark && venue.landmark.length > 100)
       errors.landmark = "Use 100 characters or fewer.";
-    if (!venue.city) errors.city = "Enter the city.";
-    else if (venue.city.length > 80)
-      errors.city = "Use 80 characters or fewer.";
-    if (!/^\d{6}$/.test(venue.pincode))
-      errors.pincode = "Enter a 6-digit pincode.";
+    const pincode = propertyPincodeError(venue.pincode, property.pincode);
+    if (pincode) errors.pincode = pincode;
   } else {
     const place = placeError(mode, values.place ?? "");
     if (place) errors.place = place;

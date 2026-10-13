@@ -296,8 +296,7 @@ function EmployerShowcase() {
 }
 
 function maxSalary(job: JobListing) {
-  const top = job.salaryRange.split(" – ").pop() ?? job.salaryRange;
-  return top.startsWith("₹") ? top : `₹${top}`;
+  return job.salaryRange.split(" – ").pop() ?? job.salaryRange;
 }
 
 function FeaturedOpenings({

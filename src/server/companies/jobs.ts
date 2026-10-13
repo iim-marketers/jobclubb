@@ -20,8 +20,8 @@ type JobRow = {
   work_mode: CompanyJob["workMode"];
   experience_min: number;
   experience_max: number;
-  salary_min_lpa: number | string;
-  salary_max_lpa: number | string;
+  salary_min_lpa: number | string | null;
+  salary_max_lpa: number | string | null;
   openings: number;
   description: string;
   responsibilities: string[];
@@ -46,8 +46,8 @@ function toJob(row: JobRow): CompanyJob {
     experienceMin: row.experience_min,
     experienceMax: row.experience_max,
     // PostgREST returns numeric columns as strings.
-    salaryMinLpa: Number(row.salary_min_lpa),
-    salaryMaxLpa: Number(row.salary_max_lpa),
+    salaryMinLpa: row.salary_min_lpa === null ? null : Number(row.salary_min_lpa),
+    salaryMaxLpa: row.salary_max_lpa === null ? null : Number(row.salary_max_lpa),
     openings: row.openings,
     description: row.description,
     responsibilities: row.responsibilities,
@@ -59,13 +59,12 @@ function toJob(row: JobRow): CompanyJob {
   };
 }
 
+// city and pincode are copied from the company by a database trigger.
 function toRow(input: JobInput) {
   return {
     industry: input.industry,
     role: input.role,
     designation: input.designation,
-    city: input.city,
-    pincode: input.pincode,
     job_type: input.jobType,
     work_mode: input.workMode,
     experience_min: input.experienceMin,

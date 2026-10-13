@@ -42,6 +42,7 @@ export default async function EditJobPage({
       <JobForm
         action={updateJob.bind(null, job.id)}
         defaults={jobFormDefaults(job, company)}
+        location={company}
         submitLabel="Save changes"
         cancelHref={jobHref}
       />

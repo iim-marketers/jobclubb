@@ -103,14 +103,18 @@ const PIN_RANGES: [from: number, to: number, state: string][] = [
   [800, 855, "10"],
 ];
 
-// Unknown location falls back to the supplier's state (IGST Act s.12(2)(b)).
-export function stateFromPincode(pincode: string) {
-  if (!/^\d{6}$/.test(pincode)) return SUPPLIER.stateCode;
+export function pincodeState(pincode: string): string | null {
+  if (!/^\d{6}$/.test(pincode)) return null;
   const exception = PIN_EXCEPTIONS.find(([prefix]) => pincode.startsWith(prefix));
   if (exception) return exception[1];
   const prefix = Number(pincode.slice(0, 3));
   const range = PIN_RANGES.find(([from, to]) => prefix >= from && prefix <= to);
-  return range?.[2] ?? SUPPLIER.stateCode;
+  return range?.[2] ?? null;
+}
+
+// Unknown location falls back to the supplier's state (IGST Act s.12(2)(b)).
+export function stateFromPincode(pincode: string) {
+  return pincodeState(pincode) ?? SUPPLIER.stateCode;
 }
 
 export const stateLabel = (code: string) => `${GST_STATES[code] ?? "Unknown"} (${code})`;

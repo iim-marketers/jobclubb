@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, FileCheck2, Upload } from "lucide-react";
+import { Eye, EyeOff, FileCheck2, Lock, Upload } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,6 +77,29 @@ export function Field({
         {...inputProps}
       />
     </FieldShell>
+  );
+}
+
+export function ReadOnlyField({
+  label,
+  value,
+  hint,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  hint?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`space-y-2 ${className}`}>
+      <Label>{label}</Label>
+      <p className="flex h-11 items-center gap-2 rounded-lg border border-input bg-muted/50 px-3 text-sm">
+        <Lock className="size-3.5 flex-none text-muted-foreground" />
+        <span className="truncate">{value}</span>
+      </p>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
   );
 }
 

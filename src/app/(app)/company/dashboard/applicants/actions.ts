@@ -72,7 +72,7 @@ export async function saveInterview(
   formData: FormData,
 ): Promise<InterviewFormState> {
   const company = await requireCompany(`${COMPANY_HOME}/applicants/${ref}`);
-  const { values, errors } = validateInterview(formData);
+  const { values, errors } = validateInterview(formData, company);
   if (Object.keys(errors).length > 0) return { errors };
 
   try {
