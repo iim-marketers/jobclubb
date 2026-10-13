@@ -1,6 +1,20 @@
 import "server-only";
 
-import { candidateLabel, type Applicant } from "@/lib/company-activity";
+import {
+  candidateLabel,
+  type Applicant,
+  type CompanyInterview,
+} from "@/lib/company-activity";
+import {
+  OUTCOME_LABELS,
+  PLACE_COLUMNS,
+  interviewEnd,
+  interviewPlace,
+  modeLabel,
+  type InterviewInput,
+  type InterviewOutcome,
+  type InterviewPlaceRow,
+} from "@/lib/interviews";
 import type { Resume } from "@/lib/resume";
 import { createAdminClient } from "@/lib/supabase/server";
 import { maskResume } from "@/server/applications/masking";
@@ -29,7 +43,7 @@ type ApplicantRow = {
   shortlisted_at: string | null;
 };
 
-async function revealedNames(rows: ApplicantRow[]) {
+async function revealedNames(rows: Pick<ApplicantRow, "candidate_id" | "shortlisted_at">[]) {
   const ids = rows.filter((r) => r.shortlisted_at).map((r) => r.candidate_id);
   if (ids.length === 0) return new Map<string, string>();
   const { data, error } = await createAdminClient()
@@ -75,7 +89,9 @@ export async function listCompanyApplicants(companyId: string, jobId?: string) {
 export type ApplicantDetail = Applicant & {
   designation: string;
   jobClosed: boolean;
+  jobLocation: { city: string; pincode: string };
   resume: Resume;
+  interview: CompanyInterview | null;
 };
 
 export async function getCompanyApplicant(
@@ -85,7 +101,7 @@ export async function getCompanyApplicant(
   if (!REF.test(ref)) return null;
   const { data, error } = await createAdminClient()
     .from("job_applications")
-    .select(`${APPLICANT_COLUMNS}, masked_resume, company_jobs (designation, status)`)
+    .select(`${APPLICANT_COLUMNS}, masked_resume, company_jobs (designation, status, city, pincode)`)
     .eq("company_id", companyId)
     .eq("ref", ref)
     .maybeSingle();
@@ -94,15 +110,71 @@ export async function getCompanyApplicant(
 
   const row = data as unknown as ApplicantRow & {
     masked_resume: Resume;
-    company_jobs: { designation: string; status: string };
+    company_jobs: { designation: string; status: string; city: string; pincode: string };
   };
-  const names = await revealedNames([row]);
+  const [names, interviews] = await Promise.all([
+    revealedNames([row]),
+    listCompanyInterviews(companyId, ref),
+  ]);
   return {
     ...toApplicant(row, names),
     designation: row.company_jobs.designation,
     jobClosed: row.company_jobs.status === "closed",
+    jobLocation: { city: row.company_jobs.city, pincode: row.company_jobs.pincode },
     resume: row.masked_resume,
+    interview: interviews[0] ?? null,
   };
+}
+
+const INTERVIEW_COLUMNS = `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round, outcome, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at)`;
+
+type InterviewRow = InterviewPlaceRow & {
+  id: string;
+  starts_at: string;
+  duration_mins: number;
+  finished_at: string | null;
+  mode: string;
+  interviewer: string;
+  round: string;
+  outcome: InterviewOutcome | null;
+  job_applications: Pick<ApplicantRow, "ref" | "job_id" | "candidate_id" | "candidate_no" | "shortlisted_at"> & {
+    job_title: string;
+  };
+};
+
+export async function listCompanyInterviews(
+  companyId: string,
+  ref?: string,
+): Promise<CompanyInterview[]> {
+  let query = createAdminClient()
+    .from("job_interviews")
+    .select(INTERVIEW_COLUMNS)
+    .eq("company_id", companyId)
+    .is("cancelled_at", null)
+    .order("starts_at");
+  if (ref) query = query.eq("job_applications.ref", ref);
+  const { data, error } = await query;
+  if (error) throw error;
+  const rows = data as unknown as InterviewRow[];
+  const names = await revealedNames(rows.map((r) => r.job_applications));
+  return rows.map((r) => {
+    const app = r.job_applications;
+    return {
+      id: r.id,
+      applicantRef: app.ref,
+      applicant: names.get(app.candidate_id) ?? candidateLabel(app.candidate_no),
+      jobId: app.job_id,
+      designation: app.job_title,
+      startsAt: r.starts_at,
+      endsAt: interviewEnd(r.starts_at, r.duration_mins, r.finished_at),
+      durationMins: r.duration_mins,
+      mode: modeLabel(r.mode),
+      ...interviewPlace(r),
+      interviewer: r.interviewer,
+      round: r.round,
+      outcome: r.outcome ? OUTCOME_LABELS[r.outcome] : null,
+    };
+  });
 }
 
 const now = () => new Date().toISOString();
@@ -174,6 +246,90 @@ export async function rejectApplicant(companyId: string, ref: string) {
     .eq("status", "active")
     .lt("stage", 4)
     .select("ref");
+  if (error) throw error;
+  return data.length > 0;
+}
+
+const interviewFields = (input: InterviewInput) => ({
+  starts_at: input.startsAt,
+  duration_mins: input.durationMins,
+  finished_at: null,
+  mode: input.mode,
+  place: input.place,
+  address: input.venue?.address ?? null,
+  landmark: input.venue?.landmark ?? null,
+  city: input.venue?.city ?? null,
+  pincode: input.venue?.pincode ?? null,
+  interviewer: input.interviewer,
+  round: input.round,
+});
+
+export async function scheduleInterview(companyId: string, ref: string, input: InterviewInput) {
+  if (!REF.test(ref)) return false;
+  const admin = createAdminClient();
+  const { data: app, error } = await admin
+    .from("job_applications")
+    .select("id")
+    .eq("company_id", companyId)
+    .eq("ref", ref)
+    .maybeSingle();
+  if (error) throw error;
+  if (!app) return false;
+
+  const { error: insertError } = await admin
+    .from("job_interviews")
+    .insert({ ...interviewFields(input), application_id: app.id, company_id: companyId });
+  if (!insertError) return true;
+  if (insertError.hint === "not_shortlisted" || insertError.code === "23505") return false;
+  throw insertError;
+}
+
+function openInterview(companyId: string, id: string, update: Record<string, unknown>) {
+  return createAdminClient()
+    .from("job_interviews")
+    .update(update)
+    .eq("company_id", companyId)
+    .eq("id", id)
+    .is("cancelled_at", null)
+    .is("outcome", null);
+}
+
+export async function rescheduleInterview(companyId: string, id: string, input: InterviewInput) {
+  if (!UUID.test(id)) return false;
+  const { data, error } = await openInterview(companyId, id, interviewFields(input)).select("id");
+  if (error) throw error;
+  return data.length > 0;
+}
+
+export async function cancelInterview(companyId: string, id: string) {
+  if (!UUID.test(id)) return false;
+  const { data, error } = await openInterview(companyId, id, { cancelled_at: now() }).select("id");
+  if (error) throw error;
+  return data.length > 0;
+}
+
+export async function recordInterviewOutcome(
+  companyId: string,
+  id: string,
+  outcome: InterviewOutcome,
+) {
+  if (!UUID.test(id) || !(outcome in OUTCOME_LABELS)) return false;
+  const at = now();
+  const { data, error } = await openInterview(companyId, id, { outcome, outcome_at: at })
+    .lte("starts_at", at)
+    .select("id");
+  if (error?.hint === "interview_not_finished") return false;
+  if (error) throw error;
+  return data.length > 0;
+}
+
+export async function finishInterview(companyId: string, id: string) {
+  if (!UUID.test(id)) return false;
+  const at = now();
+  const { data, error } = await openInterview(companyId, id, { finished_at: at })
+    .is("finished_at", null)
+    .lte("starts_at", at)
+    .select("id");
   if (error) throw error;
   return data.length > 0;
 }

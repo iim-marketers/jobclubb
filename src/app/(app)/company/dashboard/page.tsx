@@ -41,7 +41,10 @@ import {
 import { industryName, type CompanyJob } from "@/lib/company-jobs";
 import { greeting } from "@/lib/greeting";
 import { cn } from "@/lib/utils";
-import { listCompanyApplicants } from "@/server/applications/company";
+import {
+  listCompanyApplicants,
+  listCompanyInterviews,
+} from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
 import { listCompanyJobs } from "@/server/companies/jobs";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
@@ -50,15 +53,16 @@ export const metadata = { title: "Company dashboard — JobClubb" };
 
 export default async function CompanyDashboard() {
   const company = await requireCompany(COMPANY_HOME);
-  const [jobs, applicants] = await Promise.all([
+  const [jobs, applicants, interviews] = await Promise.all([
     listCompanyJobs(company.id),
     listCompanyApplicants(company.id),
+    listCompanyInterviews(company.id),
   ]);
   const now = new Date();
 
   const active = applicants.filter((a) => a.status === "active");
   const live = jobs.filter((j) => j.status === "live");
-  const upcoming = upcomingCompanyInterviews(now);
+  const upcoming = upcomingCompanyInterviews(interviews, now);
   const weekAhead = upcoming.filter(
     (i) => +new Date(i.startsAt) - +now < 7 * 86_400_000,
   ).length;
@@ -69,7 +73,7 @@ export default async function CompanyDashboard() {
     { label: "Get your company verified", done: true },
     { label: "Post your first job", done: jobs.length > 0 },
     { label: "Receive your first applicant", done: applicants.length > 0 },
-    { label: "Schedule an interview", done: upcoming.length > 0 || active.some((a) => a.stage >= 3) },
+    { label: "Schedule an interview", done: interviews.length > 0 },
   ];
 
   const stats = [
@@ -297,8 +301,8 @@ function CompanySummary({
               <p className="mt-1.5 font-head text-lg font-bold tracking-tight">
                 {nextInterview.designation}
               </p>
-              <p className="font-mono text-sm text-white/80">
-                {nextInterview.applicantRef}
+              <p className="truncate text-sm text-white/80">
+                {nextInterview.applicant}
               </p>
               <p className="mt-3 flex items-center gap-1.5 text-xs text-white/75">
                 <CalendarClock className="size-3.5" />{" "}

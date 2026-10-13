@@ -18,7 +18,7 @@ const BY_MODE: Record<InterviewMode, string[]> = {
     "Test your camera, mic and internet 30 minutes before",
     "Pick a quiet, well-lit spot with a plain background",
   ],
-  "In person": [
+  "In-person": [
     "Plan your route and arrive 15 minutes early",
     "Carry two printed copies of your resume",
   ],
@@ -57,10 +57,6 @@ export function PrepChecklist({
     } catch {}
   }
 
-  const progress = Math.round(
-    (items.filter((i) => done.includes(i)).length / items.length) * 100,
-  );
-
   return (
     <div>
       <ul className="space-y-1">
@@ -73,7 +69,7 @@ export function PrepChecklist({
                 role="checkbox"
                 aria-checked={checked}
                 onClick={() => toggle(item)}
-                className="flex w-full items-start gap-2 rounded-xl px-2 py-2 text-left text-sm transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="flex w-full items-start gap-2 rounded-xl py-2 text-left text-sm transition-colors outline-none hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <span
                   className={cn(

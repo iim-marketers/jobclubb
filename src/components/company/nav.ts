@@ -9,6 +9,7 @@ import {
 export const COMPANY_HOME = "/company/dashboard";
 export const COMPANY_JOBS = `${COMPANY_HOME}/jobs`;
 export const COMPANY_APPLICANTS = `${COMPANY_HOME}/applicants`;
+export const COMPANY_INTERVIEWS = `${COMPANY_HOME}/interviews`;
 export const jobApplicantsHref = (jobId: string) =>
   `${COMPANY_APPLICANTS}/jobs/${jobId}`;
 
@@ -25,7 +26,7 @@ export const COMPANY_NAV: { title: string; items: CompanyNavItem[] }[] = [
       { label: "Overview", href: COMPANY_HOME, icon: LayoutDashboard },
       { label: "Job postings", href: COMPANY_JOBS, icon: Briefcase },
       { label: "Applicants", href: COMPANY_APPLICANTS, icon: UserRoundSearch },
-      { label: "Interviews", href: `${COMPANY_HOME}/interviews`, icon: CalendarCheck },
+      { label: "Interviews", href: COMPANY_INTERVIEWS, icon: CalendarCheck },
     ],
   },
   {

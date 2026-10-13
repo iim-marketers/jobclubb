@@ -1,4 +1,5 @@
 import { STAGES, type InterviewMode } from "@/lib/candidate-activity";
+import type { Venue } from "@/lib/interviews";
 
 export { STAGES };
 
@@ -29,25 +30,28 @@ export function formatExperienceMonths(months: number) {
 export type CompanyInterview = {
   id: string;
   applicantRef: string;
+  applicant: string;
   jobId: string;
   designation: string;
   startsAt: string;
+  endsAt: string;
   durationMins: number;
   mode: InterviewMode;
   place: string;
+  venue: Venue | null;
+  interviewer: string;
   round: string;
+  outcome: "Cleared" | "Not selected" | null;
 };
 
-export const COMPANY_INTERVIEWS: CompanyInterview[] = [];
-
-export function upcomingCompanyInterviews(now = new Date()) {
-  return COMPANY_INTERVIEWS.filter((i) => new Date(i.startsAt) >= now).sort(
+export function upcomingCompanyInterviews(interviews: CompanyInterview[], now = new Date()) {
+  return interviews.filter((i) => new Date(i.endsAt) > now).sort(
     (a, b) => +new Date(a.startsAt) - +new Date(b.startsAt),
   );
 }
 
-export function pastCompanyInterviews(now = new Date()) {
-  return COMPANY_INTERVIEWS.filter((i) => new Date(i.startsAt) < now).sort(
+export function pastCompanyInterviews(interviews: CompanyInterview[], now = new Date()) {
+  return interviews.filter((i) => new Date(i.endsAt) <= now).sort(
     (a, b) => +new Date(b.startsAt) - +new Date(a.startsAt),
   );
 }

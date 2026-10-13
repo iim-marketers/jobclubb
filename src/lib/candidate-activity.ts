@@ -1,3 +1,4 @@
+import type { Venue } from "@/lib/interviews";
 import type { JobListing } from "@/lib/jobs-data";
 
 export const STAGES = [
@@ -18,6 +19,7 @@ export type Application = {
   // Separate from status, which shows "rejected" even when the job has also closed.
   jobClosed: boolean;
   appliedOn: string;
+  stageDates: (string | null)[];
   updatedAgo: string;
   update: string;
   history: { label: string; date: string }[];
@@ -29,10 +31,6 @@ export function applicationStatus(a: Application) {
   return STAGES[a.stage];
 }
 
-export function interviewsFor(jobSlug: string) {
-  return INTERVIEWS.filter((i) => i.jobSlug === jobSlug);
-}
-
 export type SavedJob = {
   job: JobListing;
   savedOn: string;
@@ -41,38 +39,38 @@ export type SavedJob = {
 
 export const SAVED_JOBS: SavedJob[] = [];
 
-export type InterviewMode = "Video call" | "In person" | "Phone";
+export type InterviewMode = "Video call" | "In-person" | "Phone";
 
 export type Interview = {
   id: string;
   company: string;
+  companyLogoUrl: string | null;
   role: string;
-  jobSlug: string;
-  applicationId?: string;
+  applicationId: string;
   startsAt: string;
+  endsAt: string;
   durationMins: number;
   mode: InterviewMode;
   place: string;
+  venue: Venue | null;
   interviewer: string;
   round: string;
   guaranteed: boolean;
   outcome?: "Cleared" | "Awaiting result" | "Not selected";
 };
 
-export const INTERVIEWS: Interview[] = [];
-
 export const GUARANTEED_INTERVIEWS = 3;
 
-export function upcomingInterviews(now = new Date()) {
-  return INTERVIEWS.filter((i) => new Date(i.startsAt) >= now).sort(
-    (a, b) => +new Date(a.startsAt) - +new Date(b.startsAt),
-  );
+export function upcomingInterviews(interviews: Interview[], now = new Date()) {
+  return interviews
+    .filter((i) => new Date(i.endsAt) > now)
+    .sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt));
 }
 
-export function pastInterviews(now = new Date()) {
-  return INTERVIEWS.filter((i) => new Date(i.startsAt) < now).sort(
-    (a, b) => +new Date(b.startsAt) - +new Date(a.startsAt),
-  );
+export function pastInterviews(interviews: Interview[], now = new Date()) {
+  return interviews
+    .filter((i) => new Date(i.endsAt) <= now)
+    .sort((a, b) => +new Date(b.startsAt) - +new Date(a.startsAt));
 }
 
 const IST = "Asia/Kolkata";
@@ -108,11 +106,15 @@ export type GuaranteeSlot = {
   note: string;
 };
 
-export function guaranteeSlots(now = new Date()): GuaranteeSlot[] {
-  const slots: GuaranteeSlot[] = INTERVIEWS.filter((i) => i.guaranteed)
+export function guaranteeSlots(
+  interviews: Interview[],
+  now = new Date(),
+): GuaranteeSlot[] {
+  const slots: GuaranteeSlot[] = interviews
+    .filter((i) => i.guaranteed)
     .sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt))
     .map((i) =>
-      new Date(i.startsAt) < now
+      new Date(i.endsAt) <= now
         ? {
             company: i.company,
             state: "done",

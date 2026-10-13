@@ -334,7 +334,7 @@ export function LogoForm({
             {logoUrl && (
               <Button
                 type="button"
-                variant="outline"
+                variant="outline-destructive"
                 disabled={busy}
                 onClick={() => startTransition(() => removeAction())}
                 className="h-10 px-3 font-head"
