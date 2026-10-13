@@ -1,3 +1,5 @@
+import { candidateOfferBadge, type CandidateOfferStatus } from "@/lib/placements";
+
 export const NOT_SELECTED_BADGE =
   "bg-destructive/8 text-destructive ring-1 ring-destructive/30 ring-inset";
 
@@ -13,10 +15,16 @@ const STAGE_BADGES = [
 ];
 
 export function stageBadge(
-  a: { stage: number; status: string; selected: boolean },
+  a: {
+    stage: number;
+    status: string;
+    selected?: boolean;
+    offer?: { status: CandidateOfferStatus } | null;
+  },
   closed = false,
 ) {
   if (a.status === "rejected") return NOT_SELECTED_BADGE;
   if (closed) return "bg-muted text-muted-foreground";
+  if (a.offer) return candidateOfferBadge(a.offer.status);
   return a.selected ? SELECTED_BADGE : STAGE_BADGES[a.stage];
 }

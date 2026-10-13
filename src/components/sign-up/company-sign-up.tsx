@@ -214,6 +214,7 @@ export function CompanySignUp() {
               placeholder="E.g., Kolkata"
               autoComplete="address-level2"
               required
+              hint="All jobs are posted here, and it can't be changed later."
               error={errors.city}
             />
             <Field
@@ -325,6 +326,7 @@ export function CompanySignUp() {
 
             <div>
               <ScrollGatedTerms
+                employer
                 onRead={setHasRead}
                 onAccept={(v) => {
                   setAccepted(v);

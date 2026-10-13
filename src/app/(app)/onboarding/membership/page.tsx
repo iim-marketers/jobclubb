@@ -229,7 +229,9 @@ export default async function CheckoutPage() {
 
         <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
           Pay securely via Razorpay. We&apos;ll remind you 15 days before it
-          renews.
+          renews. If an employer selects you later, a separate placement fee
+          equal to one month&apos;s fixed gross salary applies to receive your
+          offer letter.
         </p>
       </main>
     </div>

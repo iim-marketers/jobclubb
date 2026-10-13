@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 
+import { Salary } from "@/components/salary";
 import { EmptyState } from "@/components/candidate/dashboard-ui";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { JobStatusPill } from "@/components/company/job-status";
@@ -503,7 +504,7 @@ function PostingCard({
 
       <div className="-mx-5 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border px-5 pt-4 text-xs text-muted-foreground">
         <span className="font-head text-sm font-bold text-foreground">
-          {formatSalary(job)}
+          <Salary value={formatSalary(job)} />
         </span>
         <span className="flex items-center gap-1.5">
           <Clock className="size-3.5" />

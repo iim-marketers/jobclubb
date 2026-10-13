@@ -14,12 +14,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { Salary } from "@/components/salary";
 import { ApplyNowButton } from "@/components/apply-now-button";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH } from "@/lib/membership";
+import { PLACEMENT_FEE_NOTE } from "@/lib/placements";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import {
@@ -80,7 +82,7 @@ export default async function JobDetailPage({
                 <div className="mb-4 -mx-5 px-5 border-b border-border pb-4">
                   <p className="text-xs text-muted-foreground">Salary</p>
                   <p className="mt-0.5 font-head text-lg font-bold tracking-tight">
-                    {job.salaryRange}
+                    <Salary value={job.salaryRange} />
                   </p>
                 </div>
               )}
@@ -89,6 +91,14 @@ export default async function JobDetailPage({
                 One click sends your resume to the employer. Track every step
                 from your dashboard.
               </p>
+              {access.member && (
+                <p className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
+                  {PLACEMENT_FEE_NOTE}{" "}
+                  <Link href="/terms" className="underline underline-offset-2">
+                    Terms
+                  </Link>
+                </p>
+              )}
             </div>
             <PrivacyNote />
           </aside>
@@ -101,7 +111,7 @@ export default async function JobDetailPage({
             <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground">Salary</p>
               <p className="truncate font-head text-sm font-bold">
-                {job.salaryRange}
+                <Salary value={job.salaryRange} />
               </p>
             </div>
           )}
@@ -169,7 +179,7 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
       <dl className="mt-5 -mx-5 px-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-border pt-5 sm:grid-cols-4">
         <Fact icon={MapPin} label="Location" value={job.location} />
         <Fact icon={Briefcase} label="Experience" value={job.experience} />
-        <Fact icon={IndianRupee} label="Salary" value={job.salaryRange} />
+        <Fact icon={IndianRupee} label="Salary" value={<Salary value={job.salaryRange} />} />
         <Fact
           icon={job.workMode === "WFH" ? Monitor : Clock}
           label="Job type"
@@ -209,7 +219,13 @@ function JobBody({ job }: { job: JobListing }) {
           ))}
         </ul>
       </Section>
-      <div className="p-5 sm:p-6 lg:hidden">
+      <div className="space-y-3 p-5 sm:p-6 lg:hidden">
+        <p className="text-xs leading-5 text-muted-foreground">
+          {PLACEMENT_FEE_NOTE}{" "}
+          <Link href="/terms" className="underline underline-offset-2">
+            Terms
+          </Link>
+        </p>
         <PrivacyNote />
       </div>
     </div>
@@ -274,7 +290,13 @@ function ApplyButton({
   className?: string;
 }) {
   if (state?.kind === "ready")
-    return <ApplyNowButton slug={slug} className={cn(BRAND_BUTTON, className)} />;
+    return (
+      <ApplyNowButton
+        slug={slug}
+        needsTerms={state.needsTerms}
+        className={cn(BRAND_BUTTON, className)}
+      />
+    );
 
   if (state?.kind === "applied")
     return (
@@ -364,7 +386,7 @@ function Fact({
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
-  value: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="min-w-0">

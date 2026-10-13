@@ -46,12 +46,12 @@ export async function updateCompanyDetails(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  const { values, errors } = validateCompanyDetails(formData);
+  const company = await requireCompany(SETTINGS_PATH);
+  const { values, errors } = validateCompanyDetails(formData, company.pincode);
   return saveCompany(
     {
       property_name: values.propertyName || null,
       industry: values.industry,
-      city: values.city,
       pincode: values.pincode,
     },
     errors,

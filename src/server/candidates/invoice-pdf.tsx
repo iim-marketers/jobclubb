@@ -13,7 +13,7 @@ import {
 import { EMAIL_LOGO_PNG } from "@/lib/email/assets/logo";
 import { GST_RATE, SUPPLIER, amountInWords, stateLabel } from "@/lib/gst";
 import { formatIst } from "@/lib/interviews";
-import type { MembershipInvoice } from "@/server/candidates/invoice";
+import type { Invoice } from "@/server/candidates/invoice";
 
 const INK = "#0f1d24";
 const MUTED = "#6b7a82";
@@ -118,7 +118,7 @@ function TotalRow({ label, value }: { label: string; value: number }) {
   );
 }
 
-function InvoicePdf({ invoice }: { invoice: MembershipInvoice }) {
+function InvoicePdf({ invoice }: { invoice: Invoice }) {
   const half = GST_RATE / 2;
   const interState = invoice.igst > 0;
 
@@ -126,7 +126,7 @@ function InvoicePdf({ invoice }: { invoice: MembershipInvoice }) {
     <Document
       title={`Invoice ${invoice.invoiceNumber}`}
       author={SUPPLIER.legalName}
-      subject={`${invoice.planName} invoice`}
+      subject={`${invoice.item.name} invoice`}
     >
       <Page size="A4" style={s.page}>
         <View style={s.band}>
@@ -184,12 +184,10 @@ function InvoicePdf({ invoice }: { invoice: MembershipInvoice }) {
             <View style={[s.tr, { borderBottomWidth: 0 }]}>
               <Text style={[s.td, s.colNo]}>1</Text>
               <View style={[s.td, s.colDesc]}>
-                <Text style={s.bold}>{invoice.planName}</Text>
-                <Text style={s.muted}>
-                  12 months, {day(invoice.validFrom)} to {day(invoice.validUntil)}
-                </Text>
+                <Text style={s.bold}>{invoice.item.name}</Text>
+                <Text style={s.muted}>{invoice.item.detail}</Text>
               </View>
-              <Text style={[s.td, s.colSac]}>{SUPPLIER.sac}</Text>
+              <Text style={[s.td, s.colSac]}>{invoice.item.sac}</Text>
               <Text style={[s.td, s.colAmount]}>{money(invoice.taxable)}</Text>
             </View>
           </View>
@@ -244,6 +242,6 @@ function InvoicePdf({ invoice }: { invoice: MembershipInvoice }) {
   );
 }
 
-export function renderInvoicePdf(invoice: MembershipInvoice) {
+export function renderInvoicePdf(invoice: Invoice) {
   return renderToBuffer(<InvoicePdf invoice={invoice} />);
 }

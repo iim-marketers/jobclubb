@@ -27,11 +27,7 @@ const NAV_LINKS = [
   { label: "About", href: "/about" },
 ];
 
-const MEMBER_NAV_LINKS = NAV_LINKS.filter(
-  (link) => link.href === "/jobs" || link.href === "/companies",
-);
-
-const LAPSED_NAV_LINKS = NAV_LINKS.filter((link) => link.href === "/jobs");
+const MEMBER_NAV_LINKS = NAV_LINKS.filter((link) => link.href === "/jobs");
 
 const COMPANY_NAV_LINKS = COMPANY_NAV[0].items
   .filter((item) => item.href !== COMPANY_HOME)
@@ -44,11 +40,9 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const lapsed = view?.kind === "unpaid" && !!(await getLapsedAccess());
   const links = company
     ? COMPANY_NAV_LINKS
-    : view?.kind === "member"
+    : view?.kind === "member" || lapsed
       ? MEMBER_NAV_LINKS
-      : lapsed
-        ? LAPSED_NAV_LINKS
-        : NAV_LINKS;
+      : NAV_LINKS;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">

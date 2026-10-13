@@ -63,6 +63,22 @@ Members apply from a job page into `public.job_applications`. The table has no R
 - `stage` follows Applied (0) → Viewed (1) → Shortlisted (2) → Interview (3) → Offer (4), and check constraints require the matching `viewed_at` / `shortlisted_at` / `rejected_at` timestamps. An insert trigger takes `company_id` from the job and rejects jobs that aren't `live`.
 - `job_interviews` holds one row per interview round, numbered by `round_no` (1–10, cancelled rounds aren't counted). Only one round per application can be open at a time, and the next can be scheduled only once the latest has the outcome `next_round`. `selected` ends the process for JobClubb to take over, and `not_selected` rejects the application.
 
+### Placements
+
+When a company marks an interview `selected`, a trigger creates a row in `public.placements` and the placement team gets an email. From there JobClubb runs the offer:
+
+1. **`awaiting_offer`:** the candidate isn't told. Their dashboard shows the round as "Awaiting result", the same as any undecided interview. The company uploads the offer letter (private `placement-documents` bucket) with the fixed monthly gross, joining date and an optional accept-by date from its Selected page.
+2. **`offer_received`:** the placement team checks it in **/admin/placements** and can edit the terms or add documents.
+3. **`released`:** admin releases it. The fee (`fee_amount`) is fixed at the monthly gross, GST included, and the deadline defaults to 7 days (never past the joining date). The application moves to stage 4 and the candidate is emailed. They can pay or decline.
+4. **`accepted`:** paying (Razorpay, `placement_payments`, invoice numbers shared with membership) unlocks the offer documents through short-lived signed links, emails the candidate a GST invoice and tells the company and the placement team.
+5. **`joined` / `not_joined`:** the company or admin records it on or after the joining date.
+
+`expired` (deadline passed unpaid), `declined` (candidate or admin) and `withdrawn` (company or admin) close a placement. A withdrawal before release rejects the application, so the candidate only ever sees "Not selected". Placement fees are non-refundable. Company-facing queries never return candidate contact details.
+
+The **`placements`** cron job (hourly, `POST /api/cron/placements`) expires unpaid offers, sends payment reminders 3 days and 1 day before the deadline, and reminds companies who haven't uploaded an offer after 2 days. Reminders are recorded in `placement_reminders`, keyed on the date they're for, so extending a deadline makes them due again. Deleting a placement document (or anything that cascades to one) removes the file through the same Vault secrets as candidate files.
+
+Companies are never told about the candidate's placement fee: it's in the candidate terms (`/terms`, version `2026.10.1`) only. Companies sign up under separate employer terms (`/employer-terms`, `EMPLOYER_TERMS_VERSION`), which require offers to go through JobClubb. Candidates on an older version accept the new terms on their next application; companies see a banner and can't post jobs until they accept.
+
 ## 3. Auth settings (dashboard → Authentication)
 
 - **URL Configuration:** set **Site URL** to `https://www.jobclubb.com` (use `http://localhost:3000` only for local testing). Add `https://www.jobclubb.com/auth/confirm` and `http://localhost:3000/auth/confirm` to **Redirect URLs**.
@@ -79,10 +95,11 @@ Local development sends real email through the same Resend account, so test with
 
 ### Scheduled reminders
 
-Two `pg_cron` jobs call the site through `public.request_cron(path)`, which sends `CRON_SECRET` as a bearer token. The app then sends whatever is due:
+Three `pg_cron` jobs call the site through `public.request_cron(path)`, which sends `CRON_SECRET` as a bearer token. The app then sends whatever is due:
 
 - **`interview-reminders`** (every 15 minutes, `POST /api/cron/interview-reminders`): a reminder about 24 hours before each interview. Interviews booked or rescheduled less than 24 hours ahead get no reminder, because the scheduled email has only just gone out.
 - **`membership-reminders`** (hourly, `POST /api/cron/membership-reminders`): a reminder 15 days and 1 day before a membership expires, recorded in `membership_reminders`. A membership with under a day left gets only the 1-day one. Renewing sets a new expiry, so the next cycle's reminders go out again.
+- **`placements`** (hourly, `POST /api/cron/placements`): expires unpaid offers and sends offer reminders (see Placements above).
 
 Set it up once per project:
 

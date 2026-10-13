@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, FileCheck2, Upload } from "lucide-react";
+import { Eye, EyeOff, FileCheck2, Lock, Upload } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +61,7 @@ export function Field({
   inputClassName?: string;
 } & Pick<
     React.ComponentProps<"input">,
-    "autoComplete" | "inputMode" | "maxLength" | "defaultValue" | "list"
+    "autoComplete" | "inputMode" | "maxLength" | "defaultValue" | "list" | "min"
   >) {
   const { label, required, optional, hint, error, className, ...inputProps } = props;
   return (
@@ -77,6 +77,29 @@ export function Field({
         {...inputProps}
       />
     </FieldShell>
+  );
+}
+
+export function ReadOnlyField({
+  label,
+  value,
+  hint,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  hint?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`space-y-2 ${className}`}>
+      <Label>{label}</Label>
+      <p className="flex h-11 items-center gap-2 rounded-lg border border-input bg-muted/50 px-3 text-sm">
+        <Lock className="size-3.5 flex-none text-muted-foreground" />
+        <span className="truncate">{value}</span>
+      </p>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
   );
 }
 
@@ -168,6 +191,7 @@ export function FileField({
   description,
   error,
   required,
+  multiple,
   accept = "application/pdf,image/jpeg,image/png",
 }: {
   id: string;
@@ -175,6 +199,7 @@ export function FileField({
   description: string;
   error?: string;
   required?: boolean;
+  multiple?: boolean;
   accept?: string;
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
@@ -211,10 +236,16 @@ export function FileField({
           name={id}
           type="file"
           accept={accept}
+          multiple={multiple}
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
           className="sr-only"
-          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+          onChange={(e) => {
+            const files = e.target.files;
+            setFileName(
+              !files?.length ? null : files.length === 1 ? files[0].name : `${files.length} files selected`,
+            );
+          }}
         />
       </label>
       <FieldError id={`${id}-error`} message={error} />

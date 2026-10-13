@@ -3,7 +3,9 @@ import { cookies } from "next/headers";
 import { SIDEBAR_COOKIE } from "@/components/candidate/candidate-shell";
 import { CompanyShell } from "@/components/company/company-shell";
 import { COMPANY_HOME } from "@/components/company/nav";
+import { TermsUpdateBanner } from "@/components/company/terms-update-banner";
 import { industryName } from "@/lib/company-jobs";
+import { EMPLOYER_TERMS_VERSION } from "@/lib/terms-content";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
 
@@ -27,7 +29,10 @@ export default async function CompanyLayout({
       defaultCollapsed={collapsed}
     >
       <main className="flex-1 px-4 py-4 pb-10 sm:px-6">
-        <div className="mx-auto w-full max-w-384">{children}</div>
+        <div className="mx-auto w-full max-w-384">
+          {company.terms_version !== EMPLOYER_TERMS_VERSION && <TermsUpdateBanner />}
+          {children}
+        </div>
       </main>
     </CompanyShell>
   );

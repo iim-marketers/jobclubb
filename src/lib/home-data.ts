@@ -29,8 +29,18 @@ export function initials(name: string): string {
 
 export const FRESH_JOBS = [
   { role: "Cabin Crew", company: "IndiGo", location: "Kolkata", salary: "₹6L" },
-  { role: "Front Office Executive", company: "Taj Hotels", location: "Mumbai", salary: "₹5L" },
-  { role: "Reservation Agent", company: "MakeMyTrip", location: "Gurugram", salary: "₹5L" },
+  {
+    role: "Front Office Executive",
+    company: "Taj Hotels",
+    location: "Mumbai",
+    salary: "₹5L",
+  },
+  {
+    role: "Reservation Agent",
+    company: "MakeMyTrip",
+    location: "Gurugram",
+    salary: "₹5L",
+  },
 ];
 
 export const HERO_STATS = [
@@ -137,10 +147,26 @@ export const JOB_FILTERS = [
 ];
 
 export const HOW_IT_WORKS = [
-  { step: "01", title: "Join JobClubb", body: "Create your account, verify your email and activate your membership. Add your skills and preferences to get matched with the best opportunities." },
-  { step: "02", title: "Browse jobs & set interviews", body: "Search roles that suit your skills. Members enjoy guaranteed interviews with hiring employers, plus recommendations tuned to your profile." },
-  { step: "03", title: "Upskill & prepare", body: "Boost your resume and interview performance with our upskilling programs - from interview coaching to certification courses." },
-  { step: "04", title: "Get your dream job", body: "Walk in ready to nail the interview and land the role. We support you every step, from application to onboarding." },
+  {
+    step: "01",
+    title: "Join JobClubb",
+    body: "Create your account, verify your email and activate your membership. Add your skills and preferences to get matched with the best opportunities.",
+  },
+  {
+    step: "02",
+    title: "Browse jobs & set interviews",
+    body: "Search roles that suit your skills. Members enjoy guaranteed interviews with hiring employers, plus recommendations tuned to your profile.",
+  },
+  {
+    step: "03",
+    title: "Upskill & prepare",
+    body: "Boost your resume and interview performance with our upskilling programs - from interview coaching to certification courses.",
+  },
+  {
+    step: "04",
+    title: "Get your dream job",
+    body: "Walk in ready to nail the interview and land the role. We support you every step, from application to onboarding.",
+  },
 ];
 
 export const MEMBERSHIP_POINTS = [
@@ -154,7 +180,6 @@ export const MEMBERSHIP_FEATURES = [
   "Unlock all live jobs",
   "Unlimited one-click apply",
   "Guaranteed employer interviews",
-  "Full upskilling & certification access",
   "Priority support till you're hired",
 ];
 
@@ -169,10 +194,26 @@ export const CATEGORIES = [
 ];
 
 export const FRANCHISE_STEPS = [
-  { step: "01", title: "Apply & partner up", body: "Complete the application and, once approved, secure the rights to your territory." },
-  { step: "02", title: "Get trained", body: "No recruitment experience needed - we train you across operations, marketing and best practice." },
-  { step: "03", title: "Launch your business", body: "Go live with ready-made marketing tools and a full platform to attract seekers and employers." },
-  { step: "04", title: "Grow with support", body: "Earn from placements, memberships and upskilling - with lifelong mentoring behind you." },
+  {
+    step: "01",
+    title: "Apply & partner up",
+    body: "Complete the application and, once approved, secure the rights to your territory.",
+  },
+  {
+    step: "02",
+    title: "Get trained",
+    body: "No recruitment experience needed - we train you across operations, marketing and best practice.",
+  },
+  {
+    step: "03",
+    title: "Launch your business",
+    body: "Go live with ready-made marketing tools and a full platform to attract seekers and employers.",
+  },
+  {
+    step: "04",
+    title: "Grow with support",
+    body: "Earn from placements, memberships and upskilling - with lifelong mentoring behind you.",
+  },
 ];
 
 export const ABOUT_STATS = [

@@ -10,6 +10,7 @@ export function candidateSelectedEmail({
   applicationRef,
   rounds,
   selectedOn,
+  adminUrl,
 }: {
   candidate: { name: string; email: string; phone: string };
   company: { name: string; contactName: string; designation: string; email: string; phone: string };
@@ -18,6 +19,7 @@ export function candidateSelectedEmail({
   applicationRef: string;
   rounds: number;
   selectedOn: string;
+  adminUrl: string;
 }) {
   return renderEmail({
     subject: `Candidate selected: ${candidate.name} for ${jobTitle} at ${company.name}`,
@@ -26,7 +28,8 @@ export function candidateSelectedEmail({
     heading: `${candidate.name} has been selected`,
     greeting: "Dear Placement Team,",
     paragraphs: [
-      `${company.name} has selected ${candidate.name} for the ${jobTitle} position after ${rounds} interview ${rounds === 1 ? "round" : "rounds"}. Please take the placement forward.`,
+      `${company.name} has selected ${candidate.name} for the ${jobTitle} position after ${rounds} interview ${rounds === 1 ? "round" : "rounds"}.`,
+      "The candidate hasn't been told yet. The company has been asked to upload the offer letter; once it's in, review it and release it to the candidate from the admin panel.",
     ],
     details: [
       { label: "Application ID", value: applicationRef },
@@ -41,6 +44,7 @@ export function candidateSelectedEmail({
       { label: "Contact email", value: company.email, href: `mailto:${company.email}` },
       { label: "Contact phone", value: company.phone },
     ],
+    cta: { label: "Open placement", url: adminUrl },
     footer: "Internal notification sent when a company selects a candidate on JobClubb.",
   });
 }

@@ -3,6 +3,21 @@ import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 
 import { FacebookIcon, InstagramIcon } from "@/components/brand-icons";
+import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import {
+  COMPANY_APPLICANTS,
+  COMPANY_HOME,
+  COMPANY_INTERVIEWS,
+  COMPANY_JOBS,
+  COMPANY_SELECTED,
+} from "@/components/company/nav";
+import { CHECKOUT_PATH } from "@/lib/membership";
+import {
+  getCandidateSession,
+  getLapsedAccess,
+  getMembershipView,
+} from "@/server/auth/current-candidate";
+import { getCompanySession } from "@/server/auth/current-company";
 
 const QUICK_LINKS = [
   { label: "Home", href: "/" },
@@ -17,10 +32,89 @@ const EXPLORE_LINKS = [
   { label: "Franchise", href: "/franchise" },
 ];
 
+type FooterLink = { label: string; href: string };
+type FooterColumns = { title: string; links: FooterLink[] }[];
+
+const VISITOR_COLUMNS: FooterColumns = [
+  { title: "Quick links", links: QUICK_LINKS },
+  { title: "Explore", links: EXPLORE_LINKS },
+];
+
+const MEMBER_COLUMNS: FooterColumns = [
+  {
+    title: "Your account",
+    links: [
+      { label: "Dashboard", href: CANDIDATE_HOME },
+      { label: "Applications", href: `${CANDIDATE_HOME}/applications` },
+      { label: "Interviews", href: `${CANDIDATE_HOME}/interviews` },
+      { label: "Saved jobs", href: `${CANDIDATE_HOME}/saved` },
+      { label: "My resume", href: `${CANDIDATE_HOME}/resume` },
+    ],
+  },
+  {
+    title: "Help",
+    links: [
+      { label: "Browse jobs", href: "/jobs" },
+      { label: "Membership & billing", href: `${CANDIDATE_HOME}/membership` },
+      { label: "How it Works", href: "/how-it-works" },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+];
+
+// Lapsed members keep only these dashboard pages until their access ends.
+const LAPSED_COLUMNS: FooterColumns = [
+  {
+    title: "Your account",
+    links: [
+      { label: "Applications", href: `${CANDIDATE_HOME}/applications` },
+      { label: "Interviews", href: `${CANDIDATE_HOME}/interviews` },
+      { label: "Settings", href: `${CANDIDATE_HOME}/settings` },
+    ],
+  },
+  {
+    title: "Help",
+    links: [
+      { label: "Renew membership", href: CHECKOUT_PATH },
+      { label: "Membership & billing", href: `${CANDIDATE_HOME}/membership` },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+];
+
+const COMPANY_COLUMNS: FooterColumns = [
+  {
+    title: "Hiring",
+    links: [
+      { label: "Post a job", href: `${COMPANY_JOBS}/new` },
+      { label: "Job postings", href: COMPANY_JOBS },
+      { label: "Applicants", href: COMPANY_APPLICANTS },
+      { label: "Interviews", href: COMPANY_INTERVIEWS },
+      { label: "Selected candidates", href: COMPANY_SELECTED },
+    ],
+  },
+  {
+    title: "Account & help",
+    links: [
+      { label: "Dashboard", href: COMPANY_HOME },
+      { label: "Settings", href: `${COMPANY_HOME}/settings` },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+];
+
 const LEGAL_LINKS = [
   { label: "Terms of Use", href: "/terms" },
+  { label: "Employer Terms", href: "/employer-terms" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Refund Policy", href: "/refund-policy" },
+];
+
+// Candidate terms and the refund policy cover the placement fee, which is
+// between the candidate and JobClubb, so companies aren't pointed to them.
+const COMPANY_LEGAL_LINKS = [
+  { label: "Employer Terms", href: "/employer-terms" },
+  { label: "Privacy Policy", href: "/privacy" },
 ];
 
 export const CONTACT_ITEMS = [
@@ -30,11 +124,28 @@ export const CONTACT_ITEMS = [
     text: "support@jobclubb.com",
     href: "mailto:support@jobclubb.com",
   },
-  { icon: Phone, text: "+91 90739 33000", href: "tel:+919073933000" },
+  { icon: Phone, text: "+91-7439922120", href: "tel:+917439922120" },
   { icon: Clock, text: "Mon-Sat, 10:30am - 6:30pm", href: null },
 ];
 
-export function SiteFooter() {
+async function footerAudience() {
+  if (await getCandidateSession()) {
+    const view = await getMembershipView();
+    if (view.kind === "member") return "member";
+    if (view.kind === "unpaid" && (await getLapsedAccess())) return "lapsed";
+    return "visitor";
+  }
+  return (await getCompanySession()) ? "company" : "visitor";
+}
+
+export async function SiteFooter() {
+  const audience = await footerAudience();
+  const columns = {
+    visitor: VISITOR_COLUMNS,
+    member: MEMBER_COLUMNS,
+    lapsed: LAPSED_COLUMNS,
+    company: COMPANY_COLUMNS,
+  }[audience];
   const socialLinks = [
     {
       label: "Facebook",
@@ -61,8 +172,9 @@ export function SiteFooter() {
               className="object-contain"
             />
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Where talent meets opportunity. We connect job seekers with the
-              right employers and help careers begin.
+              {audience === "company"
+                ? "Hire verified, interview-ready candidates near your property."
+                : "Where talent meets opportunity. We connect job seekers with the right employers and help careers begin."}
             </p>
             {socialLinks.length > 0 && (
               <div className="mt-5 flex items-center gap-3">
@@ -80,8 +192,9 @@ export function SiteFooter() {
             )}
           </div>
 
-          <FooterColumn title="Quick links" links={QUICK_LINKS} />
-          <FooterColumn title="Explore" links={EXPLORE_LINKS} />
+          {columns.map((column) => (
+            <FooterColumn key={column.title} {...column} />
+          ))}
 
           <div>
             <h3 className="font-head text-sm font-bold tracking-wide text-foreground">
@@ -118,7 +231,7 @@ export function SiteFooter() {
             © {new Date().getFullYear()}. All rights reserved.
           </p>
           <ul className="flex flex-wrap gap-x-5 gap-y-1">
-            {LEGAL_LINKS.map((link) => (
+            {(audience === "company" ? COMPANY_LEGAL_LINKS : LEGAL_LINKS).map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
@@ -140,7 +253,7 @@ function FooterColumn({
   links,
 }: {
   title: string;
-  links: { label: string; href: string }[];
+  links: FooterLink[];
 }) {
   return (
     <div>

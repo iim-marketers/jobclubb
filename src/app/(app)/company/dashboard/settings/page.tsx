@@ -16,6 +16,7 @@ import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import { COMPANY_SIZES } from "@/lib/company-verification";
 import { cn } from "@/lib/utils";
+import { countWalkInsAwayFrom } from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
 
@@ -26,7 +27,6 @@ export default async function CompanySettingsPage() {
   const defaults: CompanyDefaults = {
     propertyName: company.property_name ?? "",
     industry: company.industry,
-    city: company.city,
     pincode: company.pincode,
     contactName: company.contact_name,
     designation: company.designation,
@@ -35,6 +35,7 @@ export default async function CompanySettingsPage() {
 
   const verified = [
     ["Company name", company.company_name],
+    ["Property city", company.city],
     ["Sign-in email", company.email],
     ["Website", company.website ?? "—"],
     ["GSTIN", company.gstin ?? "—"],
@@ -101,7 +102,11 @@ export default async function CompanySettingsPage() {
             </dl>
           </Panel>
 
-          <CompanyDetailsForm defaults={defaults} />
+          <CompanyDetailsForm
+            defaults={defaults}
+            city={company.city}
+            walkInsElsewhere={await countWalkInsAwayFrom(company.id, company.pincode)}
+          />
           <ContactForm defaults={defaults} />
           <PasswordForm
             action={changeCompanyPassword}

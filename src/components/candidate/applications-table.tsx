@@ -73,21 +73,23 @@ const features = tableFeatures({
 const SEARCHABLE = new Set(["role", "company", "location"]);
 const PAGE_SIZE = 8;
 
-const TABS = [
-  { key: "all", label: "All" },
-  { key: "active", label: "In progress" },
-  { key: "interview", label: "Interviews" },
-  { key: "archived", label: "Archived" },
-] as const;
+const STATUS_ORDER = [
+  "Applied",
+  "Viewed",
+  "Shortlisted",
+  "Interview",
+  "Selected",
+  "Offer accepted",
+  "Hired",
+  "Did not join",
+  "Offer expired",
+  "Offer declined",
+  "Offer withdrawn",
+  "Not selected",
+  "Job closed",
+];
 
-type TabKey = (typeof TABS)[number]["key"];
-
-function inTab(a: Application, tab: TabKey) {
-  if (tab === "active") return a.status === "active";
-  if (tab === "interview") return a.status === "active" && a.stage >= 3;
-  if (tab === "archived") return a.status !== "active";
-  return true;
-}
+const ALL = "all";
 
 export const applicationHref = (id: string) =>
   `${CANDIDATE_HOME}/applications/${id}`;
@@ -202,10 +204,27 @@ export function ApplicationsTable({
   applications: Application[];
 }) {
   const router = useRouter();
-  const [tab, setTab] = useState<TabKey>("all");
+  const [status, setStatus] = useState(ALL);
+  const statusOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const a of applications) {
+      const label = applicationStatus(a);
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
+    return [
+      { value: ALL, label: `All` },
+      ...STATUS_ORDER.filter((label) => counts.has(label)).map((label) => ({
+        value: label,
+        label: `${label}`,
+      })),
+    ];
+  }, [applications]);
   const data = useMemo(
-    () => applications.filter((a) => inTab(a, tab)),
-    [applications, tab],
+    () =>
+      status === ALL
+        ? applications
+        : applications.filter((a) => applicationStatus(a) === status),
+    [applications, status],
   );
 
   const table = useTable({
@@ -238,11 +257,11 @@ export function ApplicationsTable({
           label="Search applications"
         />
         <FilterSelect
-          label="Show"
-          options={TABS.map((t) => ({ value: t.key, label: t.label }))}
-          value={tab}
+          label="Status"
+          options={statusOptions}
+          value={status}
           onChange={(v) => {
-            setTab(v);
+            setStatus(v);
             table.setPageIndex(0);
           }}
         />

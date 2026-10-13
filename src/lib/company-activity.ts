@@ -46,17 +46,6 @@ export type CompanyInterview = {
   outcome: InterviewOutcomeLabel | null;
 };
 
-export type SelectedCandidate = {
-  ref: string;
-  name: string;
-  city: string;
-  experienceMonths: number;
-  jobId: string;
-  designation: string;
-  rounds: number;
-  selectedOn: string;
-};
-
 export function upcomingCompanyInterviews(interviews: CompanyInterview[], now = new Date()) {
   return interviews.filter((i) => new Date(i.endsAt) > now).sort(
     (a, b) => +new Date(a.startsAt) - +new Date(b.startsAt),

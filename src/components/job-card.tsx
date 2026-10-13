@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Briefcase, Clock, Lock, MapPin } from "lucide-react";
 
+import { Salary } from "@/components/salary";
 import { CompanyAvatar } from "@/components/company-avatar";
 import type { JobListing } from "@/lib/jobs-data";
 import { cn } from "@/lib/utils";
@@ -82,7 +83,7 @@ export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
               hidden,
             )}
           >
-            {shown.salaryRange}
+            <Salary value={shown.salaryRange} />
           </span>
         </div>
       </div>

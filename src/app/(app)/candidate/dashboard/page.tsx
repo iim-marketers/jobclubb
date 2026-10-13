@@ -19,6 +19,11 @@ import {
 import { ApplicationJourney } from "@/components/candidate/application-journey";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { EmptyState, Panel } from "@/components/candidate/dashboard-ui";
+import {
+  JobPicksList,
+  NoNearbyNote,
+  recommendJobs,
+} from "@/components/candidate/job-picks";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +51,7 @@ import {
 } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
+import { listJobs } from "@/server/jobs/listings";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
 const PREFERENCES_HREF = `${CANDIDATE_HOME}/settings#preferences`;
@@ -75,11 +81,12 @@ export default async function CandidateDashboard() {
   const sector = industry?.name;
   const now = new Date();
 
-  const [photoUrl, saved, applications, interviews] = await Promise.all([
+  const [photoUrl, saved, applications, interviews, jobs] = await Promise.all([
     getCandidatePhotoUrl(candidate.photo_path),
     getSavedResume(candidate.id),
     listCandidateApplications(candidate.id),
     listCandidateInterviews(candidate.id),
+    listJobs(),
   ]);
   const checklist = profileChecklist(saved?.resume, !!candidate.photo_path);
   const completed = checklist.filter((c) => c.done).length;
@@ -92,6 +99,16 @@ export default async function CandidateDashboard() {
     (i) => +new Date(i.startsAt) - +now < 7 * 86_400_000,
   ).length;
   const recent = applications.slice(0, 4);
+  const applied = new Set(applications.map((a) => a.job.slug));
+  const picks = recommendJobs(
+    jobs.filter((job) => !applied.has(job.slug)),
+    {
+      sector,
+      city: candidate.city,
+      pincode: candidate.pincode,
+      roles: candidate.preferred_roles ?? [],
+    },
+  );
   const stats = [
     {
       label: "Applications sent",
@@ -211,7 +228,7 @@ export default async function CandidateDashboard() {
         <ApplicationJourney
           applications={recent}
           sector={sector}
-          matchingRoles={0}
+          matchingRoles={picks.matches}
         />
 
         <div className="flex min-w-0 flex-col gap-6">
@@ -266,7 +283,7 @@ export default async function CandidateDashboard() {
 
           <Panel
             title="Your location"
-            description="Matching jobs within 25 km"
+            description="Matching jobs in and around your pincode"
             className="flex-1"
             action={
               <Link
@@ -298,7 +315,7 @@ export default async function CandidateDashboard() {
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
             <h2 className="font-head text-lg font-bold tracking-tight">
-              Picked for you
+              {picks.matched ? "Picked for you" : "Fresh openings"}
             </h2>
           </div>
           <Link
@@ -308,22 +325,18 @@ export default async function CandidateDashboard() {
             All jobs <ArrowRight className="size-3.5" />
           </Link>
         </div>
-        <EmptyState
-          icon={Sparkles}
-          title="No recommendations yet"
-          action={
-            <Button
-              className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-              nativeButton={false}
-              render={<Link href="/jobs" />}
-            >
-              Browse jobs
-            </Button>
-          }
-        >
-          {sector ? `${sector} roles` : "Roles"} matched to your profile and
-          location will show up here.
-        </EmptyState>
+        {picks.items.length > 0 ? (
+          <div className="space-y-4">
+            {!picks.nearby && <NoNearbyNote city={candidate.city} />}
+            <JobPicksList picks={picks} />
+          </div>
+        ) : (
+          <EmptyState icon={Sparkles} title="No new openings right now">
+            {applied.size
+              ? "You've applied to every live role. Verified employers post new ones every week."
+              : "Verified employers post new roles every week. Check back soon."}
+          </EmptyState>
+        )}
       </section>
     </div>
   );

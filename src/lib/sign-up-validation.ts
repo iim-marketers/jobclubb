@@ -3,6 +3,7 @@ import {
   assessCompanyVerification,
   getWebsiteDomain,
 } from "@/lib/company-verification";
+import { GST_STATES, pincodeState } from "@/lib/gst";
 import { INDUSTRIES } from "@/lib/taxonomy";
 
 export type FieldErrors = Partial<Record<string, string>>;
@@ -203,6 +204,7 @@ export function validateCompany(formData: FormData): FieldErrors {
   if (!v.city) errors.city = "Enter your city.";
   else if (v.city.length > 80) errors.city = "Use 80 characters or fewer.";
   if (!PINCODE_PATTERN.test(v.pincode)) errors.pincode = "Enter a 6-digit pincode.";
+  else if (!pincodeState(v.pincode)) errors.pincode = "Enter a valid Indian pincode.";
   if (!v.contactName) errors.contactName = "Enter your full name.";
   else if (v.contactName.length > 80) errors.contactName = "Use 80 characters or fewer.";
   if (!v.designation) errors.designation = "Enter your designation.";
@@ -226,20 +228,29 @@ export function validateCompany(formData: FormData): FieldErrors {
   return errors;
 }
 
-export function validateCompanyDetails(formData: FormData) {
+// A property can move within its state; another state means another property.
+export function propertyPincodeError(pincode: string, propertyPincode: string) {
+  if (!PINCODE_PATTERN.test(pincode)) return "Enter a 6-digit pincode.";
+  if (pincode === propertyPincode) return;
+  const state = pincodeState(pincode);
+  if (!state) return "Enter a valid Indian pincode.";
+  const propertyState = pincodeState(propertyPincode);
+  if (propertyState && state !== propertyState)
+    return `Use a pincode in ${GST_STATES[propertyState]}, where this property is registered.`;
+}
+
+export function validateCompanyDetails(formData: FormData, propertyPincode: string) {
   const values = {
     propertyName: readText(formData, "propertyName"),
     industry: readText(formData, "industry"),
-    city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
   };
   const errors: FieldErrors = {};
 
   if (values.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
   if (!INDUSTRIES.some((s) => s.slug === values.industry)) errors.industry = "Choose an industry.";
-  if (!values.city) errors.city = "Enter your city.";
-  else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
-  if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
+  const pincode = propertyPincodeError(values.pincode, propertyPincode);
+  if (pincode) errors.pincode = pincode;
 
   return { values, errors };
 }

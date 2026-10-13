@@ -7,14 +7,23 @@ import {
   Check,
   CircleAlert,
   Clock,
+  Download,
+  FileText,
   Lock,
   MapPin,
+  PartyPopper,
+  Receipt,
   Video,
   X,
 } from "lucide-react";
 
+import { Salary } from "@/components/salary";
 import { Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import {
+  DeclineOfferButton,
+  PayOfferButton,
+} from "@/components/candidate/offer-actions";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,9 +31,12 @@ import {
   applicationStatus,
   formatInterviewDate,
   formatInterviewTime,
+  offerEnded,
   type Application,
+  type CandidateOffer,
 } from "@/lib/candidate-activity";
 import { interviewPhase } from "@/lib/interviews";
+import { formatDateOnly, formatRupees } from "@/lib/placements";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { NOT_SELECTED_BADGE, stageBadge } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
@@ -33,6 +45,8 @@ import {
   listCandidateInterviews,
 } from "@/server/applications/candidate";
 import { sanitizeRichText } from "@/server/rich-text";
+import { listOfferDocuments } from "@/server/placements/documents";
+import { getPlacementPaymentForCandidate } from "@/server/placements/payments";
 import {
   getCurrentCandidate,
   requireMember,
@@ -45,8 +59,16 @@ const NEXT_STEPS = [
   "The recruiter has seen your profile. Keep your resume up to date, since shortlisting usually happens within a week of the first view.",
   "You're on the shortlist. When the employer schedules an interview, the time and place show up here and on your Interviews page.",
   "Your interview is set. Use the prep checklist on the Interviews page and join 5 minutes early.",
-  "Congratulations! Review the offer details and reply to the employer before the deadline they share.",
 ];
+
+function nextStep(a: Application) {
+  if (!a.offer) return NEXT_STEPS[Math.min(a.stage, NEXT_STEPS.length - 1)];
+  if (a.offer.status === "released")
+    return `Pay the placement fee by ${formatDateOnly(a.offer.deadline)} to unlock your offer letter. If you'd rather not take the role, decline it at no cost so the employer can move on.`;
+  if (a.offer.status === "accepted")
+    return `Read your offer letter and keep the joining date, ${formatDateOnly(a.offer.joiningDate)}, free. Contact our placement team if anything in it looks wrong.`;
+  return null;
+}
 
 export async function generateMetadata({
   params,
@@ -72,8 +94,9 @@ export default async function ApplicationDetailPage({
   const application = await getCandidateApplication(candidate.id, id);
   if (!application) notFound();
 
-  const { job } = application;
-  const archived = application.status !== "active";
+  const { job, offer } = application;
+  const archived = application.status !== "active" || offerEnded(offer);
+  const step = archived ? null : nextStep(application);
   const rejected = application.status === "rejected";
   const good = !archived && application.stage >= 3;
   const interviews = (await listCandidateInterviews(candidate.id)).filter(
@@ -174,6 +197,20 @@ export default async function ApplicationDetailPage({
         </div>
       </section>
 
+      {offer && (
+        <OfferSection
+          offer={offer}
+          designation={job.designation}
+          companyName={job.company}
+          candidateId={candidate.id}
+          prefill={{
+            name: `${candidate.first_name} ${candidate.last_name}`,
+            email: candidate.email,
+            contact: candidate.phone,
+          }}
+        />
+      )}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
           {interviews.length > 0 && (
@@ -181,7 +218,9 @@ export default async function ApplicationDetailPage({
               title="Interviews for this role"
               action={
                 !archived &&
-                interviews.some((i) => interviewPhase(i, now) === "upcoming") && (
+                interviews.some(
+                  (i) => interviewPhase(i, now) === "upcoming",
+                ) && (
                   <Link
                     href={`${CANDIDATE_HOME}/interviews`}
                     className="inline-flex flex-none items-center gap-1 font-head text-sm font-bold whitespace-nowrap text-brand hover:text-brand-dark"
@@ -264,27 +303,27 @@ export default async function ApplicationDetailPage({
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
-          {!archived && (
+          {step && (
             <section className="rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-5 text-white sm:p-6">
               <p className="font-head text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
                 What happens next
               </p>
-              <p className="mt-2 text-sm leading-6 text-white/90">
-                {NEXT_STEPS[application.stage]}
-              </p>
+              <p className="mt-2 text-sm leading-6 text-white/90">{step}</p>
             </section>
           )}
 
           <Panel title="Application details">
             <dl className="divide-y divide-border text-sm">
-              {[
-                ["Applied on", formatLongDate(application.appliedOn)],
-                ["Salary", job.salaryRange],
-                ["Experience", job.experience],
-                ["Job type", job.jobType],
-                ["Work mode", job.workMode],
-                ["Location", `${job.location} ${job.pincode}`],
-              ].map(([label, value]) => (
+              {(
+                [
+                  ["Applied on", formatLongDate(application.appliedOn)],
+                  ["Salary", <Salary key="salary" value={job.salaryRange} />],
+                  ["Experience", job.experience],
+                  ["Job type", job.jobType],
+                  ["Work mode", job.workMode],
+                  ["Location", `${job.location} ${job.pincode}`],
+                ] as [string, React.ReactNode][]
+              ).map(([label, value]) => (
                 <div
                   key={label}
                   className="flex items-baseline justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
@@ -334,8 +373,212 @@ export default async function ApplicationDetailPage({
   );
 }
 
+async function OfferSection({
+  offer,
+  designation,
+  companyName,
+  candidateId,
+  prefill,
+}: {
+  offer: CandidateOffer;
+  designation: string;
+  companyName: string;
+  candidateId: string;
+  prefill: { name: string; email: string; contact: string };
+}) {
+  if (offer.status === "released")
+    return (
+      <section className="rounded-3xl border-2 border-good/40 bg-good/5 p-5 sm:p-7">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 font-head text-xs font-bold tracking-[0.16em] text-good uppercase">
+              <PartyPopper className="size-4" /> You&apos;ve been selected
+            </p>
+            <h2 className="mt-2 font-head text-xl font-extrabold tracking-tight sm:text-2xl">
+              {companyName} has selected you for {designation}
+            </h2>
+            <dl className="mt-5 grid gap-3 sm:grid-cols-3">
+              {[
+                [
+                  "Placement fee",
+                  formatRupees(offer.fee),
+                  "One month's fixed gross salary, GST included",
+                ],
+                [
+                  "Pay by",
+                  formatDateOnly(offer.deadline),
+                  "The offer lapses after this date",
+                ],
+                [
+                  "Expected joining",
+                  formatDateOnly(offer.joiningDate),
+                  "Confirmed in your offer letter",
+                ],
+              ].map(([label, value, hint]) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-border bg-card p-4"
+                >
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
+                  <dd className="mt-1 font-head text-lg font-extrabold">
+                    {value}
+                  </dd>
+                  <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+                    {hint}
+                  </p>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-4 flex items-start gap-2 text-sm leading-6 text-muted-foreground">
+              <Lock className="mt-1 size-3.5 flex-none" />
+              <span>
+                Your offer letter, salary details and joining instructions
+                unlock as soon as you pay. The fee is non-refundable once paid,
+                as set out in our{" "}
+                <Link
+                  href="/terms"
+                  className="font-medium text-foreground underline underline-offset-2"
+                >
+                  terms
+                </Link>
+                .
+              </span>
+            </p>
+          </div>
+          <div className="space-y-2">
+            <PayOfferButton
+              placementId={offer.placementId}
+              label={`Pay ${formatRupees(offer.fee)} & unlock offer`}
+              jobTitle={`${designation} at ${companyName}`}
+              prefill={prefill}
+            />
+            <DeclineOfferButton
+              placementId={offer.placementId}
+              companyName={companyName}
+            />
+          </div>
+        </div>
+      </section>
+    );
+
+  if (offer.status === "withdrawn" && offer.paid) {
+    const payment = await getPlacementPaymentForCandidate(
+      candidateId,
+      offer.placementId,
+    );
+    return payment ? (
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+        <Receipt className="size-4 flex-none" />
+        Your placement fee invoice:
+        <a
+          href={`/api/invoices/${payment.paymentId}`}
+          target="_blank"
+          className="font-medium text-brand hover:text-brand-dark"
+        >
+          {payment.invoiceNumber}
+        </a>
+      </p>
+    ) : null;
+  }
+
+  if (
+    offer.status !== "accepted" &&
+    offer.status !== "joined" &&
+    offer.status !== "not_joined"
+  )
+    return null;
+
+  const [documents, payment] = await Promise.all([
+    listOfferDocuments(offer.placementId, { signed: true }),
+    getPlacementPaymentForCandidate(candidateId, offer.placementId),
+  ]);
+
+  return (
+    <section className="rounded-3xl border border-border bg-card p-5 sm:p-7">
+      <p className="font-head text-xs font-bold tracking-[0.16em] text-good uppercase">
+        {offer.status === "joined" ? "Hired" : "Offer accepted"}
+      </p>
+      <h2 className="mt-1 font-head text-xl font-extrabold tracking-tight">
+        Your offer letter
+      </h2>
+      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <ul className="space-y-2">
+          {documents.map((d) => (
+            <li
+              key={d.id}
+              className="flex items-center gap-3 rounded-2xl border border-border p-3"
+            >
+              <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <FileText className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{d.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {Math.max(1, Math.round(d.size / 1024))} KB
+                </p>
+              </div>
+              {d.url && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="font-head"
+                  nativeButton={false}
+                  render={<a href={d.url} />}
+                >
+                  <Download className="size-3.5" /> Download
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+        <dl className="divide-y divide-border text-sm">
+          {[
+            ["Joining date", formatDateOnly(offer.joiningDate)],
+            offer.monthlySalary
+              ? ["Monthly gross salary", formatRupees(offer.monthlySalary)]
+              : null,
+            ["Placement fee paid", formatRupees(payment?.amount ?? offer.fee)],
+          ]
+            .filter((row): row is string[] => !!row)
+            .map(([label, value]) => (
+              <div
+                key={label}
+                className="flex items-baseline justify-between gap-4 py-2.5 first:pt-0"
+              >
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="text-right font-medium">{value}</dd>
+              </div>
+            ))}
+          {payment && (
+            <div className="flex items-baseline justify-between gap-4 py-2.5">
+              <dt className="text-muted-foreground">Invoice</dt>
+              <dd>
+                <a
+                  href={`/api/invoices/${payment.paymentId}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand-dark"
+                >
+                  <Receipt className="size-3.5" /> {payment.invoiceNumber}
+                </a>
+              </dd>
+            </div>
+          )}
+        </dl>
+      </div>
+      {offer.notes && (
+        <div className="mt-5 rounded-2xl bg-muted/50 p-4 text-sm leading-6">
+          <p className="font-head text-xs font-bold text-muted-foreground">
+            Joining instructions from the employer
+          </p>
+          <p className="mt-1 whitespace-pre-line">{offer.notes}</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function StageStepper({ application: a }: { application: Application }) {
-  const archived = a.status !== "active";
+  const archived = a.status !== "active" || offerEnded(a.offer);
   const good = a.stage >= 3;
   const rejectedAt = a.status === "rejected" ? a.stage + 1 : -1;
 

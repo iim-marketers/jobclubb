@@ -3,10 +3,8 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
-  Briefcase,
   BriefcaseBusiness,
   CircleAlert,
-  Clock,
   Eye,
   FileText,
   LayoutDashboard,
@@ -19,12 +17,17 @@ import {
 
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { EmptyState } from "@/components/candidate/dashboard-ui";
+import {
+  JobPicksGrid,
+  NoNearbyNote,
+  recommendJobs,
+} from "@/components/candidate/job-picks";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { RecruiterBoard } from "@/components/recruiter-board";
 import { SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { STAGES, type Application } from "@/lib/candidate-activity";
+import { STAGES, applicationStatus, type Application } from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH, type MembershipPlan } from "@/lib/membership";
@@ -35,10 +38,6 @@ import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 import { getHireBrands } from "@/server/hire-brands/directory";
-
-const RECOMMENDED = 6;
-
-type Pick = { job: JobListing; reasons: string[] };
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -62,9 +61,9 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
   const sector = INDUSTRIES.find((v) => v.slug === candidate.industry)?.name;
   const roles: string[] = candidate.preferred_roles ?? [];
   const applied = new Set(applications.map((a) => a.job.slug));
-  const picks = recommend(
+  const picks = recommendJobs(
     jobs.filter((job) => !applied.has(job.slug)),
-    { sector, city: candidate.city, roles },
+    { sector, city: candidate.city, pincode: candidate.pincode, roles },
   );
 
   return (
@@ -178,15 +177,9 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
                 </EmptyState>
               </div>
             ) : (
-              <div className="mt-6 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-                <TopMatch pick={picks.items[0]} matched={picks.matched} />
-                {picks.items.length > 1 && (
-                  <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
-                    {picks.items.slice(1).map((pick) => (
-                      <PickRow key={pick.job.slug} pick={pick} />
-                    ))}
-                  </ul>
-                )}
+              <div className="mt-6 space-y-6">
+                {!picks.nearby && <NoNearbyNote city={candidate.city} />}
+                <JobPicksGrid picks={picks} />
               </div>
             )}
           </div>
@@ -230,37 +223,6 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
       )}
     </>
   );
-}
-
-function recommend(
-  jobs: JobListing[],
-  profile: { sector?: string; city: string; roles: string[] },
-) {
-  const roles = profile.roles.map((r) => r.toLowerCase());
-  const city = profile.city.toLowerCase();
-  const scored = jobs.map((job) => {
-    const title = `${job.title} ${job.designation}`.toLowerCase();
-    const reasons: string[] = [];
-    let score = 0;
-    if (job.industry === profile.sector) {
-      score += 4;
-      reasons.push("Your sector");
-    }
-    if (roles.some((r) => title.includes(r))) {
-      score += 3;
-      reasons.push("Preferred role");
-    }
-    if (city && job.location.toLowerCase() === city) {
-      score += 2;
-      reasons.push("In your city");
-    }
-    return { job, reasons, score };
-  });
-  const ranked = scored.toSorted((a, b) => b.score - a.score);
-  return {
-    matched: ranked.some((r) => r.score > 0),
-    items: ranked.slice(0, RECOMMENDED) satisfies Pick[],
-  };
 }
 
 function ProfileCard({
@@ -435,111 +397,6 @@ function RenewBanner({ expiresAt }: { expiresAt: Date }) {
   );
 }
 
-function TopMatch({ pick, matched }: { pick: Pick; matched: boolean }) {
-  const { job } = pick;
-  const meta = [
-    { icon: MapPin, value: job.location },
-    { icon: Briefcase, value: job.experience },
-    { icon: Clock, value: `${job.workMode} · ${job.jobType}` },
-  ];
-
-  return (
-    <article className="group relative flex flex-col rounded-2xl border-2 border-brand bg-linear-to-br from-brand/6 to-card p-5 shadow-md shadow-brand/10 transition-shadow hover:shadow-lg hover:shadow-brand/20">
-      <span className="absolute -top-3 left-6 inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 font-head text-[11px] font-bold text-brand-foreground shadow-sm">
-        <Sparkles className="size-3.5" />
-        {matched ? "Best match" : "Newest"}
-      </span>
-
-      <div className="flex items-start gap-4">
-        <CompanyAvatar
-          name={job.company}
-          logoUrl={job.companyLogoUrl}
-          className="size-14 rounded-2xl"
-        />
-        <div className="min-w-0">
-          <h3 className="font-head text-xl leading-snug font-extrabold tracking-tight">
-            <Link
-              href={`/jobs/${job.slug}`}
-              className="after:absolute after:inset-0 after:rounded-2xl group-hover:text-brand"
-            >
-              {job.title}
-            </Link>
-          </h3>
-          <p className="truncate text-sm text-muted-foreground">
-            {job.company} · {job.postedAgo}
-          </p>
-        </div>
-      </div>
-
-      <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-        {meta.map(({ icon: Icon, value }) => (
-          <li key={value} className="flex items-center gap-1.5">
-            <Icon className="size-4 flex-none text-brand" />
-            {value}
-          </li>
-        ))}
-      </ul>
-
-      {pick.reasons.length > 0 && (
-        <ul className="mt-4 flex flex-wrap gap-1.5">
-          {pick.reasons.map((reason) => (
-            <li
-              key={reason}
-              className="rounded-full bg-good/12 px-2.5 py-1 font-head text-[11px] font-bold text-good"
-            >
-              ✓ {reason}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-4 -mx-5 px-5 flex flex-wrap items-end justify-between gap-3 border-t border-border pt-4">
-        <div>
-          <p className="text-xs text-muted-foreground">Salary</p>
-          <p className="font-head text-lg font-extrabold">{job.salaryRange}</p>
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 font-head text-sm font-bold text-brand-foreground transition-colors group-hover:bg-brand-dark">
-          View & apply
-          <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-        </span>
-      </div>
-    </article>
-  );
-}
-
-function PickRow({ pick }: { pick: Pick }) {
-  const { job } = pick;
-  return (
-    <li className="group relative flex items-center gap-3 p-4 transition-colors hover:bg-muted/50 sm:gap-4">
-      <CompanyAvatar
-        name={job.company}
-        logoUrl={job.companyLogoUrl}
-        className="size-11 rounded-xl"
-      />
-      <div className="min-w-0 flex-1">
-        <Link
-          href={`/jobs/${job.slug}`}
-          className="block truncate font-head font-bold tracking-tight after:absolute after:inset-0 group-hover:text-brand"
-        >
-          {job.title}
-        </Link>
-        <p className="truncate text-xs text-muted-foreground">
-          {job.company} · {job.location} · {job.postedAgo}
-        </p>
-      </div>
-      <div className="hidden flex-none text-right sm:block">
-        <p className="font-head text-sm font-bold">{job.salaryRange}</p>
-        {pick.reasons[0] && (
-          <p className="text-[11px] font-semibold text-good">
-            {pick.reasons[0]}
-          </p>
-        )}
-      </div>
-      <ArrowRight className="size-4 flex-none text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
-    </li>
-  );
-}
-
 function ApplicationCard({ application: a }: { application: Application }) {
   const closed = a.status !== "active";
   return (
@@ -588,13 +445,7 @@ function ApplicationCard({ application: a }: { application: Application }) {
             stageBadge(a, closed),
           )}
         >
-          {a.status === "rejected"
-            ? "Not selected"
-            : closed
-              ? "Closed"
-              : a.selected
-                ? "Selected"
-                : STAGES[a.stage]}
+          {a.status === "closed" ? "Closed" : applicationStatus(a)}
         </span>
         <span className="text-xs text-muted-foreground">
           Updated {a.updatedAgo.toLowerCase()}

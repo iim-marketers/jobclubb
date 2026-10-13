@@ -17,6 +17,7 @@ import {
 } from "@/components/candidate/settings-forms";
 import {
   Field,
+  ReadOnlyField,
   SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
@@ -192,7 +193,7 @@ function InterviewForm({
         value={mode}
         onValueChange={(v) => {
           if (v) setMode(v as InterviewModeValue);
-          clear("mode", "place", "address", "landmark", "city", "pincode");
+          clear("mode", "place", "address", "landmark", "pincode");
         }}
         error={errors.mode}
       />
@@ -210,15 +211,7 @@ function InterviewForm({
             defaultValue={interview?.venue?.address}
             error={errors.address}
           />
-          <Field
-            id="city"
-            label="City"
-            required
-            autoComplete="address-level2"
-            maxLength={80}
-            defaultValue={venue.city}
-            error={errors.city}
-          />
+          <ReadOnlyField label="City" value={jobLocation.city} />
           <Field
             id="pincode"
             label="Pincode"
@@ -364,7 +357,7 @@ export function InterviewControls({
           <ConfirmAction
             label="Selected"
             title="Select this applicant?"
-            description="Use this when they've cleared their final round. The applicant sees that they've been selected, and JobClubb takes it from here. This can't be undone."
+            description="Use this when they've cleared their final round. Then upload their offer letter from your Selected page: JobClubb shares it with the candidate and handles the placement. This can't be undone."
             confirmLabel="Selected"
             onConfirm={run(
               () => recordOutcome(applicantRef, interview.id, "selected"),

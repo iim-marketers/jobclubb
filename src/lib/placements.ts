@@ -1,0 +1,179 @@
+export const PLACEMENT_STATUSES = [
+  "awaiting_offer",
+  "offer_received",
+  "released",
+  "accepted",
+  "joined",
+  "not_joined",
+  "expired",
+  "declined",
+  "withdrawn",
+] as const;
+
+export type PlacementStatus = (typeof PLACEMENT_STATUSES)[number];
+
+export const PLACEMENT_EMAIL = "placement@jobclubb.com";
+
+export const DEFAULT_OFFER_DAYS = 7;
+
+export const PLACEMENT_FEE_NOTE =
+  "If you're selected, a placement fee equal to one month's fixed gross salary (GST included) applies. You pay it to JobClubb to receive your offer letter.";
+
+// Before the release the candidate must not learn they were selected.
+export const isReleased = (status: PlacementStatus) =>
+  status !== "awaiting_offer" && status !== "offer_received";
+
+export const isClosed = (status: PlacementStatus) =>
+  status === "joined" ||
+  status === "not_joined" ||
+  status === "expired" ||
+  status === "declined" ||
+  status === "withdrawn";
+
+export const COMPANY_PLACEMENT_LABELS: Record<PlacementStatus, string> = {
+  awaiting_offer: "Upload offer letter",
+  offer_received: "Offer received",
+  released: "With candidate",
+  accepted: "Candidate confirmed",
+  joined: "Joined",
+  not_joined: "Did not join",
+  expired: "Expired",
+  declined: "Declined",
+  withdrawn: "Withdrawn",
+};
+
+export const ADMIN_PLACEMENT_LABELS: Record<PlacementStatus, string> = {
+  awaiting_offer: "Awaiting offer",
+  offer_received: "Ready to release",
+  released: "Awaiting payment",
+  accepted: "Paid",
+  joined: "Joined",
+  not_joined: "Did not join",
+  expired: "Expired",
+  declined: "Declined",
+  withdrawn: "Withdrawn",
+};
+
+export type CandidateOfferStatus = Exclude<PlacementStatus, "awaiting_offer" | "offer_received">;
+
+export const CANDIDATE_OFFER_LABELS: Record<CandidateOfferStatus, string> = {
+  released: "Selected",
+  accepted: "Offer accepted",
+  joined: "Hired",
+  not_joined: "Did not join",
+  expired: "Offer expired",
+  declined: "Offer declined",
+  withdrawn: "Offer withdrawn",
+};
+
+const PLACEMENT_BADGES: Record<PlacementStatus, string> = {
+  awaiting_offer: "bg-amber-500/12 text-amber-700 dark:text-amber-300",
+  offer_received: "bg-brand/10 text-brand",
+  released: "bg-violet-500/12 text-violet-700 dark:text-violet-300",
+  accepted: "bg-good/12 text-good",
+  joined: "bg-good text-white",
+  not_joined: "bg-orange-500/12 text-orange-700 dark:text-orange-300",
+  expired: "bg-slate-500/12 text-slate-600 dark:text-slate-300",
+  declined: "bg-rose-500/12 text-rose-700 dark:text-rose-300",
+  withdrawn: "bg-destructive/10 text-destructive",
+};
+
+export const placementBadge = (status: PlacementStatus) => PLACEMENT_BADGES[status];
+
+export function candidateOfferBadge(status: CandidateOfferStatus) {
+  return status === "released" || status === "accepted" || status === "joined"
+    ? "bg-good/12 text-good"
+    : "bg-muted text-muted-foreground";
+}
+
+const IST = "Asia/Kolkata";
+
+export function todayIst(now = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: IST }).format(now);
+}
+
+export function addDays(date: string, days: number) {
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// A deadline is a date in IST and lasts until the following midnight.
+export const deadlineEnd = (date: string) => new Date(`${addDays(date, 1)}T00:00:00+05:30`);
+
+export const isPastDeadline = (date: string, now = new Date()) => +deadlineEnd(date) <= +now;
+
+export function formatDateOnly(date: string) {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${date}T00:00:00Z`));
+}
+
+export function formatRupees(paise: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: paise % 100 ? 2 : 0,
+  }).format(paise / 100);
+}
+
+export function parseRupees(raw: string) {
+  const value = raw.replace(/[,\s₹]/g, "");
+  if (!/^\d+(\.\d{1,2})?$/.test(value)) return null;
+  const paise = Math.round(Number(value) * 100);
+  return paise >= 100 && paise <= 100000000 ? paise : null;
+}
+
+export const OFFER_FILE_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+// Server actions accept 6 MB (next.config.ts), so one upload carries up to 5 MB.
+export const MAX_OFFER_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_OFFER_FILES = 5;
+
+export type OfferTerms = {
+  monthlySalary: number;
+  joiningDate: string;
+  offerDeadline: string | null;
+  notes: string;
+};
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+export function validateOfferTerms(
+  formData: FormData,
+  now = new Date(),
+): { values: OfferTerms; errors: Partial<Record<keyof OfferTerms, string>> } {
+  const text = (key: string) => String(formData.get(key) ?? "").trim();
+  const salary = parseRupees(text("monthlySalary"));
+  const values: OfferTerms = {
+    monthlySalary: salary ?? 0,
+    joiningDate: text("joiningDate"),
+    offerDeadline: text("offerDeadline") || null,
+    notes: text("notes"),
+  };
+  const errors: Partial<Record<keyof OfferTerms, string>> = {};
+  const today = todayIst(now);
+
+  if (salary === null)
+    errors.monthlySalary = "Enter the fixed monthly gross salary in rupees, like 25000.";
+  if (!DATE.test(values.joiningDate)) errors.joiningDate = "Choose the joining date.";
+  else if (values.joiningDate < today) errors.joiningDate = "Choose a date from today onwards.";
+  if (values.offerDeadline) {
+    if (!DATE.test(values.offerDeadline)) errors.offerDeadline = "Choose a valid date.";
+    else if (values.offerDeadline < today)
+      errors.offerDeadline = "Choose a date from today onwards.";
+    else if (!errors.joiningDate && values.offerDeadline > values.joiningDate)
+      errors.offerDeadline = "The candidate must accept on or before the joining date.";
+  }
+  if (values.notes.length > 2000) errors.notes = "Use 2,000 characters or fewer.";
+
+  return { values, errors };
+}
+
+export function releaseDeadline(terms: { joiningDate: string; offerDeadline: string | null }, now = new Date()) {
+  if (terms.offerDeadline) return terms.offerDeadline;
+  const standard = addDays(todayIst(now), DEFAULT_OFFER_DAYS);
+  return standard < terms.joiningDate ? standard : terms.joiningDate;
+}

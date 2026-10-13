@@ -33,6 +33,7 @@ export default async function NewJobPage() {
       <JobForm
         action={createJob}
         defaults={jobFormDefaults(null, company)}
+        location={company}
         submitLabel="Publish job"
         cancelHref={COMPANY_JOBS}
       />

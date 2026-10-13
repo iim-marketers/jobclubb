@@ -9,12 +9,17 @@ import { requireAdmin } from "@/server/admin/session";
 export default async function AdminPanelLayout({ children }: LayoutProps<"/admin">) {
   await requireAdmin();
 
-  const [cookieStore, { count }] = await Promise.all([
+  const admin = createAdminClient();
+  const [cookieStore, { count }, { count: offersToRelease }] = await Promise.all([
     cookies(),
-    createAdminClient()
+    admin
       .from("companies")
       .select("id", { count: "exact", head: true })
       .eq("status", "pending_review"),
+    admin
+      .from("placements")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "offer_received"),
   ]);
 
   return (
@@ -23,6 +28,7 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
         <AdminSidebar
           adminEmail={process.env.ADMIN_EMAIL ?? ""}
           pendingReviews={count ?? 0}
+          offersToRelease={offersToRelease ?? 0}
         />
         <SidebarInset className="min-w-0">
           <AdminHeader />

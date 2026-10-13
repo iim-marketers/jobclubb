@@ -14,6 +14,7 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import { Salary } from "@/components/salary";
 import { MemberHome } from "@/components/candidate/member-home";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { CompanyHome } from "@/components/company/company-home";
@@ -184,7 +185,7 @@ function Hero({ jobs, locked }: { jobs: JobListing[]; locked: boolean }) {
                     locked && HIDDEN,
                   )}
                 >
-                  {locked ? "₹0L" : maxSalary(job)}
+                  {locked ? "₹0L" : <Salary value={maxSalary(job)} />}
                 </span>
               </li>
             ))}
@@ -296,8 +297,7 @@ function EmployerShowcase() {
 }
 
 function maxSalary(job: JobListing) {
-  const top = job.salaryRange.split(" – ").pop() ?? job.salaryRange;
-  return top.startsWith("₹") ? top : `₹${top}`;
+  return job.salaryRange.split(" – ").pop() ?? job.salaryRange;
 }
 
 function FeaturedOpenings({
@@ -472,7 +472,7 @@ function JobCard({
         className="mt-4 -mx-5 px-5 flex items-center justify-between border-t border-border pt-4"
       >
         <span className={cn("font-head text-sm font-bold text-brand", hidden)}>
-          {shown.salaryRange}
+          <Salary value={shown.salaryRange} />
         </span>
         <span className={cn("text-xs text-muted-foreground", hidden)}>
           Posted {shown.postedAgo.toLowerCase()}
