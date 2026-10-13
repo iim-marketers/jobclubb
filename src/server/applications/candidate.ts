@@ -139,10 +139,11 @@ export async function getApplyState(candidateId: string, slug: string): Promise<
   return resume.count ? { kind: "ready" } : { kind: "no-resume" };
 }
 
-const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (created_at, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at)`;
+const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at)`;
 
 type ApplicationInterviewRow = {
   created_at: string;
+  round_no: number;
   starts_at: string;
   duration_mins: number;
   finished_at: string | null;
@@ -172,17 +173,20 @@ function latestUpdate(
     return "The employer has decided not to move forward with this application. New roles are added every day, so keep applying.";
   if (a.status === "closed")
     return "This posting has closed and the employer is no longer reviewing applications for it.";
-  if (interview?.outcome === "cleared")
-    return "You cleared the interview. JobClubb will be in touch about the next steps.";
+  if (interview?.outcome === "selected")
+    return "You've been selected. JobClubb will be in touch about the next steps.";
+  if (interview?.outcome === "next_round")
+    return `You cleared round ${interview.round_no}. The employer will schedule your next round, and it'll show up here.`;
+  const yours = interview && interview.round_no > 1 ? `Your round ${interview.round_no} interview` : "Your interview";
   if (interview && Date.parse(interview.starts_at) > Date.now())
-    return `Your interview is on ${formatInterviewDate(interview.starts_at)} at ${formatInterviewTime(interview.starts_at)}. The details are on your Interviews page.`;
+    return `${yours} is on ${formatInterviewDate(interview.starts_at)} at ${formatInterviewTime(interview.starts_at)}. The details are on your Interviews page.`;
   if (
     interview &&
     Date.parse(interviewEnd(interview.starts_at, interview.duration_mins, interview.finished_at)) >
       Date.now()
   )
-    return "Your interview is happening now. Join from your Interviews page.";
-  if (interview) return "Your interview is done. The employer will share the result soon.";
+    return `${yours} is happening now. Join from your Interviews page.`;
+  if (interview) return `${yours} is done. The employer will share the result soon.`;
   if (row.job_interviews.length > 0)
     return "The employer cancelled your interview. If they set a new time, it'll show up here.";
   if (row.stage >= 2)
@@ -194,15 +198,17 @@ function latestUpdate(
 function toApplication(row: ApplicationRow): Application {
   const job = toPublicJob(row.company_jobs);
   const interviews = [...row.job_interviews].sort((a, b) => a.created_at.localeCompare(b.created_at));
-  const interview = interviews.find((i) => !i.cancelled_at);
+  const rounds = interviews.filter((i) => !i.cancelled_at);
+  const interview = rounds.at(-1);
   const events = [
     { label: "Applied", at: row.created_at },
     row.viewed_at && { label: "Viewed by employer", at: row.viewed_at },
     row.shortlisted_at && { label: "Shortlisted", at: row.shortlisted_at },
     ...interviews.flatMap((i) => [
-      { label: "Interview scheduled", at: i.created_at },
-      i.cancelled_at && { label: "Interview cancelled", at: i.cancelled_at },
-      i.outcome === "cleared" && i.outcome_at && { label: "Cleared interview", at: i.outcome_at },
+      { label: `Round ${i.round_no} interview scheduled`, at: i.created_at },
+      i.cancelled_at && { label: `Round ${i.round_no} interview cancelled`, at: i.cancelled_at },
+      i.outcome === "next_round" && i.outcome_at && { label: `Cleared round ${i.round_no}`, at: i.outcome_at },
+      i.outcome === "selected" && i.outcome_at && { label: "Selected", at: i.outcome_at },
     ]),
     row.rejected_at && { label: "Not selected", at: row.rejected_at },
   ]
@@ -225,7 +231,7 @@ function toApplication(row: ApplicationRow): Application {
       row.created_at,
       row.viewed_at,
       row.shortlisted_at,
-      interview?.created_at ?? null,
+      rounds[0]?.created_at ?? null,
       null,
     ].map((at) => (at ? formatShortDate(at) : null)),
     updatedAgo: postedAgo(events[events.length - 1].at),
@@ -265,6 +271,7 @@ type CandidateInterviewRow = InterviewPlaceRow & {
   finished_at: string | null;
   mode: string;
   interviewer: string;
+  round_no: number;
   round: string;
   outcome: InterviewOutcome | null;
   job_applications: {
@@ -279,14 +286,15 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
   const { data, error } = await createAdminClient()
     .from("job_interviews")
     .select(
-      `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path))`,
+      `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path))`,
     )
     .eq("candidate_id", candidateId)
     .is("cancelled_at", null)
     .order("created_at");
   if (error) throw error;
   const now = Date.now();
-  return (data as unknown as CandidateInterviewRow[]).map((r, n) => {
+  let firstRounds = 0;
+  return (data as unknown as CandidateInterviewRow[]).map((r) => {
     const endsAt = interviewEnd(r.starts_at, r.duration_mins, r.finished_at);
     return {
       id: r.id,
@@ -300,8 +308,10 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
       mode: modeLabel(r.mode),
       ...interviewPlace(r),
       interviewer: r.interviewer,
+      roundNo: r.round_no,
       round: r.round,
-      guaranteed: n < GUARANTEED_INTERVIEWS,
+      // A guarantee covers an employer interviewing the member, however many rounds follow.
+      guaranteed: r.round_no === 1 && firstRounds++ < GUARANTEED_INTERVIEWS,
       outcome: r.outcome
         ? OUTCOME_LABELS[r.outcome]
         : Date.parse(endsAt) <= now

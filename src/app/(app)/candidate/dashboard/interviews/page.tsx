@@ -674,7 +674,7 @@ function StatusPill({
     <span
       className={cn(
         "rounded-full px-2.5 py-1 font-head text-[11px] font-bold",
-        i.outcome === "Cleared"
+        i.outcome === "Cleared" || i.outcome === "Selected"
           ? "bg-good/12 text-good"
           : i.outcome === "Not selected"
             ? NOT_SELECTED_BADGE

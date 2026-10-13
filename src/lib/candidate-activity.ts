@@ -1,4 +1,4 @@
-import type { Venue } from "@/lib/interviews";
+import type { InterviewOutcomeLabel, Venue } from "@/lib/interviews";
 import type { JobListing } from "@/lib/jobs-data";
 
 export const STAGES = [
@@ -54,9 +54,10 @@ export type Interview = {
   place: string;
   venue: Venue | null;
   interviewer: string;
+  roundNo: number;
   round: string;
   guaranteed: boolean;
-  outcome?: "Cleared" | "Awaiting result" | "Not selected";
+  outcome?: InterviewOutcomeLabel | "Awaiting result";
 };
 
 export const GUARANTEED_INTERVIEWS = 3;

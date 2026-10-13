@@ -35,6 +35,7 @@ import type { CompanyInterview } from "@/lib/company-activity";
 import {
   DURATIONS,
   INTERVIEW_MODES,
+  MAX_ROUNDS,
   PLACE_FIELD,
   istDateTime,
   modeValue,
@@ -61,12 +62,15 @@ export function InterviewDialog({
   applicantRef,
   jobLocation,
   interview,
+  roundNo = interview?.roundNo ?? 1,
 }: {
   applicantRef: string;
   jobLocation: JobLocation;
   interview?: CompanyInterview;
+  roundNo?: number;
 }) {
   const [open, setOpen] = useState(false);
+  const what = roundNo > 1 ? `round ${roundNo} interview` : "interview";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,12 +83,16 @@ export function InterviewDialog({
           )
         }
       >
-        {interview ? "Reschedule" : "Schedule interview"}
+        {interview
+          ? "Reschedule"
+          : roundNo > 1
+            ? `Schedule round ${roundNo}`
+            : "Schedule interview"}
       </DialogTrigger>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-head text-lg font-bold">
-            {interview ? "Reschedule interview" : "Schedule an interview"}
+            {interview ? `Reschedule ${what}` : `Schedule the ${what}`}
           </DialogTitle>
           <DialogDescription>
             Times are in India Standard Time. The candidate sees these details
@@ -98,7 +106,7 @@ export function InterviewDialog({
           onSaved={() => {
             setOpen(false);
             toast.success(
-              interview ? "Interview rescheduled" : "Interview scheduled",
+              `${what[0].toUpperCase()}${what.slice(1)} ${interview ? "rescheduled" : "scheduled"}`,
             );
           }}
         />
@@ -341,14 +349,26 @@ export function InterviewControls({
               "Applicant marked as not selected",
             )}
           />
+          {interview.roundNo < MAX_ROUNDS && (
+            <ConfirmAction
+              label="Next round"
+              title={`Move them to round ${interview.roundNo + 1}?`}
+              description="The applicant sees that they cleared this round, and you can then schedule their next one. This can't be undone."
+              confirmLabel="Move to next round"
+              onConfirm={run(
+                () => recordOutcome(applicantRef, interview.id, "next_round"),
+                `Moved to round ${interview.roundNo + 1}`,
+              )}
+            />
+          )}
           <ConfirmAction
-            label="Cleared"
-            title="Mark this interview as cleared?"
-            description="The applicant sees that they cleared the interview. This can't be undone."
-            confirmLabel="Cleared"
+            label="Selected"
+            title="Select this applicant?"
+            description="Use this when they've cleared their final round. The applicant sees that they've been selected, and JobClubb takes it from here. This can't be undone."
+            confirmLabel="Selected"
             onConfirm={run(
-              () => recordOutcome(applicantRef, interview.id, "cleared"),
-              "Interview marked as cleared",
+              () => recordOutcome(applicantRef, interview.id, "selected"),
+              "Applicant selected",
             )}
           />
         </>
@@ -356,7 +376,11 @@ export function InterviewControls({
         <ConfirmAction
           label="Cancel"
           title="Cancel this interview?"
-          description="It's removed from the applicant's calendar and they go back to your shortlist. You can schedule a new one any time."
+          description={
+            interview.roundNo > 1
+              ? "It's removed from the applicant's calendar. You can schedule this round again any time."
+              : "It's removed from the applicant's calendar and they go back to your shortlist. You can schedule a new one any time."
+          }
           confirmLabel="Cancel interview"
           destructive
           onConfirm={run(

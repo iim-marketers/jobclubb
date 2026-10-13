@@ -90,7 +90,7 @@ export function InterviewStatusPill({ interview: i, now }: { interview: CompanyI
       <span
         className={cn(
           "rounded-full px-2.5 py-1 font-head text-[11px] font-bold whitespace-nowrap",
-          i.outcome === "Cleared" ? "bg-good/12 text-good" : NOT_SELECTED_BADGE,
+          i.outcome === "Not selected" ? NOT_SELECTED_BADGE : "bg-good/12 text-good",
         )}
       >
         {i.outcome}
@@ -166,7 +166,10 @@ export function InterviewRow({
         <div className="min-w-0">
           <p className="font-head text-sm font-bold">
             {i.applicant}
-            <span className="font-medium text-muted-foreground"> · {i.round}</span>
+            <span className="font-medium text-muted-foreground">
+              {" "}
+              · Round {i.roundNo}: {i.round}
+            </span>
           </p>
           <p className="mt-0.5 text-sm text-muted-foreground">{i.designation}</p>
           <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">

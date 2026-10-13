@@ -6,6 +6,7 @@ import {
   type CompanyInterview,
 } from "@/lib/company-activity";
 import {
+  MAX_ROUNDS,
   OUTCOME_LABELS,
   PLACE_COLUMNS,
   interviewEnd,
@@ -91,7 +92,8 @@ export type ApplicantDetail = Applicant & {
   jobClosed: boolean;
   jobLocation: { city: string; pincode: string };
   resume: Resume;
-  interview: CompanyInterview | null;
+  interviews: CompanyInterview[];
+  nextRound: number | null;
 };
 
 export async function getCompanyApplicant(
@@ -116,17 +118,28 @@ export async function getCompanyApplicant(
     revealedNames([row]),
     listCompanyInterviews(companyId, ref),
   ]);
+  const latest = interviews.at(-1);
   return {
     ...toApplicant(row, names),
     designation: row.company_jobs.designation,
     jobClosed: row.company_jobs.status === "closed",
     jobLocation: { city: row.company_jobs.city, pincode: row.company_jobs.pincode },
     resume: row.masked_resume,
-    interview: interviews[0] ?? null,
+    interviews,
+    nextRound:
+      row.status !== "active"
+        ? null
+        : row.stage === 2 && !latest
+          ? 1
+          : row.stage === 3 &&
+              latest?.outcome === OUTCOME_LABELS.next_round &&
+              latest.roundNo < MAX_ROUNDS
+            ? latest.roundNo + 1
+            : null,
   };
 }
 
-const INTERVIEW_COLUMNS = `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round, outcome, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at)`;
+const INTERVIEW_COLUMNS = `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at)`;
 
 type InterviewRow = InterviewPlaceRow & {
   id: string;
@@ -135,6 +148,7 @@ type InterviewRow = InterviewPlaceRow & {
   finished_at: string | null;
   mode: string;
   interviewer: string;
+  round_no: number;
   round: string;
   outcome: InterviewOutcome | null;
   job_applications: Pick<ApplicantRow, "ref" | "job_id" | "candidate_id" | "candidate_no" | "shortlisted_at"> & {
@@ -171,6 +185,7 @@ export async function listCompanyInterviews(
       mode: modeLabel(r.mode),
       ...interviewPlace(r),
       interviewer: r.interviewer,
+      roundNo: r.round_no,
       round: r.round,
       outcome: r.outcome ? OUTCOME_LABELS[r.outcome] : null,
     };
@@ -280,7 +295,7 @@ export async function scheduleInterview(companyId: string, ref: string, input: I
     .from("job_interviews")
     .insert({ ...interviewFields(input), application_id: app.id, company_id: companyId });
   if (!insertError) return true;
-  if (insertError.hint === "not_shortlisted" || insertError.code === "23505") return false;
+  if (insertError.hint === "not_ready_for_interview" || insertError.code === "23505") return false;
   throw insertError;
 }
 

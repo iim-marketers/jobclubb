@@ -206,7 +206,8 @@ export default async function ApplicationDetailPage({
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="font-head text-sm font-bold">
-                        {i.round} · {formatInterviewDate(i.startsAt)},{" "}
+                        Round {i.roundNo}: {i.round} ·{" "}
+                        {formatInterviewDate(i.startsAt)},{" "}
                         {formatInterviewTime(i.startsAt)}
                       </p>
                       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">

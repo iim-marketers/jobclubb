@@ -1,5 +1,5 @@
 import { STAGES, type InterviewMode } from "@/lib/candidate-activity";
-import type { Venue } from "@/lib/interviews";
+import type { InterviewOutcomeLabel, Venue } from "@/lib/interviews";
 
 export { STAGES };
 
@@ -40,8 +40,9 @@ export type CompanyInterview = {
   place: string;
   venue: Venue | null;
   interviewer: string;
+  roundNo: number;
   round: string;
-  outcome: "Cleared" | "Not selected" | null;
+  outcome: InterviewOutcomeLabel | null;
 };
 
 export function upcomingCompanyInterviews(interviews: CompanyInterview[], now = new Date()) {
