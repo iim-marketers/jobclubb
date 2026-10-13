@@ -140,7 +140,7 @@ export function validateJob(formData: FormData): {
 
 const lpa = (n: number) => `₹${Number(n.toFixed(2))} LPA`;
 
-const SALARY_UNDISCLOSED = "Not disclosed";
+export const SALARY_UNDISCLOSED = "Not disclosed";
 
 export function formatSalary(job: Pick<CompanyJob, "salaryMinLpa" | "salaryMaxLpa">) {
   if (job.salaryMinLpa === null) return SALARY_UNDISCLOSED;

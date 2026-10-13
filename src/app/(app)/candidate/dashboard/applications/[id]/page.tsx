@@ -17,9 +17,13 @@ import {
   X,
 } from "lucide-react";
 
+import { Salary } from "@/components/salary";
 import { Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
-import { DeclineOfferButton, PayOfferButton } from "@/components/candidate/offer-actions";
+import {
+  DeclineOfferButton,
+  PayOfferButton,
+} from "@/components/candidate/offer-actions";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -214,7 +218,9 @@ export default async function ApplicationDetailPage({
               title="Interviews for this role"
               action={
                 !archived &&
-                interviews.some((i) => interviewPhase(i, now) === "upcoming") && (
+                interviews.some(
+                  (i) => interviewPhase(i, now) === "upcoming",
+                ) && (
                   <Link
                     href={`${CANDIDATE_HOME}/interviews`}
                     className="inline-flex flex-none items-center gap-1 font-head text-sm font-bold whitespace-nowrap text-brand hover:text-brand-dark"
@@ -308,14 +314,16 @@ export default async function ApplicationDetailPage({
 
           <Panel title="Application details">
             <dl className="divide-y divide-border text-sm">
-              {[
-                ["Applied on", formatLongDate(application.appliedOn)],
-                ["Salary", job.salaryRange],
-                ["Experience", job.experience],
-                ["Job type", job.jobType],
-                ["Work mode", job.workMode],
-                ["Location", `${job.location} ${job.pincode}`],
-              ].map(([label, value]) => (
+              {(
+                [
+                  ["Applied on", formatLongDate(application.appliedOn)],
+                  ["Salary", <Salary key="salary" value={job.salaryRange} />],
+                  ["Experience", job.experience],
+                  ["Job type", job.jobType],
+                  ["Work mode", job.workMode],
+                  ["Location", `${job.location} ${job.pincode}`],
+                ] as [string, React.ReactNode][]
+              ).map(([label, value]) => (
                 <div
                   key={label}
                   className="flex items-baseline justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
@@ -391,23 +399,46 @@ async function OfferSection({
             </h2>
             <dl className="mt-5 grid gap-3 sm:grid-cols-3">
               {[
-                ["Placement fee", formatRupees(offer.fee), "One month's fixed gross salary, GST included"],
-                ["Pay by", formatDateOnly(offer.deadline), "The offer lapses after this date"],
-                ["Expected joining", formatDateOnly(offer.joiningDate), "Confirmed in your offer letter"],
+                [
+                  "Placement fee",
+                  formatRupees(offer.fee),
+                  "One month's fixed gross salary, GST included",
+                ],
+                [
+                  "Pay by",
+                  formatDateOnly(offer.deadline),
+                  "The offer lapses after this date",
+                ],
+                [
+                  "Expected joining",
+                  formatDateOnly(offer.joiningDate),
+                  "Confirmed in your offer letter",
+                ],
               ].map(([label, value, hint]) => (
-                <div key={label} className="rounded-2xl border border-border bg-card p-4">
+                <div
+                  key={label}
+                  className="rounded-2xl border border-border bg-card p-4"
+                >
                   <dt className="text-xs text-muted-foreground">{label}</dt>
-                  <dd className="mt-1 font-head text-lg font-extrabold">{value}</dd>
-                  <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">{hint}</p>
+                  <dd className="mt-1 font-head text-lg font-extrabold">
+                    {value}
+                  </dd>
+                  <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+                    {hint}
+                  </p>
                 </div>
               ))}
             </dl>
             <p className="mt-4 flex items-start gap-2 text-sm leading-6 text-muted-foreground">
               <Lock className="mt-1 size-3.5 flex-none" />
               <span>
-                Your offer letter, salary details and joining instructions unlock as soon as
-                you pay. The fee is non-refundable once paid, as set out in our{" "}
-                <Link href="/terms" className="font-medium text-foreground underline underline-offset-2">
+                Your offer letter, salary details and joining instructions
+                unlock as soon as you pay. The fee is non-refundable once paid,
+                as set out in our{" "}
+                <Link
+                  href="/terms"
+                  className="font-medium text-foreground underline underline-offset-2"
+                >
                   terms
                 </Link>
                 .
@@ -421,14 +452,20 @@ async function OfferSection({
               jobTitle={`${designation} at ${companyName}`}
               prefill={prefill}
             />
-            <DeclineOfferButton placementId={offer.placementId} companyName={companyName} />
+            <DeclineOfferButton
+              placementId={offer.placementId}
+              companyName={companyName}
+            />
           </div>
         </div>
       </section>
     );
 
   if (offer.status === "withdrawn" && offer.paid) {
-    const payment = await getPlacementPaymentForCandidate(candidateId, offer.placementId);
+    const payment = await getPlacementPaymentForCandidate(
+      candidateId,
+      offer.placementId,
+    );
     return payment ? (
       <p className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
         <Receipt className="size-4 flex-none" />
@@ -444,7 +481,11 @@ async function OfferSection({
     ) : null;
   }
 
-  if (offer.status !== "accepted" && offer.status !== "joined" && offer.status !== "not_joined")
+  if (
+    offer.status !== "accepted" &&
+    offer.status !== "joined" &&
+    offer.status !== "not_joined"
+  )
     return null;
 
   const [documents, payment] = await Promise.all([
@@ -457,7 +498,9 @@ async function OfferSection({
       <p className="font-head text-xs font-bold tracking-[0.16em] text-good uppercase">
         {offer.status === "joined" ? "Hired" : "Offer accepted"}
       </p>
-      <h2 className="mt-1 font-head text-xl font-extrabold tracking-tight">Your offer letter</h2>
+      <h2 className="mt-1 font-head text-xl font-extrabold tracking-tight">
+        Your offer letter
+      </h2>
       <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <ul className="space-y-2">
           {documents.map((d) => (
@@ -470,7 +513,9 @@ async function OfferSection({
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{d.name}</p>
-                <p className="text-xs text-muted-foreground">{Math.max(1, Math.round(d.size / 1024))} KB</p>
+                <p className="text-xs text-muted-foreground">
+                  {Math.max(1, Math.round(d.size / 1024))} KB
+                </p>
               </div>
               {d.url && (
                 <Button
@@ -489,12 +534,17 @@ async function OfferSection({
         <dl className="divide-y divide-border text-sm">
           {[
             ["Joining date", formatDateOnly(offer.joiningDate)],
-            offer.monthlySalary ? ["Monthly gross salary", formatRupees(offer.monthlySalary)] : null,
+            offer.monthlySalary
+              ? ["Monthly gross salary", formatRupees(offer.monthlySalary)]
+              : null,
             ["Placement fee paid", formatRupees(payment?.amount ?? offer.fee)],
           ]
             .filter((row): row is string[] => !!row)
             .map(([label, value]) => (
-              <div key={label} className="flex items-baseline justify-between gap-4 py-2.5 first:pt-0">
+              <div
+                key={label}
+                className="flex items-baseline justify-between gap-4 py-2.5 first:pt-0"
+              >
                 <dt className="text-muted-foreground">{label}</dt>
                 <dd className="text-right font-medium">{value}</dd>
               </div>
@@ -517,7 +567,9 @@ async function OfferSection({
       </div>
       {offer.notes && (
         <div className="mt-5 rounded-2xl bg-muted/50 p-4 text-sm leading-6">
-          <p className="font-head text-xs font-bold text-muted-foreground">Joining instructions from the employer</p>
+          <p className="font-head text-xs font-bold text-muted-foreground">
+            Joining instructions from the employer
+          </p>
           <p className="mt-1 whitespace-pre-line">{offer.notes}</p>
         </div>
       )}

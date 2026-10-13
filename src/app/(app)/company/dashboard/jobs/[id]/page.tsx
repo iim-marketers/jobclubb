@@ -10,6 +10,7 @@ import {
   UserRoundSearch,
 } from "lucide-react";
 
+import { Salary } from "@/components/salary";
 import { Panel } from "@/components/candidate/dashboard-ui";
 import { JobOpenToggle } from "@/components/company/job-open-toggle";
 import { JobStatusPill } from "@/components/company/job-status";
@@ -116,12 +117,14 @@ export default async function JobDetailPage({
         </div>
 
         <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
-          {[
-            ["Salary", formatSalary(job)],
-            ["Experience", formatExperience(job)],
-            ["Type", `${job.jobType} · ${job.workMode}`],
-            ["Openings", String(job.openings)],
-          ].map(([label, value]) => (
+          {(
+            [
+              ["Salary", <Salary key="salary" value={formatSalary(job)} />],
+              ["Experience", formatExperience(job)],
+              ["Type", `${job.jobType} · ${job.workMode}`],
+              ["Openings", String(job.openings)],
+            ] as [string, React.ReactNode][]
+          ).map(([label, value]) => (
             <div key={label} className="min-w-0">
               <dt className="text-xs text-muted-foreground">{label}</dt>
               <dd className="mt-0.5 truncate font-head text-sm font-bold">
