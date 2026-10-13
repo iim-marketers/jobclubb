@@ -311,7 +311,6 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
       interviewer: r.interviewer,
       roundNo: r.round_no,
       round: r.round,
-      // A guarantee covers an employer interviewing the member, however many rounds follow.
       guaranteed: r.round_no === 1 && firstRounds++ < GUARANTEED_INTERVIEWS,
       outcome: r.outcome
         ? OUTCOME_LABELS[r.outcome]

@@ -1,10 +1,4 @@
--- An application can go through any number of interview rounds, one at a time.
--- Each round ends in next_round (schedule another), selected (final) or
--- not_selected (rejects the application).
-
--- Settled rows are frozen by the before-update trigger, so it is switched off
--- while existing rows are backfilled. 'cleared' was the final result before
--- rounds existed.
+-- The before-update trigger freezes settled rows, so it is off for the backfill.
 alter table public.job_interviews disable trigger job_interviews_before_update;
 
 alter table public.job_interviews
@@ -30,7 +24,6 @@ create unique index job_interviews_round_no_per_application
   on public.job_interviews (application_id, round_no)
   where cancelled_at is null;
 
--- A rescheduled round keeps its number, since cancelled rounds aren't counted.
 create or replace function public.job_interviews_before_insert()
 returns trigger
 language plpgsql
@@ -80,8 +73,6 @@ begin
 end;
 $$;
 
--- Cancelling a later round leaves the application in Interview; only
--- cancelling the sole remaining round sends it back to the shortlist.
 create or replace function public.job_interviews_after_update()
 returns trigger
 language plpgsql
