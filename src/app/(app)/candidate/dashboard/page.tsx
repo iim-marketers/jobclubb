@@ -19,7 +19,11 @@ import {
 import { ApplicationJourney } from "@/components/candidate/application-journey";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { EmptyState, Panel } from "@/components/candidate/dashboard-ui";
-import { JobPicksList, recommendJobs } from "@/components/candidate/job-picks";
+import {
+  JobPicksList,
+  NoNearbyNote,
+  recommendJobs,
+} from "@/components/candidate/job-picks";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -322,7 +326,10 @@ export default async function CandidateDashboard() {
           </Link>
         </div>
         {picks.items.length > 0 ? (
-          <JobPicksList picks={picks} />
+          <div className="space-y-4">
+            {!picks.nearby && <NoNearbyNote city={candidate.city} />}
+            <JobPicksList picks={picks} />
+          </div>
         ) : (
           <EmptyState icon={Sparkles} title="No new openings right now">
             {applied.size

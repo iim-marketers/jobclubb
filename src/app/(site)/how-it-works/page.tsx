@@ -4,6 +4,8 @@ import { Check } from "lucide-react";
 import { PageHeader, Section, SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { SOURCING_CHANNELS } from "@/lib/taxonomy";
+import { getCandidateSession } from "@/server/auth/current-candidate";
+import { getCompanySession } from "@/server/auth/current-company";
 
 export const metadata = {
   title: "How it works — JobClubb",
@@ -33,7 +35,9 @@ const STEPS = [
   },
 ];
 
-export default function HowItWorksPage() {
+export default async function HowItWorksPage() {
+  const signedIn = !!(await getCandidateSession()) || !!(await getCompanySession());
+
   return (
     <>
       <PageHeader
@@ -106,34 +110,36 @@ export default function HowItWorksPage() {
         </div>
       </Section>
 
-      <Section>
-        <div className="rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-5 py-12 sm:px-8 sm:py-14 text-center text-white shadow-lg">
-          <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Ready to start?
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl leading-7 text-white/80">
-            Create your account in minutes and activate your membership to
-            unlock the full board.
-          </p>
-          <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button
-              className="bg-white font-head text-brand hover:bg-white/90"
-              nativeButton={false}
-              render={<Link href="/sign-up" />}
-            >
-              Join JobClubb
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white/40 bg-transparent font-head text-white hover:bg-white/10 hover:text-white"
-              nativeButton={false}
-              render={<Link href="/jobs" />}
-            >
-              Browse jobs
-            </Button>
+      {!signedIn && (
+        <Section>
+          <div className="rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong px-5 py-12 sm:px-8 sm:py-14 text-center text-white shadow-lg">
+            <h2 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Ready to start?
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl leading-7 text-white/80">
+              Create your account in minutes and activate your membership to
+              unlock the full board.
+            </p>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button
+                className="bg-white font-head text-brand hover:bg-white/90"
+                nativeButton={false}
+                render={<Link href="/sign-up" />}
+              >
+                Join JobClubb
+              </Button>
+              <Button
+                variant="outline"
+                className="border-white/40 bg-transparent font-head text-white hover:bg-white/10 hover:text-white"
+                nativeButton={false}
+                render={<Link href="/jobs" />}
+              >
+                Browse jobs
+              </Button>
+            </div>
           </div>
-        </div>
-      </Section>
+        </Section>
+      )}
     </>
   );
 }

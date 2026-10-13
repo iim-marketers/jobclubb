@@ -17,7 +17,11 @@ import {
 
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { EmptyState } from "@/components/candidate/dashboard-ui";
-import { JobPicksGrid, recommendJobs } from "@/components/candidate/job-picks";
+import {
+  JobPicksGrid,
+  NoNearbyNote,
+  recommendJobs,
+} from "@/components/candidate/job-picks";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { RecruiterBoard } from "@/components/recruiter-board";
@@ -173,7 +177,8 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
                 </EmptyState>
               </div>
             ) : (
-              <div className="mt-6">
+              <div className="mt-6 space-y-6">
+                {!picks.nearby && <NoNearbyNote city={candidate.city} />}
                 <JobPicksGrid picks={picks} />
               </div>
             )}

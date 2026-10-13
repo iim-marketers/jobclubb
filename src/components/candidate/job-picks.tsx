@@ -10,7 +10,12 @@ const RECOMMENDED = 6;
 type Pick = { job: JobListing; reasons: string[] };
 
 // matches counts jobs in the candidate's sector, for the "N roles match" line.
-export type JobPicks = { matched: boolean; matches: number; items: Pick[] };
+export type JobPicks = {
+  matched: boolean;
+  nearby: boolean;
+  matches: number;
+  items: Pick[];
+};
 
 // The first three pincode digits mark the sorting district, which keeps a
 // suburb like Bidhannagar (700091) matched with Kolkata (700001).
@@ -34,21 +39,38 @@ export function recommendJobs(
       score += 3;
       reasons.push("Preferred role");
     }
-    if (city && job.location.toLowerCase() === city) {
-      score += 2;
-      reasons.push("In your city");
-    } else if (profile.pincode && sameArea(job.pincode, profile.pincode)) {
-      score += 2;
-      reasons.push("Near you");
+    // Properties hire locally, so a nearby job in the candidate's sector
+    // outranks a role match in another city.
+    const inCity = !!city && job.location.toLowerCase() === city;
+    const near = inCity || (!!profile.pincode && sameArea(job.pincode, profile.pincode));
+    if (near) {
+      score += 4;
+      reasons.push(inCity ? "In your city" : "Near you");
     }
-    return { job, reasons, score };
+    return { job, reasons, score, near };
   });
   const ranked = scored.toSorted((a, b) => b.score - a.score);
+  const items = ranked.slice(0, RECOMMENDED);
   return {
     matched: ranked.some((r) => r.score > 0),
+    nearby: items.some((r) => r.near),
     matches: jobs.filter((job) => job.industry === profile.sector).length,
-    items: ranked.slice(0, RECOMMENDED),
+    items,
   };
+}
+
+export function NoNearbyNote({ city }: { city: string }) {
+  return (
+    <p className="flex items-start gap-2.5 rounded-xl bg-muted/60 px-4 py-3 text-sm leading-6 text-muted-foreground">
+      <MapPin className="mt-1 size-4 flex-none text-brand" />
+      <span>
+        <span className="font-semibold text-foreground">
+          No openings near {city} yet.
+        </span>{" "}
+        Here are the best matches for your profile from other cities.
+      </span>
+    </p>
+  );
 }
 
 export function JobPicksGrid({ picks }: { picks: JobPicks }) {
