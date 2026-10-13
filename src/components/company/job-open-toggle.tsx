@@ -17,7 +17,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function JobOpenToggle({ jobId, closed }: { jobId: string; closed: boolean }) {
+export function JobOpenToggle({
+  jobId,
+  closed,
+}: {
+  jobId: string;
+  closed: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -50,9 +56,14 @@ export function JobOpenToggle({ jobId, closed }: { jobId: string; closed: boolea
     );
 
   return (
-    <Dialog open={pending || open} onOpenChange={(next) => !pending && setOpen(next)}>
-      <DialogTrigger render={<Button variant="outline-destructive" className="font-head" />}>
-        <LockKeyhole className="size-4" /> Close posting
+    <Dialog
+      open={pending || open}
+      onOpenChange={(next) => !pending && setOpen(next)}
+    >
+      <DialogTrigger
+        render={<Button variant="outline-destructive" className="font-head" />}
+      >
+        Close posting
       </DialogTrigger>
       <DialogContent showCloseButton={false}>
         <DialogHeader>

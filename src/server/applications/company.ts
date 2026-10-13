@@ -327,8 +327,12 @@ const interviewFields = (input: InterviewInput) => ({
   round: input.round,
 });
 
-export async function scheduleInterview(companyId: string, ref: string, input: InterviewInput) {
-  if (!REF.test(ref)) return false;
+export async function scheduleInterview(
+  companyId: string,
+  ref: string,
+  input: InterviewInput,
+): Promise<string | null> {
+  if (!REF.test(ref)) return null;
   const admin = createAdminClient();
   const { data: app, error } = await admin
     .from("job_applications")
@@ -337,13 +341,15 @@ export async function scheduleInterview(companyId: string, ref: string, input: I
     .eq("ref", ref)
     .maybeSingle();
   if (error) throw error;
-  if (!app) return false;
+  if (!app) return null;
 
-  const { error: insertError } = await admin
+  const { data, error: insertError } = await admin
     .from("job_interviews")
-    .insert({ ...interviewFields(input), application_id: app.id, company_id: companyId });
-  if (!insertError) return true;
-  if (insertError.hint === "not_ready_for_interview" || insertError.code === "23505") return false;
+    .insert({ ...interviewFields(input), application_id: app.id, company_id: companyId })
+    .select("id")
+    .single();
+  if (!insertError) return data.id as string;
+  if (insertError.hint === "not_ready_for_interview" || insertError.code === "23505") return null;
   throw insertError;
 }
 
