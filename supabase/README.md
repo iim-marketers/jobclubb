@@ -67,7 +67,7 @@ Members apply from a job page into `public.job_applications`. The table has no R
 
 - Applying snapshots the resume twice: `resume` (as written) and `masked_resume` (name, email, phone and LinkedIn links replaced). Company pages only ever read `masked_resume`, `skills`, `city` and `experience_months`.
 - Shortlisting rebuilds `masked_resume` with the name restored, and company pages then show the name. Email and phone stay hidden at every stage.
-- `job_title`, `company_name` and `candidate_name` are filled in by the insert trigger and kept in step by triggers on `company_jobs`, `companies` and `candidates`. They are for reading the table in the dashboard; company pages never select `candidate_name`.
+- `job_title`, `company_name` and `candidate_name` are filled in by the insert trigger and kept in step by triggers on `company_jobs`, `companies` and `candidates`. They are for reading the table in the dashboard; company pages never select `candidate_name`. `job_interviews` carries the same three columns, copied from its application on insert and kept in step through it.
 - `stage` follows Applied (0) → Viewed (1) → Shortlisted (2) → Interview (3) → Offer (4), and check constraints require the matching `viewed_at` / `shortlisted_at` / `rejected_at` timestamps. An insert trigger takes `company_id` from the job and rejects jobs that aren't `live`.
 
 ## 3. Auth settings (dashboard → Authentication)
