@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Briefcase, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Briefcase, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { EmptyState } from "@/components/candidate/dashboard-ui";
 import { JobStatusPill } from "@/components/company/job-status";
+import {
+  FilterSelect,
+  TableSearch,
+  TableToolbar,
+} from "@/components/table-toolbar";
 import { jobApplicantsHref } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
 import { formatShortDate } from "@/lib/candidate-activity";
@@ -74,60 +79,26 @@ export function ApplicantJobsList({ jobs }: { jobs: ApplicantJob[] }) {
 
   return (
     <section aria-label="Applicants by job" className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div
-          role="tablist"
-          aria-label="Filter jobs"
-          className="flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1"
-        >
-          {TABS.map((t) => {
-            const selected = tab === t.key;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => {
-                  setTab(t.key);
-                  setPage(0);
-                }}
-                className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 font-head text-sm sm:flex-none font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                  selected
-                    ? "bg-brand text-brand-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {t.label}
-                <span
-                  className={cn(
-                    "rounded-full px-1.5 text-[11px] font-bold tabular-nums",
-                    selected ? "bg-white/20" : "bg-muted",
-                  )}
-                >
-                  {jobs.filter((j) => inTab(j, t.key)).length}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="relative sm:w-72">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setPage(0);
-            }}
-            placeholder="Search title, role or city"
-            aria-label="Search jobs"
-            className="h-10 w-full rounded-full border border-border bg-card pr-4 pl-10 text-sm shadow-xs transition-colors outline-none placeholder:text-muted-foreground focus:border-brand focus:ring-3 focus:ring-brand/15"
-          />
-        </div>
-      </div>
+      <TableToolbar>
+        <TableSearch
+          value={query}
+          onChange={(v) => {
+            setQuery(v);
+            setPage(0);
+          }}
+          placeholder="Search title, role or city"
+          label="Search jobs"
+        />
+        <FilterSelect
+          label="Jobs"
+          options={TABS.map((t) => ({ value: t.key, label: t.label }))}
+          value={tab}
+          onChange={(v) => {
+            setTab(v);
+            setPage(0);
+          }}
+        />
+      </TableToolbar>
 
       {rows.length === 0 ? (
         <EmptyState

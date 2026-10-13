@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   EyeOff,
-  Search,
   UserRoundSearch,
 } from "lucide-react";
 import {
@@ -32,7 +31,12 @@ import {
 } from "@tanstack/react-table";
 
 import { EmptyState } from "@/components/candidate/dashboard-ui";
-import { COMPANY_HOME } from "@/components/company/nav";
+import {
+  FilterSelect,
+  TableSearch,
+  TableToolbar,
+} from "@/components/table-toolbar";
+import { applicantHref } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -49,10 +53,7 @@ import {
   type Applicant,
 } from "@/lib/company-activity";
 import { cn } from "@/lib/utils";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
-
-export const applicantHref = (ref: string) =>
-  `${COMPANY_HOME}/applicants/${ref}`;
+import { stageBadge } from "@/lib/status-badge";
 
 const features = tableFeatures({
   rowSortingFeature,
@@ -202,18 +203,16 @@ const columns = helper.columns([
           <span
             className={cn(
               "rounded-full px-2 py-0.5 font-head text-[11px] font-bold whitespace-nowrap",
-              rejected
-                ? NOT_SELECTED_BADGE
-                : a.stage >= 2
-                  ? "bg-good/12 text-good"
-                  : "bg-brand/10 text-brand",
+              stageBadge(a),
             )}
           >
             {rejected
               ? "Not selected"
               : a.stage === 0
                 ? "New"
-                : STAGES[a.stage]}
+                : a.selected
+                  ? "Selected"
+                  : STAGES[a.stage]}
           </span>
         </div>
       );
@@ -262,16 +261,6 @@ export function ApplicantsTable({
     [applicants, jobTitles],
   );
   const data = useMemo(() => rows.filter((a) => inTab(a, tab)), [rows, tab]);
-  const counts = useMemo(
-    () =>
-      Object.fromEntries(
-        TABS.map((t) => [
-          t.key,
-          applicants.filter((a) => inTab(a, t.key)).length,
-        ]),
-      ) as Record<TabKey, number>,
-    [applicants],
-  );
 
   const table = useTable({
     features,
@@ -296,61 +285,27 @@ export function ApplicantsTable({
 
   return (
     <section aria-label="Applicants" className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div
-          role="tablist"
-          aria-label="Filter applicants"
-          className="flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1"
-        >
-          {TABS.map((t) => {
-            const selected = tab === t.key;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => {
-                  setTab(t.key);
-                  table.setPageIndex(0);
-                }}
-                className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 font-head text-sm sm:flex-none font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                  selected
-                    ? "bg-brand text-brand-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {t.label}
-                <span
-                  className={cn(
-                    "rounded-full px-1.5 text-[11px] font-bold tabular-nums",
-                    selected ? "bg-white/20" : "bg-muted",
-                  )}
-                >
-                  {counts[t.key]}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="relative sm:w-72">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => table.setGlobalFilter(e.target.value)}
-            placeholder={
-              jobTitles
-                ? "Search name, ref, job or skill"
-                : "Search name, ref or skill"
-            }
-            aria-label="Search applicants"
-            className="h-10 w-full rounded-full border border-border bg-card pr-4 pl-10 text-sm shadow-xs transition-colors outline-none placeholder:text-muted-foreground focus:border-brand focus:ring-3 focus:ring-brand/15"
-          />
-        </div>
-      </div>
+      <TableToolbar>
+        <TableSearch
+          value={query}
+          onChange={(v) => table.setGlobalFilter(v)}
+          placeholder={
+            jobTitles
+              ? "Search name, ref, job or skill"
+              : "Search name, ref or skill"
+          }
+          label="Search applicants"
+        />
+        <FilterSelect
+          label="Stage"
+          options={TABS.map((t) => ({ value: t.key, label: t.label }))}
+          value={tab}
+          onChange={(v) => {
+            setTab(v);
+            table.setPageIndex(0);
+          }}
+        />
+      </TableToolbar>
 
       {pageRows.length === 0 ? (
         <EmptyState

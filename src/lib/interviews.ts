@@ -36,11 +36,15 @@ export const PLACE_FIELD: Record<
 export const DURATIONS = [15, 30, 45, 60, 90, 120] as const;
 
 export const OUTCOME_LABELS = {
-  cleared: "Cleared",
+  next_round: "Cleared",
+  selected: "Selected",
   not_selected: "Not selected",
 } as const;
 
 export type InterviewOutcome = keyof typeof OUTCOME_LABELS;
+export type InterviewOutcomeLabel = (typeof OUTCOME_LABELS)[InterviewOutcome];
+
+export const MAX_ROUNDS = 10;
 
 export type Venue = {
   address: string;

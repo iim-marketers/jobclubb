@@ -35,12 +35,12 @@ export function ApplicantActions({
   applicantRef,
   jobLocation,
   canShortlist,
-  canSchedule,
+  nextRound,
 }: {
   applicantRef: string;
   jobLocation: { city: string; pincode: string };
   canShortlist: boolean;
-  canSchedule: boolean;
+  nextRound: number | null;
 }) {
   const [confirming, setConfirming] = useState<"shortlist" | "reject" | null>(null);
   const [pending, startTransition] = useTransition();
@@ -86,7 +86,9 @@ export function ApplicantActions({
         </DialogContent>
       </Dialog>
 
-      {canSchedule && <InterviewDialog applicantRef={applicantRef} jobLocation={jobLocation} />}
+      {nextRound && (
+        <InterviewDialog applicantRef={applicantRef} jobLocation={jobLocation} roundNo={nextRound} />
+      )}
 
       {canShortlist && (
         <Dialog

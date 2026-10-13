@@ -10,7 +10,6 @@ import {
   Briefcase,
   ChevronLeft,
   ChevronRight,
-  Search,
 } from "lucide-react";
 import {
   columnFilteringFeature,
@@ -33,6 +32,11 @@ import {
 import { EmptyState } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
+import {
+  FilterSelect,
+  TableSearch,
+  TableToolbar,
+} from "@/components/table-toolbar";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -47,7 +51,7 @@ import {
   formatShortDate,
   type Application,
 } from "@/lib/candidate-activity";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import { stageBadge } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
 
 const features = tableFeatures({
@@ -159,13 +163,7 @@ const columns = helper.columns([
         <span
           className={cn(
             "rounded-full px-2 py-0.5 font-head text-[11px] font-bold whitespace-nowrap",
-            a.status === "rejected"
-              ? NOT_SELECTED_BADGE
-              : archived
-                ? "bg-muted text-muted-foreground"
-                : a.stage >= 3
-                  ? "bg-good/12 text-good"
-                  : "bg-brand/10 text-brand",
+            stageBadge(a, archived),
           )}
         >
           {applicationStatus(a)}
@@ -232,49 +230,23 @@ export function ApplicationsTable({
 
   return (
     <section aria-label="Your applications" className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div
-          role="tablist"
-          aria-label="Filter applications"
-          className="flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1"
-        >
-          {TABS.map((t) => {
-            const selected = tab === t.key;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => {
-                  setTab(t.key);
-                  table.setPageIndex(0);
-                }}
-                className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 font-head text-sm sm:flex-none font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                  selected
-                    ? "bg-brand text-brand-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="relative sm:w-72">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => table.setGlobalFilter(e.target.value)}
-            placeholder="Search role, company or city"
-            aria-label="Search applications"
-            className="h-10 w-full rounded-full border border-border bg-card pr-4 pl-10 text-sm shadow-xs transition-colors outline-none placeholder:text-muted-foreground focus:border-brand focus:ring-3 focus:ring-brand/15"
-          />
-        </div>
-      </div>
+      <TableToolbar>
+        <TableSearch
+          value={query}
+          onChange={(v) => table.setGlobalFilter(v)}
+          placeholder="Search role, company or city"
+          label="Search applications"
+        />
+        <FilterSelect
+          label="Show"
+          options={TABS.map((t) => ({ value: t.key, label: t.label }))}
+          value={tab}
+          onChange={(v) => {
+            setTab(v);
+            table.setPageIndex(0);
+          }}
+        />
+      </TableToolbar>
 
       {rows.length === 0 ? (
         <EmptyState

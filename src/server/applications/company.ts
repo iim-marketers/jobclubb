@@ -4,8 +4,10 @@ import {
   candidateLabel,
   type Applicant,
   type CompanyInterview,
+  type SelectedCandidate,
 } from "@/lib/company-activity";
 import {
+  MAX_ROUNDS,
   OUTCOME_LABELS,
   PLACE_COLUMNS,
   interviewEnd,
@@ -41,6 +43,7 @@ type ApplicantRow = {
   status: Applicant["status"];
   created_at: string;
   shortlisted_at: string | null;
+  job_interviews?: { outcome: InterviewOutcome | null }[];
 };
 
 async function revealedNames(rows: Pick<ApplicantRow, "candidate_id" | "shortlisted_at">[]) {
@@ -65,6 +68,7 @@ function toApplicant(row: ApplicantRow, names: Map<string, string>): Applicant {
     skills: row.skills,
     stage: row.stage,
     status: row.status,
+    selected: !!row.job_interviews?.some((i) => i.outcome === "selected"),
     appliedOn: row.created_at,
   };
 }
@@ -72,8 +76,9 @@ function toApplicant(row: ApplicantRow, names: Map<string, string>): Applicant {
 export async function listCompanyApplicants(companyId: string, jobId?: string) {
   let query = createAdminClient()
     .from("job_applications")
-    .select(APPLICANT_COLUMNS)
+    .select(`${APPLICANT_COLUMNS}, job_interviews (outcome)`)
     .eq("company_id", companyId)
+    .eq("job_interviews.outcome", "selected")
     .order("created_at", { ascending: false });
   if (jobId) {
     if (!UUID.test(jobId)) return [];
@@ -91,7 +96,8 @@ export type ApplicantDetail = Applicant & {
   jobClosed: boolean;
   jobLocation: { city: string; pincode: string };
   resume: Resume;
-  interview: CompanyInterview | null;
+  interviews: CompanyInterview[];
+  nextRound: number | null;
 };
 
 export async function getCompanyApplicant(
@@ -116,17 +122,29 @@ export async function getCompanyApplicant(
     revealedNames([row]),
     listCompanyInterviews(companyId, ref),
   ]);
+  const latest = interviews.at(-1);
   return {
     ...toApplicant(row, names),
     designation: row.company_jobs.designation,
     jobClosed: row.company_jobs.status === "closed",
     jobLocation: { city: row.company_jobs.city, pincode: row.company_jobs.pincode },
     resume: row.masked_resume,
-    interview: interviews[0] ?? null,
+    interviews,
+    selected: latest?.outcome === OUTCOME_LABELS.selected,
+    nextRound:
+      row.status !== "active"
+        ? null
+        : row.stage === 2 && !latest
+          ? 1
+          : row.stage === 3 &&
+              latest?.outcome === OUTCOME_LABELS.next_round &&
+              latest.roundNo < MAX_ROUNDS
+            ? latest.roundNo + 1
+            : null,
   };
 }
 
-const INTERVIEW_COLUMNS = `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round, outcome, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at)`;
+const INTERVIEW_COLUMNS = `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at)`;
 
 type InterviewRow = InterviewPlaceRow & {
   id: string;
@@ -135,6 +153,7 @@ type InterviewRow = InterviewPlaceRow & {
   finished_at: string | null;
   mode: string;
   interviewer: string;
+  round_no: number;
   round: string;
   outcome: InterviewOutcome | null;
   job_applications: Pick<ApplicantRow, "ref" | "job_id" | "candidate_id" | "candidate_no" | "shortlisted_at"> & {
@@ -171,10 +190,43 @@ export async function listCompanyInterviews(
       mode: modeLabel(r.mode),
       ...interviewPlace(r),
       interviewer: r.interviewer,
+      roundNo: r.round_no,
       round: r.round,
       outcome: r.outcome ? OUTCOME_LABELS[r.outcome] : null,
     };
   });
+}
+
+export async function listSelectedCandidates(companyId: string): Promise<SelectedCandidate[]> {
+  const { data, error } = await createAdminClient()
+    .from("job_interviews")
+    .select(
+      "round_no, outcome_at, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at, city, experience_months, status)",
+    )
+    .eq("company_id", companyId)
+    .eq("outcome", "selected")
+    .eq("job_applications.status", "active")
+    .order("outcome_at", { ascending: false });
+  if (error) throw error;
+  const rows = data as unknown as {
+    round_no: number;
+    outcome_at: string;
+    job_applications: Pick<
+      ApplicantRow,
+      "ref" | "job_id" | "candidate_id" | "candidate_no" | "shortlisted_at" | "city" | "experience_months"
+    > & { job_title: string };
+  }[];
+  const names = await revealedNames(rows.map((r) => r.job_applications));
+  return rows.map(({ round_no, outcome_at, job_applications: app }) => ({
+    ref: app.ref,
+    name: names.get(app.candidate_id) ?? candidateLabel(app.candidate_no),
+    city: app.city,
+    experienceMonths: app.experience_months,
+    jobId: app.job_id,
+    designation: app.job_title,
+    rounds: round_no,
+    selectedOn: outcome_at,
+  }));
 }
 
 const now = () => new Date().toISOString();
@@ -234,11 +286,22 @@ export async function shortlistApplicant(companyId: string, ref: string): Promis
   return data.length > 0 ? "shortlisted" : "unchanged";
 }
 
-// Offers (stage 4) are settled through JobClubb, so they can't be rejected here.
+// Selected applicants and offers (stage 4) are settled through JobClubb, so
+// they can't be rejected here.
 export async function rejectApplicant(companyId: string, ref: string) {
   if (!REF.test(ref)) return false;
+  const admin = createAdminClient();
+  const { count, error: selectedError } = await admin
+    .from("job_interviews")
+    .select("id, job_applications!inner (ref)", { count: "exact", head: true })
+    .eq("company_id", companyId)
+    .eq("job_applications.ref", ref)
+    .eq("outcome", "selected");
+  if (selectedError) throw selectedError;
+  if (count) return false;
+
   const at = now();
-  const { data, error } = await createAdminClient()
+  const { data, error } = await admin
     .from("job_applications")
     .update({ status: "rejected", rejected_at: at, updated_at: at })
     .eq("company_id", companyId)
@@ -280,7 +343,7 @@ export async function scheduleInterview(companyId: string, ref: string, input: I
     .from("job_interviews")
     .insert({ ...interviewFields(input), application_id: app.id, company_id: companyId });
   if (!insertError) return true;
-  if (insertError.hint === "not_shortlisted" || insertError.code === "23505") return false;
+  if (insertError.hint === "not_ready_for_interview" || insertError.code === "23505") return false;
   throw insertError;
 }
 

@@ -41,7 +41,7 @@ import {
   type CompanyJob,
 } from "@/lib/company-jobs";
 import { greeting } from "@/lib/greeting";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import { stageBadge } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
 import { listCompanyApplicants } from "@/server/applications/company";
 import type { CurrentCompany } from "@/server/auth/current-company";
@@ -401,16 +401,16 @@ function ApplicantCard({
         <span
           className={cn(
             "flex-none rounded-full px-2.5 py-0.5 font-head text-[11px] font-bold",
-            rejected
-              ? NOT_SELECTED_BADGE
-              : a.stage === 0
-                ? "bg-brand/10 text-brand"
-                : a.stage >= 3
-                  ? "bg-good/12 text-good"
-                  : "bg-muted text-muted-foreground",
+            stageBadge(a),
           )}
         >
-          {rejected ? "Not selected" : a.stage === 0 ? "New" : STAGES[a.stage]}
+          {rejected
+            ? "Not selected"
+            : a.stage === 0
+              ? "New"
+              : a.selected
+                ? "Selected"
+                : STAGES[a.stage]}
         </span>
       </div>
 

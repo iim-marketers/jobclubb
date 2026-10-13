@@ -1,4 +1,4 @@
-import type { Venue } from "@/lib/interviews";
+import type { InterviewOutcomeLabel, Venue } from "@/lib/interviews";
 import type { JobListing } from "@/lib/jobs-data";
 
 export const STAGES = [
@@ -16,6 +16,7 @@ export type Application = {
   job: JobListing;
   stage: number;
   status: ApplicationStatus;
+  selected: boolean;
   // Separate from status, which shows "rejected" even when the job has also closed.
   jobClosed: boolean;
   appliedOn: string;
@@ -28,7 +29,7 @@ export type Application = {
 export function applicationStatus(a: Application) {
   if (a.status === "closed") return "Job closed";
   if (a.status === "rejected") return "Not selected";
-  return STAGES[a.stage];
+  return a.selected ? "Selected" : STAGES[a.stage];
 }
 
 export type SavedJob = {
@@ -54,9 +55,10 @@ export type Interview = {
   place: string;
   venue: Venue | null;
   interviewer: string;
+  roundNo: number;
   round: string;
   guaranteed: boolean;
-  outcome?: "Cleared" | "Awaiting result" | "Not selected";
+  outcome?: InterviewOutcomeLabel | "Awaiting result";
 };
 
 export const GUARANTEED_INTERVIEWS = 3;
