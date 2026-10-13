@@ -21,7 +21,8 @@ import {
   type JobQuery,
   type Paging,
 } from "@/lib/jobs-search";
-import { CHECKOUT_PATH, getJobAccess } from "@/server/auth/current-candidate";
+import { CHECKOUT_PATH } from "@/lib/membership";
+import { getJobAccess } from "@/server/auth/current-candidate";
 import { jobFacetCounts, searchJobListings } from "@/server/jobs/listings";
 
 export const metadata = {
@@ -76,7 +77,10 @@ async function JobResults({
   const noOpenings = total === 0 && isBlank(query);
   const hasMore = access.member && jobs.length < total;
   const unlock = access.signedIn
-    ? { href: CHECKOUT_PATH, label: "Complete payment" }
+    ? {
+        href: CHECKOUT_PATH,
+        label: access.expired ? "Renew membership" : "Complete payment",
+      }
     : { href: "/sign-up", label: "Join JobClubb" };
 
   return (

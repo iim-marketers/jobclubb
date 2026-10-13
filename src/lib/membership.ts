@@ -13,6 +13,10 @@ export const PLAN_DETAILS: Record<
 
 export const MEMBERSHIP_DAYS = 365;
 
+export const CHECKOUT_PATH = "/onboarding/membership";
+
+export const INTERVIEW_GRACE_DAYS = 3;
+
 export const MEMBER_FEATURES = [
   "Full job details and employer info",
   "Unlimited one-click apply",

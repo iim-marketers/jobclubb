@@ -49,10 +49,10 @@ export function PolicyPage({
             <p className="border-t border-border pt-6 text-sm text-muted-foreground">
               {footnote} · Questions? Email{" "}
               <a
-                href="mailto:contact@jobclubb.com"
+                href="mailto:support@jobclubb.com"
                 className="font-medium text-brand hover:underline"
               >
-                contact@jobclubb.com
+                support@jobclubb.com
               </a>
             </p>
           </div>

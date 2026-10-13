@@ -9,7 +9,7 @@ import {
 } from "@/lib/sign-up-validation";
 import { createClient } from "@/lib/supabase/server";
 import { changeOwnPassword } from "@/server/auth/change-password";
-import { requireCandidate } from "@/server/auth/current-candidate";
+import { requireMember } from "@/server/auth/current-candidate";
 import {
   deleteCandidatePhoto,
   isAcceptedPhoto,
@@ -28,7 +28,7 @@ export async function updateProfile(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  const candidate = await requireCandidate(SETTINGS_PATH);
+  const candidate = await requireMember(SETTINGS_PATH);
   const { values, errors } = validateCandidateProfile(formData);
   if (Object.keys(errors).length > 0) return { errors };
 
@@ -59,7 +59,7 @@ export async function changePassword(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  await requireCandidate(SETTINGS_PATH);
+  await requireMember(SETTINGS_PATH);
   return changeOwnPassword(formData);
 }
 
@@ -76,7 +76,7 @@ export async function updatePhoto(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  const candidate = await requireCandidate(SETTINGS_PATH);
+  const candidate = await requireMember(SETTINGS_PATH);
   const file = formData.get("photo");
   if (!isAcceptedPhoto(file))
     return { error: "Choose a JPG, PNG or WebP image." };
@@ -97,7 +97,7 @@ export async function updatePhoto(
 }
 
 export async function removePhoto(): Promise<SettingsActionState> {
-  const candidate = await requireCandidate(SETTINGS_PATH);
+  const candidate = await requireMember(SETTINGS_PATH);
   if (!candidate.photo_path) return { ok: true };
 
   try {

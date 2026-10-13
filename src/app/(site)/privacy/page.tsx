@@ -40,7 +40,7 @@ const SECTIONS: PolicySection[] = [
   },
   {
     heading: "9. Your rights",
-    body: "In line with the Digital Personal Data Protection Act, 2023, you may ask to access, correct or erase your personal data, and you may withdraw consent at any time. Write to contact@jobclubb.com and we will act on your request.",
+    body: "In line with the Digital Personal Data Protection Act, 2023, you may ask to access, correct or erase your personal data, and you may withdraw consent at any time. Write to support@jobclubb.com and we will act on your request.",
   },
   {
     heading: "10. Changes to this policy",

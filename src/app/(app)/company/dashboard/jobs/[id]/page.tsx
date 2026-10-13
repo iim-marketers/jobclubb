@@ -108,7 +108,7 @@ export default async function JobDetailPage({
                 nativeButton={false}
                 render={<Link href={`${COMPANY_JOBS}/${job.id}/edit`} />}
               >
-                <Pencil className="size-4" /> Edit
+                Edit
               </Button>
             )}
             <JobOpenToggle jobId={job.id} closed={closed} />

@@ -19,6 +19,7 @@ import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
+import { CHECKOUT_PATH } from "@/lib/membership";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import {
@@ -26,7 +27,6 @@ import {
   type ApplyState,
 } from "@/server/applications/candidate";
 import {
-  CHECKOUT_PATH,
   getCurrentCandidate,
   getJobAccess,
 } from "@/server/auth/current-candidate";
@@ -45,7 +45,10 @@ export default async function JobDetailPage({
 
   const access = await getJobAccess();
   const unlock = access.signedIn
-    ? { href: CHECKOUT_PATH, label: "Complete payment to apply" }
+    ? {
+        href: CHECKOUT_PATH,
+        label: access.expired ? "Renew to apply" : "Complete payment to apply",
+      }
     : { href: "/sign-up", label: "Join to apply" };
   const candidate = access.member ? await getCurrentCandidate() : null;
   const applyState = candidate ? await getApplyState(candidate.id, slug) : null;

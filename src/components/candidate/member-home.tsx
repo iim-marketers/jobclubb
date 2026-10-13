@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Briefcase,
   BriefcaseBusiness,
+  CircleAlert,
   Clock,
   Eye,
   FileText,
@@ -26,30 +27,32 @@ import { Button } from "@/components/ui/button";
 import { STAGES, type Application } from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
 import type { JobListing } from "@/lib/jobs-data";
+import { CHECKOUT_PATH, type MembershipPlan } from "@/lib/membership";
 import { stageBadge } from "@/lib/status-badge";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import { listCandidateApplications } from "@/server/applications/candidate";
-import {
-  requireMember,
-  type MembershipView,
-} from "@/server/auth/current-candidate";
+import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 import { getHireBrands } from "@/server/hire-brands/directory";
 
 const RECOMMENDED = 6;
 
-type Member = Extract<MembershipView, { kind: "member" }>;
 type Pick = { job: JobListing; reasons: string[] };
 
-export async function MemberHome({
-  view,
-  jobs,
-}: {
-  view: Member;
-  jobs: JobListing[];
-}) {
-  const candidate = await requireMember("/");
+const formatDate = (d: Date) =>
+  new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(d);
+
+export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
+  const candidate = await requireMember("/", { allowLapsed: true });
+  const expiresAt = new Date(candidate.membership_expires_at);
+  const accessUntil = candidate.lapsedAccessUntil;
+  const now = new Date();
   const [photoUrl, applications, brands] = await Promise.all([
     getCandidatePhotoUrl(candidate.photo_path),
     listCandidateApplications(candidate.id),
@@ -69,18 +72,19 @@ export async function MemberHome({
       <section className="jc-auth-panel relative isolate px-4 pt-8 pb-12 text-white sm:px-6 md:py-14">
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/85 ring-1 ring-white/15">
+            {/* <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/85 ring-1 ring-white/15">
               <span className="size-1.5 animate-pulse rounded-full bg-brand-accent" />
               {jobs.length} live {jobs.length === 1 ? "opening" : "openings"}{" "}
               from verified employers
-            </span>
-            <h1 className="mt-5 font-head text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl">
+            </span> */}
+            <h1 className="font-head text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl">
               {greeting(new Date())},{" "}
               <span className="text-brand-accent">{candidate.first_name}</span>
             </h1>
             <p className="mt-3 max-w-lg text-base leading-7 text-white/75">
-              Find your next role, apply in one click and follow every step
-              until you&apos;re hired.
+              {accessUntil
+                ? `Your membership has expired. You can still follow your applications and interviews until ${formatDate(accessUntil)}.`
+                : "Find your next role, apply in one click and follow every step until you're hired."}
             </p>
 
             <Form
@@ -136,51 +140,58 @@ export async function MemberHome({
             photoUrl={photoUrl}
             city={candidate.city}
             sector={sector}
-            view={view}
+            plan={candidate.membership_plan}
+            expiresAt={expiresAt}
+            accessUntil={accessUntil}
+            now={now}
             applications={applications}
           />
         </div>
       </section>
 
-      <section className="px-4 py-12 sm:px-6 md:py-16">
-        <div className="mx-auto max-w-6xl">
-          <SectionHeading
-            eyebrow={picks.matched ? "Picked for you" : "Fresh openings"}
-            title={
-              picks.matched
-                ? "Roles that match your profile"
-                : "Latest jobs on JobClubb"
-            }
-            href={
-              sector ? `/jobs?sector=${encodeURIComponent(sector)}` : "/jobs"
-            }
-            linkLabel="See all jobs"
-          />
-          {picks.items.length === 0 ? (
-            <div className="mt-6">
-              <EmptyState
-                icon={BriefcaseBusiness}
-                title="No new openings right now"
-              >
-                {applied.size
-                  ? "You've applied to every live role. Verified employers post new ones every week."
-                  : "Verified employers post new roles every week. Check back soon."}
-              </EmptyState>
-            </div>
-          ) : (
-            <div className="mt-6 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-              <TopMatch pick={picks.items[0]} matched={picks.matched} />
-              {picks.items.length > 1 && (
-                <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
-                  {picks.items.slice(1).map((pick) => (
-                    <PickRow key={pick.job.slug} pick={pick} />
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
+      {accessUntil ? (
+        <RenewBanner expiresAt={expiresAt} />
+      ) : (
+        <section className="px-4 py-12 sm:px-6 md:py-16">
+          <div className="mx-auto max-w-6xl">
+            <SectionHeading
+              eyebrow={picks.matched ? "Picked for you" : "Fresh openings"}
+              title={
+                picks.matched
+                  ? "Roles that match your profile"
+                  : "Latest jobs on JobClubb"
+              }
+              href={
+                sector ? `/jobs?sector=${encodeURIComponent(sector)}` : "/jobs"
+              }
+              linkLabel="See all jobs"
+            />
+            {picks.items.length === 0 ? (
+              <div className="mt-6">
+                <EmptyState
+                  icon={BriefcaseBusiness}
+                  title="No new openings right now"
+                >
+                  {applied.size
+                    ? "You've applied to every live role. Verified employers post new ones every week."
+                    : "Verified employers post new roles every week. Check back soon."}
+                </EmptyState>
+              </div>
+            ) : (
+              <div className="mt-6 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+                <TopMatch pick={picks.items[0]} matched={picks.matched} />
+                {picks.items.length > 1 && (
+                  <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                    {picks.items.slice(1).map((pick) => (
+                      <PickRow key={pick.job.slug} pick={pick} />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {applications.length > 0 && (
         <section className="px-4 pb-12 sm:px-6 md:pb-16">
@@ -258,7 +269,10 @@ function ProfileCard({
   photoUrl,
   city,
   sector,
-  view,
+  plan,
+  expiresAt,
+  accessUntil,
+  now,
   applications,
 }: {
   firstName: string;
@@ -266,9 +280,15 @@ function ProfileCard({
   photoUrl: string | null;
   city: string;
   sector?: string;
-  view: Member;
+  plan: MembershipPlan;
+  expiresAt: Date;
+  accessUntil: Date | null;
+  now: Date;
   applications: Application[];
 }) {
+  const daysLeft = Math.ceil(
+    (expiresAt.getTime() - now.getTime()) / 86_400_000,
+  );
   const active = applications.filter((a) => a.status === "active");
   const stats = [
     { label: "Applied", value: applications.length },
@@ -300,10 +320,17 @@ function ProfileCard({
             {sector ? `${sector} · ${city}` : city}
           </p>
         </div>
-        <span className="flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-[11px] font-bold text-good">
-          <BadgeCheck className="size-3.5" />
-          {view.plan === "franchise" ? "Franchise" : "Member"}
-        </span>
+        {accessUntil ? (
+          <span className="flex flex-none items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 font-head text-[11px] font-bold text-amber-600">
+            <CircleAlert className="size-3.5" />
+            Expired
+          </span>
+        ) : (
+          <span className="flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-[11px] font-bold text-good">
+            <BadgeCheck className="size-3.5" />
+            {plan === "franchise" ? "Franchise" : "Member"}
+          </span>
+        )}
       </div>
 
       <dl className="mt-5 grid grid-cols-3 divide-x divide-border rounded-2xl border border-border">
@@ -322,22 +349,50 @@ function ProfileCard({
         ))}
       </dl>
 
-      <p className="mt-4 text-center text-xs text-muted-foreground">
-        Membership active till{" "}
-        <span className="font-semibold text-foreground">{view.validUntil}</span>
-        {view.daysLeft <= 30 && ` · ${view.daysLeft} days left`}
-      </p>
+      {accessUntil ? (
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Membership expired on{" "}
+          <span className="font-semibold text-foreground">
+            {formatDate(expiresAt)}
+          </span>
+          . View-only access until{" "}
+          <span className="font-semibold text-foreground">
+            {formatDate(accessUntil)}
+          </span>
+          .
+        </p>
+      ) : (
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Membership active till{" "}
+          <span className="font-semibold text-foreground">
+            {formatDate(expiresAt)}
+          </span>
+          {daysLeft <= 30 && ` · ${daysLeft} days left`}
+        </p>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <Button
-          variant="outline"
-          className="font-head"
-          nativeButton={false}
-          render={<Link href={`${CANDIDATE_HOME}/resume`} />}
-        >
-          <FileText className="size-4" />
-          Resume
-        </Button>
+        {accessUntil ? (
+          <Button
+            variant="outline"
+            className="font-head"
+            nativeButton={false}
+            render={<Link href={CHECKOUT_PATH} />}
+          >
+            <Sparkles className="size-4" />
+            Renew
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            className="font-head"
+            nativeButton={false}
+            render={<Link href={`${CANDIDATE_HOME}/resume`} />}
+          >
+            <FileText className="size-4" />
+            Resume
+          </Button>
+        )}
         <Button
           className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
           nativeButton={false}
@@ -348,6 +403,35 @@ function ProfileCard({
         </Button>
       </div>
     </aside>
+  );
+}
+
+function RenewBanner({ expiresAt }: { expiresAt: Date }) {
+  return (
+    <section className="px-4 py-12 sm:px-6 md:py-16">
+      <div className="mx-auto flex max-w-6xl flex-col gap-5 rounded-3xl border border-border bg-card p-6 sm:flex-row sm:items-center sm:p-8">
+        <span className="flex size-12 flex-none items-center justify-center rounded-2xl bg-brand/10 text-brand">
+          <Sparkles className="size-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-head text-xl font-extrabold tracking-tight">
+            Renew to see roles picked for you
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Your membership expired on {formatDate(expiresAt)}. Renew to unlock
+            full job details, salaries and one-click apply again.
+          </p>
+        </div>
+        <Button
+          className="bg-brand font-head text-brand-foreground hover:bg-brand-dark sm:flex-none"
+          nativeButton={false}
+          render={<Link href={CHECKOUT_PATH} />}
+        >
+          Renew membership
+          <ArrowRight className="size-4" />
+        </Button>
+      </div>
+    </section>
   );
 }
 

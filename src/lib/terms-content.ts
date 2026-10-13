@@ -39,7 +39,7 @@ export const TERMS_SECTIONS = [
   },
   {
     heading: "10. Changes and contact",
-    body: "We may update these terms from time to time and will ask you to accept any material change. Questions can be sent to contact@jobclubb.com. By ticking the box below you confirm you have read this document in full.",
+    body: "We may update these terms from time to time and will ask you to accept any material change. Questions can be sent to support@jobclubb.com. By ticking the box below you confirm you have read this document in full.",
   },
 ];
 

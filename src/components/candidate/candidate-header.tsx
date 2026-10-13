@@ -183,7 +183,7 @@ export function CandidateHeader({
             className="hidden sm:inline-flex"
             aria-label="Help"
             nativeButton={false}
-            render={<a href="mailto:contact@jobclubb.com" />}
+            render={<a href="mailto:support@jobclubb.com" />}
           >
             <CircleHelp className="size-4.5" />
           </Button>
@@ -294,14 +294,16 @@ export function CandidateHeader({
                     </p>
                   </div>
                   <MenuPrimitive.Separator className="-mx-1.5 my-1 h-px bg-border" />
-                  <MenuPrimitive.LinkItem
-                    className={menuItemClass}
-                    closeOnClick
-                    render={<Link href={`${CANDIDATE_HOME}/resume`} />}
-                  >
-                    <User className="size-4 text-muted-foreground" /> Profile &
-                    resume
-                  </MenuPrimitive.LinkItem>
+                  {!candidate.lapsed && (
+                    <MenuPrimitive.LinkItem
+                      className={menuItemClass}
+                      closeOnClick
+                      render={<Link href={`${CANDIDATE_HOME}/resume`} />}
+                    >
+                      <User className="size-4 text-muted-foreground" />{" "}
+                      Profile & resume
+                    </MenuPrimitive.LinkItem>
+                  )}
                   <MenuPrimitive.LinkItem
                     className={menuItemClass}
                     closeOnClick

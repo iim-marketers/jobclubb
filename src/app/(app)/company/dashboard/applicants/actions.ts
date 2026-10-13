@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { COMPANY_HOME } from "@/components/company/nav";
 import { validateInterview, type InterviewOutcome } from "@/lib/interviews";
@@ -16,6 +17,13 @@ import {
   scheduleInterview,
   shortlistApplicant,
 } from "@/server/applications/company";
+import {
+  sendInterviewCancelled,
+  sendInterviewOutcome,
+  sendInterviewScheduled,
+  sendRejected,
+  sendShortlisted,
+} from "@/server/applications/emails";
 
 const STALE = "This applicant has already moved on. Refresh to see the latest.";
 
@@ -36,6 +44,7 @@ export async function shortlist(ref: string): Promise<{ error?: string }> {
     console.error("Shortlisting applicant failed", error);
     return { error: "We couldn't shortlist this applicant. Please try again." };
   }
+  after(() => sendShortlisted(company.id, ref));
   revalidatePath("/company", "layout");
   return {};
 }
@@ -48,6 +57,7 @@ export async function reject(ref: string): Promise<{ error?: string }> {
     console.error("Rejecting applicant failed", error);
     return { error: "We couldn't update this applicant. Please try again." };
   }
+  after(() => sendRejected(company.id, ref));
   revalidatePath("/company", "layout");
   return {};
 }
@@ -66,10 +76,11 @@ export async function saveInterview(
   if (Object.keys(errors).length > 0) return { errors };
 
   try {
-    const saved = interviewId
-      ? await rescheduleInterview(company.id, interviewId, values)
+    const savedId = interviewId
+      ? (await rescheduleInterview(company.id, interviewId, values)) && interviewId
       : await scheduleInterview(company.id, ref, values);
-    if (!saved) return { error: interviewId ? INTERVIEW_STALE : STALE };
+    if (!savedId) return { error: interviewId ? INTERVIEW_STALE : STALE };
+    after(() => sendInterviewScheduled(company.id, savedId, !!interviewId));
   } catch (error) {
     console.error("Saving interview failed", error);
     return { error: "We couldn't save this interview. Please try again." };
@@ -86,6 +97,7 @@ export async function cancelInterview(ref: string, interviewId: string): Promise
     console.error("Cancelling interview failed", error);
     return { error: "We couldn't cancel this interview. Please try again." };
   }
+  after(() => sendInterviewCancelled(company.id, interviewId));
   revalidatePath("/company", "layout");
   return {};
 }
@@ -103,6 +115,7 @@ export async function recordOutcome(
     console.error("Recording interview outcome failed", error);
     return { error: "We couldn't save the result. Please try again." };
   }
+  after(() => sendInterviewOutcome(company.id, interviewId));
   revalidatePath("/company", "layout");
   return {};
 }

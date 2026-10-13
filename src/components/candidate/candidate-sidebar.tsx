@@ -9,10 +9,11 @@ import { ArrowUpRight, LogOut, Sparkles } from "lucide-react";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import {
   CANDIDATE_HOME,
-  CANDIDATE_NAV,
+  candidateNav,
   isActive,
 } from "@/components/candidate/nav";
 import {
+  CHECKOUT_PATH,
   MEMBERSHIP_DAYS,
   PLAN_DETAILS,
   type MembershipPlan,
@@ -27,7 +28,9 @@ export type CandidateProfile = {
   photoUrl: string | null;
   sector?: string;
   plan: MembershipPlan;
+  lapsed: boolean;
   validUntil: string;
+  accessUntil: string | null;
   daysLeft: number;
 };
 
@@ -87,9 +90,11 @@ export function SidebarContent({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const expiringSoon = candidate.daysLeft <= 15;
+  const expiringSoon = candidate.lapsed || candidate.daysLeft <= 15;
   const used = 1 - candidate.daysLeft / MEMBERSHIP_DAYS;
-  const tooltip = `Membership · ${candidate.daysLeft} days left`;
+  const tooltip = candidate.lapsed
+    ? "Membership expired"
+    : `Membership · ${candidate.daysLeft} days left`;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
@@ -127,7 +132,7 @@ export function SidebarContent({
           !collapsed && "pt-4",
         )}
       >
-        {CANDIDATE_NAV.map((group) => (
+        {candidateNav(candidate.lapsed).map((group) => (
           <div key={group.title} className="mb-6 last:mb-0">
             {collapsed ? (
               <div className="mx-auto mb-3 h-px w-6 bg-white/15" />
@@ -217,47 +222,70 @@ export function SidebarContent({
         </div>
       ) : (
         <div className="flex-none space-y-3 px-3 pb-4">
-          <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-            <p className="truncate font-head text-sm font-bold">
-              {PLAN_DETAILS[candidate.plan].name}
-            </p>
-            <div
-              className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"
-              role="meter"
-              aria-label="Membership used"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(used * 100)}
-            >
-              <div
-                className="h-full rounded-full bg-linear-to-r from-brand-accent to-[#38b6dd]"
-                style={{ width: `${Math.min(Math.max(used, 0), 1) * 100}%` }}
-              />
-            </div>
-            <div className="mt-2 flex items-baseline justify-between gap-2 text-xs">
-              <p className="truncate text-white/60">
-                Valid till {candidate.validUntil}
+          {candidate.lapsed ? (
+            <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+              <p className="truncate font-head text-sm font-bold">
+                {PLAN_DETAILS[candidate.plan].name}
               </p>
-              <p
-                className={cn(
-                  "flex-none",
-                  expiringSoon ? "text-amber-300" : "text-white/60",
-                )}
-              >
-                {candidate.daysLeft} days left
+              <p className="mt-1 text-xs text-amber-300">
+                Expired on {candidate.validUntil}
               </p>
-            </div>
-            {expiringSoon && (
+              <p className="mt-2 text-xs leading-5 text-white/60">
+                View-only access until {candidate.accessUntil}. Renew to apply
+                to jobs or make changes.
+              </p>
               <Link
-                href="/membership"
+                href={CHECKOUT_PATH}
                 onClick={onNavigate}
                 className="mt-2 inline-flex items-center gap-1 font-head text-xs font-bold text-brand-accent hover:text-white"
               >
                 Renew membership
                 <ArrowUpRight className="size-3.5" />
               </Link>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+              <p className="truncate font-head text-sm font-bold">
+                {PLAN_DETAILS[candidate.plan].name}
+              </p>
+              <div
+                className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"
+                role="meter"
+                aria-label="Membership used"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(used * 100)}
+              >
+                <div
+                  className="h-full rounded-full bg-linear-to-r from-brand-accent to-[#38b6dd]"
+                  style={{ width: `${Math.min(Math.max(used, 0), 1) * 100}%` }}
+                />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between gap-2 text-xs">
+                <p className="truncate text-white/60">
+                  Valid till {candidate.validUntil}
+                </p>
+                <p
+                  className={cn(
+                    "flex-none",
+                    expiringSoon ? "text-amber-300" : "text-white/60",
+                  )}
+                >
+                  {candidate.daysLeft} days left
+                </p>
+              </div>
+              {expiringSoon && (
+                <Link
+                  href="/membership"
+                  onClick={onNavigate}
+                  className="mt-2 inline-flex items-center gap-1 font-head text-xs font-bold text-brand-accent hover:text-white"
+                >
+                  Renew membership
+                  <ArrowUpRight className="size-3.5" />
+                </Link>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-3 rounded-2xl px-2 py-1.5">
             <CandidateAvatar

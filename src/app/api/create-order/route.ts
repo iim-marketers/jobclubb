@@ -15,7 +15,7 @@ export async function POST() {
 
   try {
     const order = await createMembershipOrder({
-      id: candidate.id,
+      ...candidate,
       plan: planFor(candidate.code),
     });
     if (!order)

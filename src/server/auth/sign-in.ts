@@ -13,7 +13,7 @@ export type SignInResult =
 const COMPANY_STATUS_ERRORS: Record<string, string> = {
   pending_email: "Confirm your email before signing in.",
   pending_review: "Our team is still verifying your company. We'll email you once it's approved.",
-  rejected: "We couldn't verify your company. Contact contact@jobclubb.com for help.",
+  rejected: "We couldn't verify your company. Contact support@jobclubb.com for help.",
 };
 
 // The caller picks where the session lives: a cookie-bound client for the web,

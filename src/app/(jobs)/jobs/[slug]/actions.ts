@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { applyToJob } from "@/server/applications/candidate";
+import { sendApplicationReceived } from "@/server/applications/emails";
 import { requireMember } from "@/server/auth/current-candidate";
 
 export async function applyToJobAction(slug: string): Promise<{ error?: string }> {
@@ -22,6 +24,8 @@ export async function applyToJobAction(slug: string): Promise<{ error?: string }
           ? "Build your resume before applying."
           : "This job is no longer accepting applications.",
     };
+
+  if (result.created) after(() => sendApplicationReceived(result.ref));
 
   revalidatePath(`/jobs/${slug}`);
   revalidatePath("/candidate", "layout");

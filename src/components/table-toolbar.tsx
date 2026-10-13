@@ -72,18 +72,23 @@ export function FilterSelect<T extends string>({
     >
       <SelectTrigger
         aria-label={`Filter by ${label.toLowerCase()}`}
-        className="ml-auto h-10! flex-none gap-2 rounded-full border-border bg-card px-3.5 font-head font-semibold shadow-xs hover:bg-muted/60"
+        className="ml-auto h-10! w-40 flex-none gap-2 rounded-full border-border bg-card px-3.5 font-head font-semibold shadow-xs hover:bg-muted/60 sm:w-56"
       >
         <ListFilter className="size-4 text-muted-foreground" />
-        <span className="hidden text-muted-foreground sm:inline">
+        <span className="hidden shrink-0 text-muted-foreground sm:inline">
           {label}:
         </span>
         <SelectValue />
       </SelectTrigger>
-      <SelectContent align="end">
+      <SelectContent align="end" className="w-(--anchor-width)">
         {options.map((o) => (
-          <SelectItem key={o.value} value={o.value} className="min-w-40">
-            {o.label}
+          <SelectItem
+            key={o.value}
+            value={o.value}
+            title={o.label}
+            className="*:first:min-w-0"
+          >
+            <span className="truncate">{o.label}</span>
           </SelectItem>
         ))}
       </SelectContent>

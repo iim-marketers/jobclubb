@@ -64,10 +64,10 @@ export function resetPasswordEmail({
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
 
           <tr>
-            <td align="center" style="padding:0 0 24px;">
+            <td align="center" style="padding:0 0 15px;">
               <a href="${site}" style="text-decoration:none;">
-                <img src="cid:${EMAIL_LOGO_CID}" width="142" height="26" alt="JobClubb"
-                  style="display:block; border:0; height:26px; width:auto; font-family:Arial, Helvetica, sans-serif; font-size:22px; font-weight:800; color:#00789f;">
+                <img src="cid:${EMAIL_LOGO_CID}" width="174" height="44" alt="JobClubb"
+                  style="display:block; border:0; height:44px; width:auto; font-family:Arial, Helvetica, sans-serif; font-size:22px; font-weight:800; color:#00789f;">
               </a>
             </td>
           </tr>

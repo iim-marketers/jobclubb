@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, CalendarClock } from "lucide-react";
+import { ArrowRight, BadgeCheck, CalendarClock, CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { MEMBERSHIP_DAYS } from "@/lib/membership";
+import { CHECKOUT_PATH, MEMBERSHIP_DAYS } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 
 export const RENEW_WINDOW_DAYS = 30;
@@ -32,6 +32,7 @@ export function MembershipOverview({
   startedAt,
   expiresAt,
   daysLeft,
+  lapsedAccessUntil,
 }: {
   name: string;
   planName: string;
@@ -41,8 +42,10 @@ export function MembershipOverview({
   startedAt: Date;
   expiresAt: Date;
   daysLeft: number;
+  lapsedAccessUntil: Date | null;
 }) {
-  const renewSoon = daysLeft <= RENEW_WINDOW_DAYS;
+  const lapsed = !!lapsedAccessUntil;
+  const renewSoon = lapsed || daysLeft <= RENEW_WINDOW_DAYS;
 
   return (
     <section
@@ -66,20 +69,39 @@ export function MembershipOverview({
               {price} · {MEMBERSHIP_DAYS}-day plan
             </p>
           </div>
-          <span className="inline-flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
-            <BadgeCheck className="size-3.5" /> Active
-          </span>
+          {lapsed ? (
+            <span className="inline-flex flex-none items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 font-head text-xs font-bold text-amber-600">
+              <CircleAlert className="size-3.5" /> Expired
+            </span>
+          ) : (
+            <span className="inline-flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
+              <BadgeCheck className="size-3.5" /> Active
+            </span>
+          )}
         </div>
 
         <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-3">
-          <Stat
-            label="Days left"
-            value={daysLeft}
-            warn={renewSoon}
-            className="col-span-2 sm:col-span-1"
-          />
+          {lapsed ? (
+            <Stat
+              label="Expired on"
+              value={formatDate(expiresAt)}
+              warn
+              className="col-span-2 sm:col-span-1"
+            />
+          ) : (
+            <Stat
+              label="Days left"
+              value={daysLeft}
+              warn={renewSoon}
+              className="col-span-2 sm:col-span-1"
+            />
+          )}
           <Stat label="Member since" value={formatDate(startedAt)} />
-          <Stat label="Valid till" value={formatDate(expiresAt)} />
+          {lapsed ? (
+            <Stat label="View-only until" value={formatDate(lapsedAccessUntil)} />
+          ) : (
+            <Stat label="Valid till" value={formatDate(expiresAt)} />
+          )}
         </dl>
 
         <div
@@ -99,7 +121,16 @@ export function MembershipOverview({
             <CalendarClock className="size-4.5" />
           </span>
           <p className="min-w-0 flex-1 basis-48 text-sm leading-6 text-muted-foreground">
-            {renewSoon ? (
+            {lapsed ? (
+              <>
+                <span className="font-semibold text-foreground">
+                  Your membership has expired.
+                </span>{" "}
+                You can view your applications and interviews until{" "}
+                {formatDate(lapsedAccessUntil)}. Renew to apply to jobs and make
+                changes again.
+              </>
+            ) : renewSoon ? (
               <>
                 <span className="font-semibold text-foreground">
                   Your plan ends soon.
@@ -115,7 +146,7 @@ export function MembershipOverview({
             <Button
               className="w-full bg-brand sm:w-auto sm:flex-none font-head text-brand-foreground hover:bg-brand-dark"
               nativeButton={false}
-              render={<Link href="/membership" />}
+              render={<Link href={lapsed ? CHECKOUT_PATH : "/membership"} />}
             >
               Renew <ArrowRight className="size-4" />
             </Button>

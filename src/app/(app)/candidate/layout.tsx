@@ -9,10 +9,20 @@ import { INDUSTRIES } from "@/lib/taxonomy";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 
+const formatDate = (d: Date) =>
+  new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(d);
+
 export default async function CandidateLayout({
   children,
 }: LayoutProps<"/candidate">) {
-  const candidate = await requireMember("/candidate/dashboard");
+  const candidate = await requireMember("/candidate/dashboard", {
+    allowLapsed: true,
+  });
   const collapsed =
     (await cookies()).get(SIDEBAR_COOKIE)?.value === "collapsed";
 
@@ -24,12 +34,11 @@ export default async function CandidateLayout({
     photoUrl: await getCandidatePhotoUrl(candidate.photo_path),
     sector: INDUSTRIES.find((v) => v.slug === candidate.industry)?.name,
     plan: candidate.membership_plan,
-    validUntil: new Intl.DateTimeFormat("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      timeZone: "Asia/Kolkata",
-    }).format(expiresAt),
+    lapsed: candidate.lapsed,
+    validUntil: formatDate(expiresAt),
+    accessUntil: candidate.lapsedAccessUntil
+      ? formatDate(candidate.lapsedAccessUntil)
+      : null,
     daysLeft: Math.max(
       Math.ceil((expiresAt.getTime() - Date.now()) / 86_400_000),
       0,

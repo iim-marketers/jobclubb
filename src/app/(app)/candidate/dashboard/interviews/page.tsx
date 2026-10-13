@@ -38,7 +38,6 @@ import {
   type InterviewMode,
 } from "@/lib/candidate-activity";
 import { interviewPhase, relativeDay } from "@/lib/interviews";
-import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import { NOT_SELECTED_BADGE, SELECTED_BADGE } from "@/lib/status-badge";
 import { listCandidateInterviews } from "@/server/applications/candidate";
@@ -54,25 +53,6 @@ const MODE_ICONS: Record<InterviewMode, typeof Video> = {
   "In-person": MapPin,
   Phone: Phone,
 };
-
-const TIPS: Record<string, string[]> = {
-  airlines: [
-    "Grooming is assessed from the moment you walk in: hair tied, neutral makeup, formal fit.",
-    "Prepare a 60-second introduction that ends with why you want to fly.",
-    "Expect a situational question on handling an unruly or anxious passenger.",
-  ],
-  hotels: [
-    "Use guest-first language: “I'd make sure the guest felt heard, then…”.",
-    "Know the property: its star rating, brands, and one recent guest review.",
-    "Be ready to role-play a check-in or a complaint at the front desk.",
-  ],
-};
-
-const DEFAULT_TIPS = [
-  "Research the employer's outlets or routes, and mention one by name.",
-  "Structure answers as situation, action and result, in under a minute each.",
-  "Keep two questions ready for them, such as training and growth paths.",
-];
 
 function istParts(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -122,10 +102,11 @@ function directionsLink(i: Interview) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.place)}`;
 }
 
-const telLink = (i: Interview) => `tel:${i.place.replace(/[^\d+]/g, "")}`;
 
 export default async function InterviewsPage() {
-  const candidate = await requireMember(`${CANDIDATE_HOME}/interviews`);
+  const candidate = await requireMember(`${CANDIDATE_HOME}/interviews`, {
+    allowLapsed: true,
+  });
   const interviews = await listCandidateInterviews(candidate.id);
   const now = new Date();
   const upcoming = upcomingInterviews(interviews, now);
@@ -135,8 +116,6 @@ export default async function InterviewsPage() {
   const thisWeek = upcoming.filter(
     (i) => new Date(i.startsAt).getTime() - now.getTime() < 7 * DAY_MS,
   ).length;
-  const tips = TIPS[candidate.industry] ?? DEFAULT_TIPS;
-  const sector = INDUSTRIES.find((v) => v.slug === candidate.industry)?.name;
 
   return (
     <div className="space-y-6">
@@ -234,7 +213,7 @@ export default async function InterviewsPage() {
           <Panel
             title="Schedule"
             description="Every round, in order. Times are in IST."
-            className={cn("flex flex-col", !next && "flex-1")}
+            className="flex flex-1 flex-col"
           >
             <Agenda title="Upcoming" interviews={upcoming} now={now} />
             {past.length > 0 && (
@@ -243,16 +222,6 @@ export default async function InterviewsPage() {
               </div>
             )}
           </Panel>
-
-          {next && (
-            <Panel
-              title="Prep checklist"
-              description={`Get ready for ${next.company} · ${next.round}`}
-              className="flex-1"
-            >
-              <PrepChecklist interviewId={next.id} mode={next.mode} />
-            </Panel>
-          )}
         </div>
 
         <div className="flex min-w-0 flex-col gap-6">
@@ -264,24 +233,11 @@ export default async function InterviewsPage() {
 
           {next && (
             <Panel
-              title="Interview tips"
-              description={
-                sector
-                  ? `What ${sector} recruiters look for`
-                  : "What recruiters look for"
-              }
+              title="Prep checklist"
+              description={`Get ready for ${next.company} · ${next.round}`}
               className="flex-1"
             >
-              <ol className="space-y-4">
-                {tips.map((tip, i) => (
-                  <li key={tip} className="flex gap-3 text-sm leading-6">
-                    <span className="flex size-6 flex-none items-center justify-center rounded-full bg-brand/10 font-head text-xs font-extrabold text-brand">
-                      {i + 1}
-                    </span>
-                    {tip}
-                  </li>
-                ))}
-              </ol>
+              <PrepChecklist interviewId={next.id} mode={next.mode} />
             </Panel>
           )}
         </div>
@@ -391,10 +347,14 @@ function NextInterview({
               </a>
             ) : i.mode === "Phone" ? (
               <>
-                Call the employer on{" "}
-                <a href={telLink(i)} className="text-brand hover:underline">
-                  {i.place}
-                </a>
+                Phone interview. Email{" "}
+                <a
+                  href="mailto:support@jobclubb.com"
+                  className="text-brand hover:underline"
+                >
+                  support@jobclubb.com
+                </a>{" "}
+                for the call details.
               </>
             ) : (
               <>
@@ -617,14 +577,6 @@ function AgendaItem({
               className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
             >
               Join meeting
-            </a>
-          )}
-          {!past && i.mode === "Phone" && (
-            <a
-              href={telLink(i)}
-              className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
-            >
-              Call {i.place}
             </a>
           )}
           {!past && i.mode === "In-person" && (

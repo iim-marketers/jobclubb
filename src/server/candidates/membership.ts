@@ -1,12 +1,25 @@
 import "server-only";
 
+import { after } from "next/server";
+
+import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import { sendEmail } from "@/lib/email/mailer";
+import { membershipReceiptEmail } from "@/lib/email/templates/membership-receipt";
 import {
   MEMBERSHIP_DAYS,
   PLAN_DETAILS,
   isMembershipPlan,
   type MembershipPlan,
 } from "@/lib/membership";
+import { SITE_URL } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/server";
+import {
+  billingFor,
+  getMembershipInvoice,
+  gstColumns,
+  invoiceFilename,
+} from "@/server/candidates/invoice";
+import { renderInvoicePdf } from "@/server/candidates/invoice-pdf";
 import { createRazorpayOrder } from "@/server/payments/razorpay";
 
 const CURRENCY = "INR";
@@ -14,6 +27,10 @@ const CURRENCY = "INR";
 export async function createMembershipOrder(candidate: {
   id: string;
   plan: MembershipPlan;
+  first_name: string;
+  last_name: string;
+  city: string;
+  pincode: string;
 }) {
   const amount = PLAN_DETAILS[candidate.plan].amount * 100;
   const order = await createRazorpayOrder({
@@ -23,12 +40,15 @@ export async function createMembershipOrder(candidate: {
     notes: { candidate_id: candidate.id, plan: candidate.plan },
   });
 
+  const billing = billingFor(candidate);
   const { error } = await createAdminClient().from("membership_payments").insert({
     order_id: order.id,
     candidate_id: candidate.id,
     plan: candidate.plan,
     amount,
     currency: CURRENCY,
+    ...billing,
+    ...gstColumns(amount, billing.place_of_supply),
   });
   if (error) {
     console.error("Recording Razorpay order failed", error);
@@ -64,7 +84,7 @@ export async function confirmMembershipPayment({
       p_candidate_id: candidateId,
       p_payment_id: paymentId,
     })
-    .select("plan, paid_at, invoice_number")
+    .select("plan, paid_at, invoice_number, amount, currency")
     .maybeSingle();
   if (markError) {
     console.error("Recording Razorpay payment failed", markError);
@@ -75,7 +95,7 @@ export async function confirmMembershipPayment({
   if (!payment) {
     const { data: existing } = await admin
       .from("membership_payments")
-      .select("plan, paid_at, payment_id, invoice_number")
+      .select("plan, paid_at, payment_id, invoice_number, amount, currency")
       .eq("order_id", orderId)
       .eq("candidate_id", candidateId)
       .eq("status", "paid")
@@ -95,13 +115,70 @@ export async function confirmMembershipPayment({
     payment.plan,
     new Date(payment.paid_at),
   );
-  return expiresAt
-    ? {
-        invoiceNumber: payment.invoice_number,
-        paidAt: payment.paid_at,
-        expiresAt: expiresAt.toISOString(),
-      }
-    : "failed";
+  if (!expiresAt) return "failed";
+
+  after(() => sendMembershipReceipt(candidateId, paymentId));
+
+  return {
+    invoiceNumber: payment.invoice_number,
+    paidAt: payment.paid_at,
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+async function sendMembershipReceipt(candidateId: string, paymentId: string) {
+  const admin = createAdminClient();
+  const { data: claimed, error: claimError } = await admin
+    .from("membership_payments")
+    .update({ receipt_sent_at: new Date().toISOString() })
+    .eq("payment_id", paymentId)
+    .eq("candidate_id", candidateId)
+    .is("receipt_sent_at", null)
+    .select("order_id")
+    .maybeSingle();
+  if (claimError) {
+    console.error("Claiming membership receipt failed", claimError);
+    return;
+  }
+  if (!claimed) return;
+
+  try {
+    const [invoice, { data: candidate, error }] = await Promise.all([
+      getMembershipInvoice(candidateId, paymentId),
+      admin
+        .from("candidates")
+        .select("first_name")
+        .eq("id", candidateId)
+        .single(),
+    ]);
+    if (error) throw error;
+    if (!invoice) throw new Error(`No invoice for payment ${paymentId}`);
+
+    const email = membershipReceiptEmail({
+      firstName: candidate.first_name,
+      invoice,
+      membershipUrl: `${SITE_URL}${CANDIDATE_HOME}/membership`,
+    });
+    await sendEmail({
+      to: invoice.billedTo.email,
+      ...email,
+      attachments: [
+        ...email.attachments,
+        {
+          filename: invoiceFilename(invoice),
+          content: await renderInvoicePdf(invoice),
+          contentType: "application/pdf",
+        },
+      ],
+    });
+  } catch (error) {
+    console.error("Sending membership receipt failed", error);
+    const { error: releaseError } = await admin
+      .from("membership_payments")
+      .update({ receipt_sent_at: null })
+      .eq("payment_id", paymentId);
+    if (releaseError) console.error("Releasing membership receipt failed", releaseError);
+  }
 }
 
 export async function confirmMembershipPaymentForOrder({

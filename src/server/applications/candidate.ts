@@ -52,7 +52,7 @@ type ApplyingCandidate = {
 };
 
 export type ApplyResult =
-  | { ok: true; ref: string }
+  | { ok: true; ref: string; created: boolean }
   | { ok: false; reason: "job_not_live" | "no_resume" };
 
 export async function applyToJob(candidate: ApplyingCandidate, slug: string): Promise<ApplyResult> {
@@ -90,12 +90,12 @@ export async function applyToJob(candidate: ApplyingCandidate, slug: string): Pr
       })
       .select("ref")
       .single();
-    if (!error) return { ok: true, ref: data.ref as string };
+    if (!error) return { ok: true, ref: data.ref as string, created: true };
 
     if (error.hint === "job_not_live") return { ok: false, reason: "job_not_live" };
     if (error.code === "23505" && error.message.includes("job_applications_job_candidate_key")) {
       const existing = await findApplicationRef(candidate.id, jobResult.data.id);
-      if (existing) return { ok: true, ref: existing };
+      if (existing) return { ok: true, ref: existing, created: false };
     }
     const refTaken = error.code === "23505" && error.message.includes("job_applications_ref_key");
     if (!refTaken || attempt >= 2) throw error;
@@ -307,7 +307,8 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
       endsAt,
       durationMins: r.duration_mins,
       mode: modeLabel(r.mode),
-      ...interviewPlace(r),
+      // A retired phone interview's place is the employer's number.
+      ...(r.mode === "phone" ? { place: "", venue: null } : interviewPlace(r)),
       interviewer: r.interviewer,
       roundNo: r.round_no,
       round: r.round,

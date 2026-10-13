@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   getCandidateSession,
+  getLapsedAccess,
   getMembershipView,
 } from "@/server/auth/current-candidate";
 import { getCompanySession } from "@/server/auth/current-company";
@@ -30,6 +31,8 @@ const MEMBER_NAV_LINKS = NAV_LINKS.filter(
   (link) => link.href === "/jobs" || link.href === "/companies",
 );
 
+const LAPSED_NAV_LINKS = NAV_LINKS.filter((link) => link.href === "/jobs");
+
 const COMPANY_NAV_LINKS = COMPANY_NAV[0].items
   .filter((item) => item.href !== COMPANY_HOME)
   .map(({ label, href }) => ({ label, href }));
@@ -37,12 +40,15 @@ const COMPANY_NAV_LINKS = COMPANY_NAV[0].items
 export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const candidate = await getCandidateSession();
   const company = candidate ? null : await getCompanySession();
-  const member = !!candidate && (await getMembershipView()).kind === "member";
+  const view = candidate ? await getMembershipView() : null;
+  const lapsed = view?.kind === "unpaid" && !!(await getLapsedAccess());
   const links = company
     ? COMPANY_NAV_LINKS
-    : member
+    : view?.kind === "member"
       ? MEMBER_NAV_LINKS
-      : NAV_LINKS;
+      : lapsed
+        ? LAPSED_NAV_LINKS
+        : NAV_LINKS;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">

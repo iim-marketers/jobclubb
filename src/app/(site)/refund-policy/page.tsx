@@ -24,7 +24,7 @@ const SECTIONS: PolicySection[] = [
   },
   {
     heading: "5. How to request a refund",
-    body: "Email contact@jobclubb.com from your registered email address with your Razorpay payment ID and the reason for the request. We will reply within 3 working days.",
+    body: "Email support@jobclubb.com from your registered email address with your Razorpay payment ID and the reason for the request. We will reply within 3 working days.",
   },
   {
     heading: "6. Refund timeline",

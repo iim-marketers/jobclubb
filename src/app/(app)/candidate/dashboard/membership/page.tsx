@@ -5,6 +5,7 @@ import {
   Eye,
   FileText,
   LifeBuoy,
+  Lock,
   Mail,
   Receipt,
 } from "lucide-react";
@@ -20,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MEMBERSHIP_DAYS, PLAN_DETAILS } from "@/lib/membership";
+import { CHECKOUT_PATH, MEMBERSHIP_DAYS, PLAN_DETAILS } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getMembershipPayments } from "@/server/candidates/membership";
@@ -28,7 +29,7 @@ import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "Membership — JobClubb" };
 
-const SUPPORT_EMAIL = "contact@jobclubb.com";
+const SUPPORT_EMAIL = "support@jobclubb.com";
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -46,7 +47,9 @@ const formatAmount = (paise: number, currency: string) =>
   }).format(paise / 100);
 
 export default async function MembershipPage() {
-  const candidate = await requireMember(`${CANDIDATE_HOME}/membership`);
+  const candidate = await requireMember(`${CANDIDATE_HOME}/membership`, {
+    allowLapsed: true,
+  });
   const [resume, payments] = await Promise.all([
     getSavedResume(candidate.id),
     getMembershipPayments(candidate.id),
@@ -60,12 +63,17 @@ export default async function MembershipPage() {
     Math.ceil((expiresAt.getTime() - new Date().getTime()) / 86_400_000),
     0,
   );
+  const locked = candidate.lapsed;
 
   return (
     <div className="space-y-6">
       <DashboardHeader
         title="Membership"
-        description="Your plan, what it unlocks, and how much of it you've used."
+        description={
+          locked
+            ? "Your membership has expired. Renew to unlock everything again."
+            : "Your plan, what it unlocks, and how much of it you've used."
+        }
       />
 
       <MembershipOverview
@@ -77,6 +85,7 @@ export default async function MembershipPage() {
         startedAt={startedAt}
         expiresAt={expiresAt}
         daysLeft={daysLeft}
+        lapsedAccessUntil={candidate.lapsedAccessUntil}
       />
 
       <section aria-labelledby="benefits-heading">
@@ -101,32 +110,42 @@ export default async function MembershipPage() {
                 ? `Tailored for ${resume.targetRole}.`
                 : "Generate a resume that clears applicant tracking systems."
             }
-            href={`${CANDIDATE_HOME}/resume`}
-            cta={resume ? "View resume" : "Build resume"}
+            href={locked ? CHECKOUT_PATH : `${CANDIDATE_HOME}/resume`}
+            cta={
+              locked ? "Renew to unlock" : resume ? "View resume" : "Build resume"
+            }
           >
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-head text-xs font-bold",
-                resume
-                  ? "bg-good/12 text-good"
-                  : "bg-muted text-muted-foreground",
-              )}
-            >
-              {resume && <Check className="size-3" strokeWidth={3} />}
-              {resume ? "Generated" : "Not generated yet"}
-            </span>
+            {locked ? (
+              <LockedBadge />
+            ) : (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-head text-xs font-bold",
+                  resume
+                    ? "bg-good/12 text-good"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {resume && <Check className="size-3" strokeWidth={3} />}
+                {resume ? "Generated" : "Not generated yet"}
+              </span>
+            )}
           </BenefitCard>
 
           <BenefitCard
             icon={Eye}
             title="Full job details"
             description="Salary, employer info and contact details on every listing."
-            href="/jobs"
-            cta="Browse jobs"
+            href={locked ? CHECKOUT_PATH : "/jobs"}
+            cta={locked ? "Renew to unlock" : "Browse jobs"}
           >
-            <span className="inline-flex items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
-              <Check className="size-3" strokeWidth={3} /> Unlocked
-            </span>
+            {locked ? (
+              <LockedBadge />
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
+                <Check className="size-3" strokeWidth={3} /> Unlocked
+              </span>
+            )}
           </BenefitCard>
 
           <BenefitCard
@@ -178,6 +197,9 @@ export default async function MembershipPage() {
                   <TableHead className="h-11 px-3 text-right text-xs font-semibold text-muted-foreground">
                     Status
                   </TableHead>
+                  <TableHead className="h-11 px-3 text-right text-xs font-semibold text-muted-foreground">
+                    Invoice
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -197,11 +219,25 @@ export default async function MembershipPage() {
                     </TableCell>
                     <TableCell className="px-3 py-3.5 text-right font-head font-bold">
                       {formatAmount(payment.amount, payment.currency)}
+                      <span className="block text-[11px] font-normal text-muted-foreground">
+                        incl. GST
+                      </span>
                     </TableCell>
                     <TableCell className="px-3 py-3.5 text-right">
                       <span className="inline-flex items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
                         <Check className="size-3" strokeWidth={3} /> Paid
                       </span>
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 text-right">
+                      <a
+                        href={`/api/invoices/${payment.paymentId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`View invoice ${payment.invoiceNumber}`}
+                        className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
+                      >
+                        <Eye className="size-3.5" /> View
+                      </a>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -222,6 +258,14 @@ export default async function MembershipPage() {
         </p> */}
       </Panel>
     </div>
+  );
+}
+
+function LockedBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 font-head text-xs font-bold text-muted-foreground">
+      <Lock className="size-3" strokeWidth={3} /> Locked
+    </span>
   );
 }
 
