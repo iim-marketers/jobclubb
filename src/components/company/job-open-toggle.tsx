@@ -51,7 +51,7 @@ export function JobOpenToggle({ jobId, closed }: { jobId: string; closed: boolea
 
   return (
     <Dialog open={pending || open} onOpenChange={(next) => !pending && setOpen(next)}>
-      <DialogTrigger render={<Button variant="outline" className="font-head" />}>
+      <DialogTrigger render={<Button variant="outline-destructive" className="font-head" />}>
         <LockKeyhole className="size-4" /> Close posting
       </DialogTrigger>
       <DialogContent showCloseButton={false}>

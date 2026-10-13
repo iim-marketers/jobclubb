@@ -22,13 +22,16 @@ import {
   applicationStatus,
   formatInterviewDate,
   formatInterviewTime,
-  interviewsFor,
   type Application,
 } from "@/lib/candidate-activity";
+import { interviewPhase } from "@/lib/interviews";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
-import { getCandidateApplication } from "@/server/applications/candidate";
+import {
+  getCandidateApplication,
+  listCandidateInterviews,
+} from "@/server/applications/candidate";
 import { sanitizeRichText } from "@/server/rich-text";
 import {
   getCurrentCandidate,
@@ -40,7 +43,7 @@ const APPLICATIONS_PATH = `${CANDIDATE_HOME}/applications`;
 const NEXT_STEPS = [
   "Your application has been delivered. Most employers open new applications within 3 days, and you'll be notified the moment they do.",
   "The recruiter has seen your profile. Keep your resume up to date, since shortlisting usually happens within a week of the first view.",
-  "You're on the shortlist. When the employer proposes an interview time, JobClubb will contact you to confirm it before it's scheduled.",
+  "You're on the shortlist. When the employer schedules an interview, the time and place show up here and on your Interviews page.",
   "Your interview is set. Use the prep checklist on the Interviews page and join 5 minutes early.",
   "Congratulations! Review the offer details and reply to the employer before the deadline they share.",
 ];
@@ -71,7 +74,10 @@ export default async function ApplicationDetailPage({
   const archived = application.status !== "active";
   const rejected = application.status === "rejected";
   const good = !archived && application.stage >= 3;
-  const interviews = interviewsFor(job.slug);
+  const interviews = (await listCandidateInterviews(candidate.id)).filter(
+    (i) => i.applicationId === application.id,
+  );
+  const now = new Date();
 
   return (
     <div className="space-y-6 ">
@@ -178,12 +184,15 @@ export default async function ApplicationDetailPage({
             <Panel
               title="Interviews for this role"
               action={
-                <Link
-                  href={`${CANDIDATE_HOME}/interviews`}
-                  className="inline-flex flex-none items-center gap-1 font-head text-sm font-bold whitespace-nowrap text-brand hover:text-brand-dark"
-                >
-                  Prepare <ArrowUpRight className="size-3.5" />
-                </Link>
+                !archived &&
+                interviews.some((i) => interviewPhase(i, now) === "upcoming") && (
+                  <Link
+                    href={`${CANDIDATE_HOME}/interviews`}
+                    className="inline-flex flex-none items-center gap-1 font-head text-sm font-bold whitespace-nowrap text-brand hover:text-brand-dark"
+                  >
+                    Prepare <ArrowUpRight className="size-3.5" />
+                  </Link>
+                )
               }
             >
               <ul className="space-y-3">
@@ -294,7 +303,7 @@ export default async function ApplicationDetailPage({
             <ol className="relative space-y-4 pl-5">
               <span className="absolute top-1.5 bottom-1.5 left-1.25 w-px bg-border" />
               {[...application.history].reverse().map((h, i) => (
-                <li key={h.label} className="relative">
+                <li key={`${h.label}-${i}`} className="relative">
                   <span
                     className={cn(
                       "absolute top-1 -left-5 size-2.75 rounded-full ring-3 ring-card",
@@ -407,7 +416,7 @@ function StageStepper({ application: a }: { application: Application }) {
                 {rejected
                   ? a.history[a.history.length - 1].date
                   : reached
-                    ? (a.history[i]?.date ?? "")
+                    ? (a.stageDates[i] ?? "")
                     : "—"}
               </p>
             </div>

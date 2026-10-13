@@ -39,7 +39,10 @@ import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { MembershipPlan } from "@/lib/membership";
 import type { Resume } from "@/lib/resume";
-import { listCandidateApplications } from "@/server/applications/candidate";
+import {
+  listCandidateApplications,
+  listCandidateInterviews,
+} from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 import { getSavedResume } from "@/server/resume/ats-resume";
@@ -70,10 +73,11 @@ export default async function CandidateDashboard() {
   const sector = industry?.name;
   const now = new Date();
 
-  const [photoUrl, saved, applications] = await Promise.all([
+  const [photoUrl, saved, applications, interviews] = await Promise.all([
     getCandidatePhotoUrl(candidate.photo_path),
     getSavedResume(candidate.id),
     listCandidateApplications(candidate.id),
+    listCandidateInterviews(candidate.id),
   ]);
   const checklist = profileChecklist(saved?.resume, !!candidate.photo_path);
   const completed = checklist.filter((c) => c.done).length;
@@ -81,7 +85,7 @@ export default async function CandidateDashboard() {
 
   const inReview = applications.filter((a) => a.status === "active").length;
   const viewed = applications.filter((a) => a.stage >= 1).length;
-  const upcoming = upcomingInterviews(now);
+  const upcoming = upcomingInterviews(interviews, now);
   const weekAhead = upcoming.filter(
     (i) => +new Date(i.startsAt) - +now < 7 * 86_400_000,
   ).length;
@@ -174,7 +178,7 @@ export default async function CandidateDashboard() {
           nextStep={checklist.find((c) => !c.done)?.label}
           nextInterview={upcoming[0]}
         />
-        <InterviewGuarantee />
+        <InterviewGuarantee interviews={interviews} now={now} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -481,8 +485,14 @@ function ProfileSummary({
   );
 }
 
-function InterviewGuarantee() {
-  const slots = guaranteeSlots(new Date());
+function InterviewGuarantee({
+  interviews,
+  now,
+}: {
+  interviews: Interview[];
+  now: Date;
+}) {
+  const slots = guaranteeSlots(interviews, now);
   const used = slots.filter((i) => i.state !== "open").length;
   const left = GUARANTEED_INTERVIEWS - used;
   return (

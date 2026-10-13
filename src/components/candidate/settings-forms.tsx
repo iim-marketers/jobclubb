@@ -303,7 +303,7 @@ export function PhotoForm({
             {photoUrl && (
               <Button
                 type="button"
-                variant="outline"
+                variant="outline-destructive"
                 disabled={busy}
                 onClick={() =>
                   startTransition(() => removeAction(new FormData()))

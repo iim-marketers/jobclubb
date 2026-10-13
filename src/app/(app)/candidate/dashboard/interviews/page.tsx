@@ -31,16 +31,17 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import {
   GUARANTEED_INTERVIEWS,
-  INTERVIEWS,
   formatInterviewTime,
   pastInterviews,
   upcomingInterviews,
   type Interview,
   type InterviewMode,
 } from "@/lib/candidate-activity";
+import { interviewPhase, relativeDay } from "@/lib/interviews";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import { listCandidateInterviews } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 
 export const metadata = { title: "Interviews — JobClubb" };
@@ -50,7 +51,7 @@ const DAY_MS = 86_400_000;
 
 const MODE_ICONS: Record<InterviewMode, typeof Video> = {
   "Video call": Video,
-  "In person": MapPin,
+  "In-person": MapPin,
   Phone: Phone,
 };
 
@@ -105,25 +106,13 @@ function timeRange(i: Interview) {
   return `${formatInterviewTime(i.startsAt)} – ${formatInterviewTime(endsAt(i).toISOString())}`;
 }
 
-function relativeDay(iso: string, now: Date) {
-  const days = Math.round(
-    (Date.parse(`${dayKey(new Date(iso))}T00:00:00Z`) -
-      Date.parse(`${dayKey(now)}T00:00:00Z`)) /
-      DAY_MS,
-  );
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  if (days === -1) return "Yesterday";
-  return days > 0 ? `In ${days} days` : `${-days} days ago`;
-}
-
 function calendarLink(i: Interview) {
   const stamp = (d: Date) => d.toISOString().replace(/[-:]|\.\d{3}/g, "");
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: `${i.company} interview — ${i.role}`,
     dates: `${stamp(new Date(i.startsAt))}/${stamp(endsAt(i))}`,
-    details: `${i.round} with ${i.interviewer}. Scheduled via JobClubb.`,
+    details: `${i.round} with ${i.interviewer}. Scheduled via JobClubb.${i.mode === "Video call" ? ` Join: ${i.place}` : ""}`,
     location: i.place,
   });
   return `https://calendar.google.com/calendar/render?${params}`;
@@ -133,13 +122,16 @@ function directionsLink(i: Interview) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.place)}`;
 }
 
+const telLink = (i: Interview) => `tel:${i.place.replace(/[^\d+]/g, "")}`;
+
 export default async function InterviewsPage() {
   const candidate = await requireMember(`${CANDIDATE_HOME}/interviews`);
+  const interviews = await listCandidateInterviews(candidate.id);
   const now = new Date();
-  const upcoming = upcomingInterviews(now);
-  const past = pastInterviews(now);
+  const upcoming = upcomingInterviews(interviews, now);
+  const past = pastInterviews(interviews, now);
   const next = upcoming[0];
-  const guaranteedUsed = INTERVIEWS.filter((i) => i.guaranteed).length;
+  const guaranteedUsed = interviews.filter((i) => i.guaranteed).length;
   const thisWeek = upcoming.filter(
     (i) => new Date(i.startsAt).getTime() - now.getTime() < 7 * DAY_MS,
   ).length;
@@ -151,7 +143,15 @@ export default async function InterviewsPage() {
       <DashboardHeader
         title="Interviews"
         description={
-          next ? (
+          next && interviewPhase(next, now) === "live" ? (
+            <>
+              Your interview with{" "}
+              <span className="font-semibold text-foreground">
+                {next.company}
+              </span>{" "}
+              is happening now. Join from the card below.
+            </>
+          ) : next ? (
             <>
               Your next interview is with{" "}
               <span className="font-semibold text-foreground">
@@ -193,7 +193,8 @@ export default async function InterviewsPage() {
             </Button>
           }
         >
-          Once an employer shortlists you, the interview details land here.
+          When an employer schedules an interview with you, the details land
+          here.
         </EmptyState>
       )}
 
@@ -256,7 +257,7 @@ export default async function InterviewsPage() {
 
         <div className="flex min-w-0 flex-col gap-6">
           <MonthCalendar
-            interviews={INTERVIEWS}
+            interviews={interviews}
             focus={next ? new Date(next.startsAt) : now}
             now={now}
           />
@@ -297,13 +298,14 @@ function NextInterview({
   now: Date;
 }) {
   const ModeIcon = MODE_ICONS[i.mode];
+  const live = interviewPhase(i, now) === "live";
 
   return (
     <section
       aria-label="Next interview"
       className="grid overflow-hidden rounded-3xl border border-border bg-card lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
     >
-      <div className="relative overflow-hidden bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white sm:p-7">
+      <div className="relative overflow-hidden bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white">
         <div
           aria-hidden
           className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-white/8 blur-2xl"
@@ -319,7 +321,7 @@ function NextInterview({
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand-accent opacity-75 motion-reduce:hidden" />
                 <span className="relative inline-flex size-2 rounded-full bg-brand-accent" />
               </span>
-              Next up · {relativeDay(i.startsAt, now)}
+              {live ? "Live now" : `Next up · ${relativeDay(i.startsAt, now)}`}
             </span>
             {i.guaranteed && (
               <span className="inline-flex items-center gap-1 rounded-full bg-brand-accent/25 px-2.5 py-1 font-head text-[11px] font-bold">
@@ -331,6 +333,7 @@ function NextInterview({
           <div className="flex items-start gap-4">
             <CompanyAvatar
               name={i.company}
+              logoUrl={i.companyLogoUrl}
               className="size-14 rounded-2xl text-base ring-2 ring-white/25"
             />
             <div className="min-w-0">
@@ -341,17 +344,27 @@ function NextInterview({
             </div>
           </div>
 
-          <div className="mt-auto">
-            <p className="mb-2 text-xs font-medium text-white/70">Starts in</p>
-            <InterviewCountdown
-              startsAt={i.startsAt}
-              serverNow={now.getTime()}
-            />
-          </div>
+          {live ? (
+            <div className="mt-auto rounded-2xl bg-white/12 p-4 ring-1 ring-white/15 ring-inset">
+              <p className="font-head text-lg font-bold">In progress</p>
+              <p className="mt-0.5 text-sm text-white/75">
+                Until {formatInterviewTime(i.endsAt)}.
+                {i.mode === "Video call" && " Join now if you haven't already."}
+              </p>
+            </div>
+          ) : (
+            <div className="mt-auto">
+              <p className="mb-2 text-xs font-medium text-white/70">Starts in</p>
+              <InterviewCountdown
+                startsAt={i.startsAt}
+                serverNow={now.getTime()}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-col p-6 sm:p-7">
+      <div className="flex flex-col p-6">
         <dl className="grid gap-4 sm:grid-cols-2">
           <DetailItem icon={CalendarClock} label="Date">
             {fmt(i.startsAt, {
@@ -367,14 +380,39 @@ function NextInterview({
             </span>
           </DetailItem>
           <DetailItem icon={ModeIcon} label={i.mode} className="sm:col-span-2">
-            {i.place}
+            {i.mode === "Video call" ? (
+              <a
+                href={i.place}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="break-all text-brand hover:underline"
+              >
+                {i.place}
+              </a>
+            ) : i.mode === "Phone" ? (
+              <>
+                Call the employer on{" "}
+                <a href={telLink(i)} className="text-brand hover:underline">
+                  {i.place}
+                </a>
+              </>
+            ) : (
+              <>
+                {i.place}
+                {i.venue?.landmark && (
+                  <span className="block text-xs font-normal text-muted-foreground">
+                    Landmark: {i.venue.landmark}
+                  </span>
+                )}
+              </>
+            )}
           </DetailItem>
           <DetailItem icon={User} label="Interviewer" className="sm:col-span-2">
             {i.interviewer} · {i.round}
           </DetailItem>
         </dl>
 
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
+        <div className="mt-6 -mx-6 px-6 flex flex-wrap gap-2 border-t border-border pt-5">
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
             nativeButton={false}
@@ -388,7 +426,19 @@ function NextInterview({
           >
             <CalendarPlus className="size-4" /> Add to calendar
           </Button>
-          {i.mode === "In person" && (
+          {i.mode === "Video call" && (
+            <Button
+              variant="outline"
+              className="font-head"
+              nativeButton={false}
+              render={
+                <a href={i.place} target="_blank" rel="noopener noreferrer" />
+              }
+            >
+              <Video className="size-4" /> Join meeting
+            </Button>
+          )}
+          {i.mode === "In-person" && (
             <Button
               variant="outline"
               className="font-head"
@@ -404,26 +454,19 @@ function NextInterview({
               <Navigation className="size-4" /> Directions
             </Button>
           )}
-          {i.applicationId && (
-            <Button
-              variant="ghost"
-              className="font-head text-brand"
-              nativeButton={false}
-              render={
-                <Link
-                  href={`${CANDIDATE_HOME}/applications/${i.applicationId}`}
-                />
-              }
-            >
-              <FileText className="size-4" /> Application
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            className="hidden font-head text-brand sm:inline-flex"
+            nativeButton={false}
+            render={
+              <Link
+                href={`${CANDIDATE_HOME}/applications/${i.applicationId}`}
+              />
+            }
+          >
+            <FileText className="size-4" /> Application
+          </Button>
         </div>
-        {i.mode === "Video call" && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            The meeting link is emailed to you 1 hour before the interview.
-          </p>
-        )}
       </div>
     </section>
   );
@@ -522,7 +565,11 @@ function AgendaItem({
       >
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
           <div className="flex min-w-0 items-center gap-3">
-            <CompanyAvatar name={i.company} className="size-9" />
+            <CompanyAvatar
+              name={i.company}
+              logoUrl={i.companyLogoUrl}
+              className="size-9"
+            />
             <div className="min-w-0">
               <p className="truncate font-head text-sm font-bold">
                 {i.company}{" "}
@@ -543,7 +590,7 @@ function AgendaItem({
           <span className="flex min-w-0 items-center gap-1.5">
             <ModeIcon className="size-3.5 flex-none" />
             <span className="truncate">
-              {i.mode === "In person" ? i.place : i.mode}
+              {i.mode === "In-person" ? i.place : i.mode}
             </span>
           </span>
           <span className="flex items-center gap-1.5">
@@ -562,7 +609,25 @@ function AgendaItem({
               Add to calendar
             </a>
           )}
-          {!past && i.mode === "In person" && (
+          {!past && i.mode === "Video call" && (
+            <a
+              href={i.place}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
+            >
+              Join meeting
+            </a>
+          )}
+          {!past && i.mode === "Phone" && (
+            <a
+              href={telLink(i)}
+              className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
+            >
+              Call {i.place}
+            </a>
+          )}
+          {!past && i.mode === "In-person" && (
             <a
               href={directionsLink(i)}
               target="_blank"
@@ -572,14 +637,12 @@ function AgendaItem({
               Directions
             </a>
           )}
-          {i.applicationId && (
-            <Link
-              href={`${CANDIDATE_HOME}/applications/${i.applicationId}`}
-              className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
-            >
-              View application
-            </Link>
-          )}
+          <Link
+            href={`${CANDIDATE_HOME}/applications/${i.applicationId}`}
+            className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
+          >
+            View application
+          </Link>
         </div>
       </div>
     </li>
@@ -595,6 +658,12 @@ function StatusPill({
   now: Date;
   past?: boolean;
 }) {
+  if (!past && interviewPhase(i, now) === "live")
+    return (
+      <span className="rounded-full bg-good/12 px-2.5 py-1 font-head text-[11px] font-bold text-good">
+        Live now
+      </span>
+    );
   if (!past)
     return (
       <span className="rounded-full bg-brand/10 px-2.5 py-1 font-head text-[11px] font-bold text-brand">
@@ -671,7 +740,7 @@ function MonthCalendar({
           const day = n + 1;
           const key = `${year}-${pad(month)}-${pad(day)}`;
           const booked = byDay.get(key);
-          const isPast = booked && new Date(booked[0].startsAt) < now;
+          const isPast = booked && new Date(booked[0].endsAt) <= now;
           return (
             <span
               key={key}

@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { InterviewDialog } from "@/components/company/interview-actions";
 
 // Runs on mount rather than during the server render, so a prefetch of this
 // page can never count as the employer viewing the applicant.
@@ -32,10 +33,14 @@ export function MarkViewed({ applicantRef }: { applicantRef: string }) {
 
 export function ApplicantActions({
   applicantRef,
+  jobLocation,
   canShortlist,
+  canSchedule,
 }: {
   applicantRef: string;
+  jobLocation: { city: string; pincode: string };
   canShortlist: boolean;
+  canSchedule: boolean;
 }) {
   const [confirming, setConfirming] = useState<"shortlist" | "reject" | null>(null);
   const [pending, startTransition] = useTransition();
@@ -57,7 +62,7 @@ export function ApplicantActions({
         open={confirming === "reject"}
         onOpenChange={(next) => !pending && setConfirming(next ? "reject" : null)}
       >
-        <DialogTrigger render={<Button variant="outline" className="font-head" disabled={pending} />}>
+        <DialogTrigger render={<Button variant="outline-destructive" className="font-head" disabled={pending} />}>
           <UserX className="size-4" /> Not a fit
         </DialogTrigger>
         <DialogContent showCloseButton={false}>
@@ -81,6 +86,8 @@ export function ApplicantActions({
         </DialogContent>
       </Dialog>
 
+      {canSchedule && <InterviewDialog applicantRef={applicantRef} jobLocation={jobLocation} />}
+
       {canShortlist && (
         <Dialog
           open={confirming === "shortlist"}
@@ -102,8 +109,8 @@ export function ApplicantActions({
                 Shortlist this applicant?
               </DialogTitle>
               <DialogDescription>
-                You&apos;ll see their name and can then request an interview.
-                Their phone number and email stay with JobClubb.
+                You&apos;ll see their name and can then schedule an interview.
+                Their phone number and email stay private.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

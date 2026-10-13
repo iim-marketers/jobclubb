@@ -2,23 +2,38 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowUpRight,
   CalendarDays,
   EyeOff,
   MapPin,
+  Phone,
   ShieldCheck,
+  Video,
 } from "lucide-react";
 
 import {
   ApplicantActions,
   MarkViewed,
 } from "@/components/company/applicant-actions";
+import { AccordionSections } from "@/components/accordion-sections";
+import { InterviewControls } from "@/components/company/interview-actions";
 import {
   COMPANY_APPLICANTS,
   jobApplicantsHref,
 } from "@/components/company/nav";
 import { ResumeDocument } from "@/components/resume/resume-document";
-import { formatShortDate } from "@/lib/candidate-activity";
-import { STAGES, formatExperienceMonths } from "@/lib/company-activity";
+import {
+  formatInterviewDate,
+  formatInterviewTime,
+  formatShortDate,
+  type InterviewMode,
+} from "@/lib/candidate-activity";
+import {
+  STAGES,
+  formatExperienceMonths,
+  type CompanyInterview,
+} from "@/lib/company-activity";
+import { formatIst, interviewPhase, relativeDay } from "@/lib/interviews";
 import { cn } from "@/lib/utils";
 import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
 import { requireCompany } from "@/server/auth/current-company";
@@ -37,14 +52,16 @@ export async function generateMetadata({
 
 export default async function ApplicantPage({
   params,
+  searchParams,
 }: PageProps<"/company/dashboard/applicants/[ref]">) {
-  const { ref } = await params;
+  const [{ ref }, { section }] = await Promise.all([params, searchParams]);
   const company = await requireCompany(`${COMPANY_APPLICANTS}/${ref}`);
   const applicant = await getCompanyApplicant(company.id, ref);
   if (!applicant) notFound();
 
   const rejected = applicant.status === "rejected";
   const status = rejected ? "Not selected" : STAGES[applicant.stage];
+  const now = new Date();
 
   return (
     <div className="space-y-6">
@@ -104,47 +121,306 @@ export default async function ApplicantPage({
           {!rejected && applicant.stage < 4 && (
             <ApplicantActions
               applicantRef={applicant.ref}
+              jobLocation={applicant.jobLocation}
               canShortlist={applicant.stage < 2}
+              canSchedule={applicant.stage === 2 && !applicant.interview}
             />
           )}
         </div>
-
-        <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6">
-          <div className="min-w-0">
-            <dt className="text-xs text-muted-foreground">Experience</dt>
-            <dd className="mt-0.5 font-head text-sm font-bold">
-              {formatExperienceMonths(applicant.experienceMonths)}
-            </dd>
-          </div>
-          <div className="min-w-0">
-            <dt className="text-xs text-muted-foreground">Skills</dt>
-            <dd className="mt-0.5 font-head text-sm font-bold">
-              {applicant.skills.length}
-            </dd>
-          </div>
-        </dl>
-
-        <div className="mt-6 flex items-start gap-3 rounded-2xl bg-muted/50 p-4 text-sm">
-          <ShieldCheck className="mt-0.5 size-4 flex-none text-brand" />
-          <p className="leading-6 text-muted-foreground">
-            {applicant.name
-              ? "You shortlisted this applicant."
-              : "Shortlist this applicant to see their name."}
-            {applicant.jobClosed &&
-              " This posting is closed, but you can still review its applicants."}
-          </p>
-        </div>
       </section>
 
-      <ResumeDocument
-        resume={applicant.resume}
-        contact={{
-          name: applicant.name ?? applicant.label,
-          city: applicant.city,
-          email: "",
-          phone: "",
-        }}
+      <AccordionSections
+        defaultOpen={section === "interview" && applicant.interview ? "interview" : undefined}
+        sections={[
+          {
+            value: "summary",
+            title: "Profile summary",
+            description: `${formatExperienceMonths(applicant.experienceMonths)} experience · ${applicant.skills.length} skills`,
+            content: (
+              <div className="p-5 sm:p-6">
+                <dl className="grid grid-cols-2 gap-4">
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">
+                      Experience
+                    </dt>
+                    <dd className="mt-0.5 font-head text-sm font-bold">
+                      {formatExperienceMonths(applicant.experienceMonths)}
+                    </dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">Skills</dt>
+                    <dd className="mt-0.5 font-head text-sm font-bold">
+                      {applicant.skills.length}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="mt-5 flex items-start gap-1.5 rounded-2xl bg-muted/50 p-4 text-sm">
+                  <ShieldCheck className="mt-1 size-4 flex-none text-brand" />
+                  <p className="leading-6 text-muted-foreground">
+                    {applicant.name
+                      ? "You shortlisted this applicant."
+                      : "Shortlist this applicant to see their name."}
+                    {applicant.jobClosed &&
+                      " This posting is closed, but you can still review its applicants."}
+                  </p>
+                </div>
+              </div>
+            ),
+          },
+          ...(applicant.interview
+            ? [
+                {
+                  value: "interview",
+                  title: "Interview",
+                  description: `${applicant.interview.round} · ${formatInterviewDate(applicant.interview.startsAt)}, ${formatInterviewTime(applicant.interview.startsAt)}`,
+                  badge: (
+                    <InterviewStatus
+                      interview={applicant.interview}
+                      now={now}
+                    />
+                  ),
+                  content: (
+                    <InterviewPanel
+                      applicantRef={applicant.ref}
+                      jobLocation={applicant.jobLocation}
+                      interview={applicant.interview}
+                      settled={rejected}
+                      now={now}
+                    />
+                  ),
+                },
+              ]
+            : []),
+          {
+            value: "resume",
+            title: "Resume",
+            description: "View the applicant's resume",
+            content: (
+              <div className="bg-muted/30 p-3 sm:p-6">
+                <ResumeDocument
+                  resume={applicant.resume}
+                  contact={{
+                    name: applicant.name ?? applicant.label,
+                    city: applicant.city,
+                    email: "",
+                    phone: "",
+                  }}
+                />
+              </div>
+            ),
+          },
+        ]}
       />
     </div>
+  );
+}
+
+const MODE_ICONS: Record<InterviewMode, typeof Video> = {
+  "Video call": Video,
+  "In-person": MapPin,
+  Phone: Phone,
+};
+
+const linkClass =
+  "inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline";
+
+function InterviewPanel({
+  applicantRef,
+  jobLocation,
+  interview: i,
+  settled,
+  now,
+}: {
+  applicantRef: string;
+  jobLocation: { city: string; pincode: string };
+  interview: CompanyInterview;
+  settled: boolean;
+  now: Date;
+}) {
+  const phase = interviewPhase(i, now);
+  const past = phase === "ended";
+  const ends = new Date(
+    new Date(i.startsAt).getTime() + i.durationMins * 60_000,
+  ).toISOString();
+  const ModeIcon = MODE_ICONS[i.mode];
+  const open = !settled && !i.outcome;
+
+  return (
+    <div>
+      <div className="flex flex-col gap-5 p-5 sm:flex-row sm:p-6">
+        <div
+          className={cn(
+            "relative flex flex-none items-center gap-4 overflow-hidden rounded-2xl p-4 sm:w-36 sm:flex-col sm:justify-center sm:gap-0 sm:text-center",
+            past
+              ? "bg-muted text-muted-foreground"
+              : "bg-linear-to-br from-brand-surface to-brand-surface-strong text-white",
+          )}
+        >
+          {!past && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -top-10 -right-10 size-28 rounded-full bg-white/10 blur-xl"
+            />
+          )}
+          <div className="relative flex items-baseline gap-2 sm:flex-col sm:items-center sm:gap-0">
+            <span className="font-head text-[11px] font-bold tracking-[0.16em] uppercase opacity-80">
+              {formatIst(i.startsAt, { weekday: "short" })}
+            </span>
+            <span className="font-head text-4xl leading-none font-extrabold sm:mt-1">
+              {formatIst(i.startsAt, { day: "numeric" })}
+            </span>
+            <span className="font-head text-sm font-bold sm:mt-1">
+              {formatIst(i.startsAt, { month: "short", year: "numeric" })}
+            </span>
+          </div>
+          <span
+            className={cn(
+              "relative ml-auto rounded-full px-2.5 py-1 font-head text-[11px] font-bold sm:mt-3 sm:ml-0",
+              past ? "bg-card text-foreground" : "bg-white/15",
+            )}
+          >
+            {formatInterviewTime(i.startsAt)}
+          </span>
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="min-w-0">
+            <h2 className="font-head text-xl font-extrabold tracking-tight">
+              {i.round}
+            </h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {formatInterviewTime(i.startsAt)} – {formatInterviewTime(ends)}{" "}
+              IST · {i.durationMins} min
+            </p>
+          </div>
+
+          <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="flex min-w-0 gap-3 rounded-2xl bg-muted/50 p-3.5">
+              <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-card text-brand shadow-xs">
+                <ModeIcon className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <dt className="text-xs text-muted-foreground">{i.mode}</dt>
+                <dd className="mt-0.5 text-sm font-medium break-words">
+                  {i.mode === "Video call" ? (
+                    <span className="block truncate">{i.place}</span>
+                  ) : (
+                    i.place
+                  )}
+                </dd>
+                {i.venue?.landmark && (
+                  <dd className="text-xs text-muted-foreground">
+                    Landmark: {i.venue.landmark}
+                  </dd>
+                )}
+                <dd className="mt-1.5">
+                  {i.mode === "Video call" ? (
+                    <a
+                      href={i.place}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={linkClass}
+                    >
+                      Open link <ArrowUpRight className="size-3.5" />
+                    </a>
+                  ) : i.mode === "Phone" ? (
+                    <span className="text-xs text-muted-foreground">
+                      The applicant calls you on this number.
+                    </span>
+                  ) : (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.place)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={linkClass}
+                    >
+                      View on map <ArrowUpRight className="size-3.5" />
+                    </a>
+                  )}
+                </dd>
+              </div>
+            </div>
+            <div className="flex min-w-0 gap-3 rounded-2xl bg-muted/50 p-3.5">
+              <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-card font-head text-xs font-extrabold text-brand shadow-xs">
+                {initials(i.interviewer)}
+              </span>
+              <div className="min-w-0">
+                <dt className="text-xs text-muted-foreground">Interviewer</dt>
+                <dd className="mt-0.5 text-sm font-medium break-words">
+                  {i.interviewer}
+                </dd>
+              </div>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      {open && (
+        <div className="flex flex-col gap-3 border-t border-border bg-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-xs leading-5 text-muted-foreground">
+            {phase === "ended"
+              ? "Record how it went so the applicant knows where they stand."
+              : phase === "live"
+                ? `In progress until ${formatInterviewTime(i.endsAt)}. If it ends early, mark it finished to record the result.`
+                : "Changes show up on the applicant's dashboard straight away."}
+          </p>
+          <InterviewControls
+            applicantRef={applicantRef}
+            jobLocation={jobLocation}
+            interview={i}
+            phase={phase}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InterviewStatus({
+  interview: i,
+  now,
+}: {
+  interview: CompanyInterview;
+  now: Date;
+}) {
+  const phase = interviewPhase(i, now);
+  const [label, tone] = i.outcome
+    ? [
+        i.outcome,
+        i.outcome === "Cleared" ? "bg-good/12 text-good" : NOT_SELECTED_BADGE,
+      ]
+    : phase === "ended"
+      ? ["Result pending", "bg-amber-500/12 text-amber-700 dark:text-amber-300"]
+      : phase === "live"
+        ? ["Live now", "bg-good/12 text-good"]
+        : [relativeDay(i.startsAt, now), "bg-brand/10 text-brand"];
+  return (
+    <span
+      className={cn(
+        "inline-flex flex-none items-center gap-1.5 rounded-full px-2.5 py-1 font-head text-xs font-bold",
+        tone,
+      )}
+    >
+      {phase === "live" && !i.outcome && <LiveDot />}
+      {label}
+    </span>
+  );
+}
+
+function initials(name: string) {
+  return name
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+}
+
+function LiveDot() {
+  return (
+    <span className="relative flex size-2">
+      <span className="absolute inline-flex size-full animate-ping rounded-full bg-good opacity-75 motion-reduce:hidden" />
+      <span className="relative inline-flex size-2 rounded-full bg-good" />
+    </span>
   );
 }

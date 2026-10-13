@@ -2,7 +2,23 @@ import "server-only";
 
 import { randomInt } from "node:crypto";
 
-import { formatShortDate, type Application } from "@/lib/candidate-activity";
+import {
+  GUARANTEED_INTERVIEWS,
+  formatInterviewDate,
+  formatInterviewTime,
+  formatShortDate,
+  type Application,
+  type Interview,
+} from "@/lib/candidate-activity";
+import {
+  OUTCOME_LABELS,
+  PLACE_COLUMNS,
+  interviewEnd,
+  interviewPlace,
+  modeLabel,
+  type InterviewOutcome,
+  type InterviewPlaceRow,
+} from "@/lib/interviews";
 import type { Resume } from "@/lib/resume";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -15,6 +31,7 @@ import {
   toPublicJob,
   type PublicJobRow,
 } from "@/server/companies/jobs";
+import { getCompanyLogoUrl } from "@/server/companies/logo";
 import { postedAgo, toListing } from "@/server/jobs/listings";
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -122,7 +139,17 @@ export async function getApplyState(candidateId: string, slug: string): Promise<
   return resume.count ? { kind: "ready" } : { kind: "no-resume" };
 }
 
-const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS})`;
+const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (created_at, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at)`;
+
+type ApplicationInterviewRow = {
+  created_at: string;
+  starts_at: string;
+  duration_mins: number;
+  finished_at: string | null;
+  cancelled_at: string | null;
+  outcome: InterviewOutcome | null;
+  outcome_at: string | null;
+};
 
 type ApplicationRow = {
   ref: string;
@@ -133,13 +160,31 @@ type ApplicationRow = {
   shortlisted_at: string | null;
   rejected_at: string | null;
   company_jobs: PublicJobRow;
+  job_interviews: ApplicationInterviewRow[];
 };
 
-function latestUpdate(a: Application, row: ApplicationRow) {
+function latestUpdate(
+  a: Application,
+  row: ApplicationRow,
+  interview: ApplicationInterviewRow | undefined,
+) {
   if (a.status === "rejected")
     return "The employer has decided not to move forward with this application. New roles are added every day, so keep applying.";
   if (a.status === "closed")
     return "This posting has closed and the employer is no longer reviewing applications for it.";
+  if (interview?.outcome === "cleared")
+    return "You cleared the interview. JobClubb will be in touch about the next steps.";
+  if (interview && Date.parse(interview.starts_at) > Date.now())
+    return `Your interview is on ${formatInterviewDate(interview.starts_at)} at ${formatInterviewTime(interview.starts_at)}. The details are on your Interviews page.`;
+  if (
+    interview &&
+    Date.parse(interviewEnd(interview.starts_at, interview.duration_mins, interview.finished_at)) >
+      Date.now()
+  )
+    return "Your interview is happening now. Join from your Interviews page.";
+  if (interview) return "Your interview is done. The employer will share the result soon.";
+  if (row.job_interviews.length > 0)
+    return "The employer cancelled your interview. If they set a new time, it'll show up here.";
   if (row.stage >= 2)
     return "You've been shortlisted. The employer can now see your name; your phone number and email stay private.";
   if (row.stage === 1) return "The employer has opened your profile.";
@@ -148,25 +193,46 @@ function latestUpdate(a: Application, row: ApplicationRow) {
 
 function toApplication(row: ApplicationRow): Application {
   const job = toPublicJob(row.company_jobs);
+  const interviews = [...row.job_interviews].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const interview = interviews.find((i) => !i.cancelled_at);
   const events = [
     { label: "Applied", at: row.created_at },
     row.viewed_at && { label: "Viewed by employer", at: row.viewed_at },
     row.shortlisted_at && { label: "Shortlisted", at: row.shortlisted_at },
+    ...interviews.flatMap((i) => [
+      { label: "Interview scheduled", at: i.created_at },
+      i.cancelled_at && { label: "Interview cancelled", at: i.cancelled_at },
+      i.outcome === "cleared" && i.outcome_at && { label: "Cleared interview", at: i.outcome_at },
+    ]),
     row.rejected_at && { label: "Not selected", at: row.rejected_at },
-  ].filter((e): e is { label: string; at: string } => !!e);
+  ]
+    .filter((e): e is { label: string; at: string } => !!e)
+    .sort((a, b) => a.at.localeCompare(b.at));
 
   const application: Application = {
     id: row.ref,
     job: toListing(job),
     stage: row.stage,
-    status: row.status === "rejected" ? "rejected" : job.status === "closed" ? "closed" : "active",
+    status:
+      row.status === "rejected"
+        ? "rejected"
+        : job.status === "closed" && row.stage < 3
+          ? "closed"
+          : "active",
     jobClosed: job.status === "closed",
     appliedOn: row.created_at,
+    stageDates: [
+      row.created_at,
+      row.viewed_at,
+      row.shortlisted_at,
+      interview?.created_at ?? null,
+      null,
+    ].map((at) => (at ? formatShortDate(at) : null)),
     updatedAgo: postedAgo(events[events.length - 1].at),
     update: "",
     history: events.map((e) => ({ label: e.label, date: formatShortDate(e.at) })),
   };
-  application.update = latestUpdate(application, row);
+  application.update = latestUpdate(application, row, interview);
   return application;
 }
 
@@ -190,4 +256,57 @@ export async function getCandidateApplication(candidateId: string, ref: string) 
     .maybeSingle();
   if (error) throw error;
   return data ? toApplication(data as unknown as ApplicationRow) : null;
+}
+
+type CandidateInterviewRow = InterviewPlaceRow & {
+  id: string;
+  starts_at: string;
+  duration_mins: number;
+  finished_at: string | null;
+  mode: string;
+  interviewer: string;
+  round: string;
+  outcome: InterviewOutcome | null;
+  job_applications: {
+    ref: string;
+    company_name: string;
+    job_title: string;
+    companies: { logo_path: string | null } | null;
+  };
+};
+
+export async function listCandidateInterviews(candidateId: string): Promise<Interview[]> {
+  const { data, error } = await createAdminClient()
+    .from("job_interviews")
+    .select(
+      `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path))`,
+    )
+    .eq("candidate_id", candidateId)
+    .is("cancelled_at", null)
+    .order("created_at");
+  if (error) throw error;
+  const now = Date.now();
+  return (data as unknown as CandidateInterviewRow[]).map((r, n) => {
+    const endsAt = interviewEnd(r.starts_at, r.duration_mins, r.finished_at);
+    return {
+      id: r.id,
+      company: r.job_applications.company_name,
+      companyLogoUrl: getCompanyLogoUrl(r.job_applications.companies?.logo_path ?? null),
+      role: r.job_applications.job_title,
+      applicationId: r.job_applications.ref,
+      startsAt: r.starts_at,
+      endsAt,
+      durationMins: r.duration_mins,
+      mode: modeLabel(r.mode),
+      ...interviewPlace(r),
+      interviewer: r.interviewer,
+      round: r.round,
+      guaranteed: n < GUARANTEED_INTERVIEWS,
+      outcome: r.outcome
+        ? OUTCOME_LABELS[r.outcome]
+        : Date.parse(endsAt) <= now
+          ? "Awaiting result"
+          : undefined,
+    };
+  });
 }
