@@ -20,6 +20,7 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH } from "@/lib/membership";
+import { PLACEMENT_FEE_NOTE } from "@/lib/placements";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import {
@@ -89,6 +90,14 @@ export default async function JobDetailPage({
                 One click sends your resume to the employer. Track every step
                 from your dashboard.
               </p>
+              {access.member && (
+                <p className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
+                  {PLACEMENT_FEE_NOTE}{" "}
+                  <Link href="/terms" className="underline underline-offset-2">
+                    Terms
+                  </Link>
+                </p>
+              )}
             </div>
             <PrivacyNote />
           </aside>
@@ -209,7 +218,13 @@ function JobBody({ job }: { job: JobListing }) {
           ))}
         </ul>
       </Section>
-      <div className="p-5 sm:p-6 lg:hidden">
+      <div className="space-y-3 p-5 sm:p-6 lg:hidden">
+        <p className="text-xs leading-5 text-muted-foreground">
+          {PLACEMENT_FEE_NOTE}{" "}
+          <Link href="/terms" className="underline underline-offset-2">
+            Terms
+          </Link>
+        </p>
         <PrivacyNote />
       </div>
     </div>
@@ -274,7 +289,13 @@ function ApplyButton({
   className?: string;
 }) {
   if (state?.kind === "ready")
-    return <ApplyNowButton slug={slug} className={cn(BRAND_BUTTON, className)} />;
+    return (
+      <ApplyNowButton
+        slug={slug}
+        needsTerms={state.needsTerms}
+        className={cn(BRAND_BUTTON, className)}
+      />
+    );
 
   if (state?.kind === "applied")
     return (

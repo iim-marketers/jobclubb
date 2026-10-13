@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LogOut, Users } from "lucide-react";
+import { Building2, Handshake, LogOut, Users } from "lucide-react";
 
 import { adminSignOut } from "@/app/(admin)/admin/actions";
 import { Button } from "@/components/ui/button";
@@ -27,15 +27,22 @@ import {
 export const ADMIN_NAV = [
   { label: "Companies", href: "/admin/companies", icon: Building2 },
   { label: "Candidates", href: "/admin/candidates", icon: Users },
+  { label: "Placements", href: "/admin/placements", icon: Handshake },
 ] as const;
 
 export function AdminSidebar({
   adminEmail,
   pendingReviews,
+  offersToRelease,
 }: {
   adminEmail: string;
   pendingReviews: number;
+  offersToRelease: number;
 }) {
+  const badges: Record<string, number> = {
+    "/admin/companies": pendingReviews,
+    "/admin/placements": offersToRelease,
+  };
   const pathname = usePathname();
 
   return (
@@ -84,9 +91,9 @@ export function AdminSidebar({
                       <Icon />
                       <span>{label}</span>
                     </SidebarMenuButton>
-                    {href === "/admin/companies" && pendingReviews > 0 && (
+                    {badges[href] > 0 && (
                       <SidebarMenuBadge className="rounded-full bg-sidebar-primary px-1.5 font-bold text-sidebar-primary-foreground peer-hover/menu-button:text-sidebar-primary-foreground peer-data-active/menu-button:text-sidebar-primary-foreground">
-                        {pendingReviews}
+                        {badges[href]}
                       </SidebarMenuBadge>
                     )}
                   </SidebarMenuItem>

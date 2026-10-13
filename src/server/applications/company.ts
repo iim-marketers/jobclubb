@@ -4,7 +4,6 @@ import {
   candidateLabel,
   type Applicant,
   type CompanyInterview,
-  type SelectedCandidate,
 } from "@/lib/company-activity";
 import {
   MAX_ROUNDS,
@@ -46,7 +45,7 @@ type ApplicantRow = {
   job_interviews?: { outcome: InterviewOutcome | null }[];
 };
 
-async function revealedNames(rows: Pick<ApplicantRow, "candidate_id" | "shortlisted_at">[]) {
+export async function revealedNames(rows: Pick<ApplicantRow, "candidate_id" | "shortlisted_at">[]) {
   const ids = rows.filter((r) => r.shortlisted_at).map((r) => r.candidate_id);
   if (ids.length === 0) return new Map<string, string>();
   const { data, error } = await createAdminClient()
@@ -209,38 +208,6 @@ export async function countWalkInsAwayFrom(companyId: string, pincode: string) {
     .is("outcome", null);
   if (error) throw error;
   return count ?? 0;
-}
-
-export async function listSelectedCandidates(companyId: string): Promise<SelectedCandidate[]> {
-  const { data, error } = await createAdminClient()
-    .from("job_interviews")
-    .select(
-      "round_no, outcome_at, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at, city, experience_months, status)",
-    )
-    .eq("company_id", companyId)
-    .eq("outcome", "selected")
-    .eq("job_applications.status", "active")
-    .order("outcome_at", { ascending: false });
-  if (error) throw error;
-  const rows = data as unknown as {
-    round_no: number;
-    outcome_at: string;
-    job_applications: Pick<
-      ApplicantRow,
-      "ref" | "job_id" | "candidate_id" | "candidate_no" | "shortlisted_at" | "city" | "experience_months"
-    > & { job_title: string };
-  }[];
-  const names = await revealedNames(rows.map((r) => r.job_applications));
-  return rows.map(({ round_no, outcome_at, job_applications: app }) => ({
-    ref: app.ref,
-    name: names.get(app.candidate_id) ?? candidateLabel(app.candidate_no),
-    city: app.city,
-    experienceMonths: app.experience_months,
-    jobId: app.job_id,
-    designation: app.job_title,
-    rounds: round_no,
-    selectedOn: outcome_at,
-  }));
 }
 
 const now = () => new Date().toISOString();

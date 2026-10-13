@@ -326,6 +326,7 @@ export function CompanySignUp() {
 
             <div>
               <ScrollGatedTerms
+                employer
                 onRead={setHasRead}
                 onAccept={(v) => {
                   setAccepted(v);

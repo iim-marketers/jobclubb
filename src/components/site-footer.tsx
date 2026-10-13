@@ -105,8 +105,16 @@ const COMPANY_COLUMNS: FooterColumns = [
 
 const LEGAL_LINKS = [
   { label: "Terms of Use", href: "/terms" },
+  { label: "Employer Terms", href: "/employer-terms" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Refund Policy", href: "/refund-policy" },
+];
+
+// Candidate terms and the refund policy cover the placement fee, which is
+// between the candidate and JobClubb, so companies aren't pointed to them.
+const COMPANY_LEGAL_LINKS = [
+  { label: "Employer Terms", href: "/employer-terms" },
+  { label: "Privacy Policy", href: "/privacy" },
 ];
 
 export const CONTACT_ITEMS = [
@@ -223,7 +231,7 @@ export async function SiteFooter() {
             © {new Date().getFullYear()}. All rights reserved.
           </p>
           <ul className="flex flex-wrap gap-x-5 gap-y-1">
-            {LEGAL_LINKS.map((link) => (
+            {(audience === "company" ? COMPANY_LEGAL_LINKS : LEGAL_LINKS).map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}

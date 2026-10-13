@@ -61,7 +61,7 @@ export function Field({
   inputClassName?: string;
 } & Pick<
     React.ComponentProps<"input">,
-    "autoComplete" | "inputMode" | "maxLength" | "defaultValue" | "list"
+    "autoComplete" | "inputMode" | "maxLength" | "defaultValue" | "list" | "min"
   >) {
   const { label, required, optional, hint, error, className, ...inputProps } = props;
   return (
@@ -191,6 +191,7 @@ export function FileField({
   description,
   error,
   required,
+  multiple,
   accept = "application/pdf,image/jpeg,image/png",
 }: {
   id: string;
@@ -198,6 +199,7 @@ export function FileField({
   description: string;
   error?: string;
   required?: boolean;
+  multiple?: boolean;
   accept?: string;
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
@@ -234,10 +236,16 @@ export function FileField({
           name={id}
           type="file"
           accept={accept}
+          multiple={multiple}
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
           className="sr-only"
-          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+          onChange={(e) => {
+            const files = e.target.files;
+            setFileName(
+              !files?.length ? null : files.length === 1 ? files[0].name : `${files.length} files selected`,
+            );
+          }}
         />
       </label>
       <FieldError id={`${id}-error`} message={error} />

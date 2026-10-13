@@ -1,5 +1,10 @@
 import type { InterviewOutcomeLabel, Venue } from "@/lib/interviews";
 import type { JobListing } from "@/lib/jobs-data";
+import {
+  CANDIDATE_OFFER_LABELS,
+  isClosed,
+  type CandidateOfferStatus,
+} from "@/lib/placements";
 
 export const STAGES = [
   "Applied",
@@ -11,12 +16,25 @@ export const STAGES = [
 
 export type ApplicationStatus = "active" | "closed" | "rejected";
 
+// Only set once JobClubb releases the offer; until then a selected candidate
+// sees the same "awaiting result" state as everyone else.
+export type CandidateOffer = {
+  placementId: string;
+  status: CandidateOfferStatus;
+  fee: number;
+  paid: boolean;
+  deadline: string;
+  joiningDate: string;
+  monthlySalary: number | null;
+  notes: string;
+};
+
 export type Application = {
   id: string;
   job: JobListing;
   stage: number;
   status: ApplicationStatus;
-  selected: boolean;
+  offer: CandidateOffer | null;
   // Separate from status, which shows "rejected" even when the job has also closed.
   jobClosed: boolean;
   appliedOn: string;
@@ -26,11 +44,14 @@ export type Application = {
   history: { label: string; date: string }[];
 };
 
-export function applicationStatus(a: Application) {
+export function applicationStatus(a: Pick<Application, "status" | "stage" | "offer">) {
   if (a.status === "closed") return "Job closed";
   if (a.status === "rejected") return "Not selected";
-  return a.selected ? "Selected" : STAGES[a.stage];
+  return a.offer ? CANDIDATE_OFFER_LABELS[a.offer.status] : STAGES[a.stage];
 }
+
+export const offerEnded = (offer: CandidateOffer | null) =>
+  !!offer && isClosed(offer.status) && offer.status !== "joined";
 
 export type SavedJob = {
   job: JobListing;

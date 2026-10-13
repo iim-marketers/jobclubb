@@ -19,6 +19,13 @@ import {
   type InterviewOutcome,
   type InterviewPlaceRow,
 } from "@/lib/interviews";
+import {
+  deadlineEnd,
+  formatDateOnly,
+  formatRupees,
+  isReleased,
+  type PlacementStatus,
+} from "@/lib/placements";
 import type { Resume } from "@/lib/resume";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -31,8 +38,10 @@ import {
   toPublicJob,
   type PublicJobRow,
 } from "@/server/companies/jobs";
+import { hasAcceptedCurrentTerms } from "@/server/auth/terms";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
 import { postedAgo, toListing } from "@/server/jobs/listings";
+import { effectiveStatus } from "@/server/placements/placements";
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const REF = /^JC-[0-9A-Z]{6}$/;
@@ -114,13 +123,13 @@ async function findApplicationRef(candidateId: string, jobId: string) {
 }
 
 export type ApplyState =
-  | { kind: "ready" }
+  | { kind: "ready"; needsTerms: boolean }
   | { kind: "no-resume" }
   | { kind: "applied"; ref: string };
 
 export async function getApplyState(candidateId: string, slug: string): Promise<ApplyState> {
   const admin = createAdminClient();
-  const [application, resume] = await Promise.all([
+  const [application, resume, termsAccepted] = await Promise.all([
     admin
       .from("job_applications")
       .select("ref, company_jobs!inner (slug)")
@@ -131,15 +140,67 @@ export async function getApplyState(candidateId: string, slug: string): Promise<
       .from("candidate_resumes")
       .select("candidate_id", { count: "exact", head: true })
       .eq("candidate_id", candidateId),
+    hasAcceptedCurrentTerms("candidates", candidateId),
   ]);
   if (application.error) throw application.error;
   if (resume.error) throw resume.error;
 
   if (application.data) return { kind: "applied", ref: application.data.ref as string };
-  return resume.count ? { kind: "ready" } : { kind: "no-resume" };
+  return resume.count ? { kind: "ready", needsTerms: !termsAccepted } : { kind: "no-resume" };
 }
 
-const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at)`;
+const PLACEMENT_COLUMNS =
+  "id, status, fee_amount, offer_deadline, joining_date, monthly_salary, offer_notes, released_at, accepted_at, closed_at";
+
+const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at), placements (${PLACEMENT_COLUMNS})`;
+
+type PlacementEmbed = {
+  id: string;
+  status: PlacementStatus;
+  fee_amount: number | null;
+  offer_deadline: string | null;
+  joining_date: string | null;
+  monthly_salary: number | null;
+  offer_notes: string | null;
+  released_at: string | null;
+  accepted_at: string | null;
+  closed_at: string | null;
+};
+
+// A one-to-one embed comes back as an object, but tolerate the array form.
+const onePlacement = (embed: PlacementEmbed | PlacementEmbed[] | null | undefined) =>
+  (Array.isArray(embed) ? embed[0] : embed) ?? null;
+
+// The candidate learns they were selected only when JobClubb releases the
+// offer, so until then a "selected" outcome reads as a pending result, and an
+// offer withdrawn before release reads as not selected.
+function hideSelection<T extends { outcome: InterviewOutcome | null; outcome_at?: string | null }>(
+  interview: T,
+  placement: PlacementEmbed | null,
+): T {
+  if (interview.outcome !== "selected" || placement?.released_at) return interview;
+  return placement?.status === "withdrawn"
+    ? { ...interview, outcome: "not_selected" }
+    : { ...interview, outcome: null, outcome_at: null };
+}
+
+function toOffer(placement: PlacementEmbed | null): Application["offer"] {
+  if (!placement?.released_at || !isReleased(placement.status)) return null;
+  if (!placement.fee_amount || !placement.offer_deadline || !placement.joining_date) return null;
+  const status = effectiveStatus(placement);
+  if (status === "awaiting_offer" || status === "offer_received") return null;
+  const unlocked = status === "accepted" || status === "joined" || status === "not_joined";
+  return {
+    placementId: placement.id,
+    status,
+    fee: placement.fee_amount,
+    paid: placement.accepted_at !== null,
+    deadline: placement.offer_deadline,
+    joiningDate: placement.joining_date,
+    monthlySalary: unlocked ? placement.monthly_salary : null,
+    notes: unlocked ? (placement.offer_notes ?? "") : "",
+  };
+}
 
 type ApplicationInterviewRow = {
   created_at: string;
@@ -162,7 +223,35 @@ type ApplicationRow = {
   rejected_at: string | null;
   company_jobs: PublicJobRow;
   job_interviews: ApplicationInterviewRow[];
+  placements: PlacementEmbed | PlacementEmbed[] | null;
 };
+
+const CLOSED_OFFER_EVENTS = {
+  joined: "Joined",
+  not_joined: "Did not join",
+  expired: "Offer expired",
+  declined: "Offer declined",
+  withdrawn: "Offer withdrawn",
+};
+
+function offerUpdate(offer: NonNullable<Application["offer"]>) {
+  switch (offer.status) {
+    case "released":
+      return `Congratulations, you've been selected! Pay the placement fee of ${formatRupees(offer.fee)} by ${formatDateOnly(offer.deadline)} to unlock your offer letter.`;
+    case "accepted":
+      return `Your offer letter is unlocked. You're expected to join on ${formatDateOnly(offer.joiningDate)}.`;
+    case "joined":
+      return "Congratulations on your new role! The employer has confirmed you joined.";
+    case "not_joined":
+      return "The employer recorded that you didn't join on the agreed date. Contact our placement team if that's wrong.";
+    case "expired":
+      return "The deadline to claim this offer passed, so it lapsed. Contact our placement team if you still want the role.";
+    case "declined":
+      return "You declined this offer. New roles are added every day, so keep applying.";
+    case "withdrawn":
+      return "The employer withdrew this offer. Our placement team will be in touch.";
+  }
+}
 
 function latestUpdate(
   a: Application,
@@ -173,8 +262,7 @@ function latestUpdate(
     return "The employer has decided not to move forward with this application. New roles are added every day, so keep applying.";
   if (a.status === "closed")
     return "This posting has closed and the employer is no longer reviewing applications for it.";
-  if (interview?.outcome === "selected")
-    return "You've been selected. JobClubb will be in touch about the next steps.";
+  if (a.offer) return offerUpdate(a.offer);
   if (interview?.outcome === "next_round")
     return `You cleared round ${interview.round_no}. The employer will schedule your next round, and it'll show up here.`;
   const yours = interview && interview.round_no > 1 ? `Your round ${interview.round_no} interview` : "Your interview";
@@ -197,7 +285,11 @@ function latestUpdate(
 
 function toApplication(row: ApplicationRow): Application {
   const job = toPublicJob(row.company_jobs);
-  const interviews = [...row.job_interviews].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const placement = onePlacement(row.placements);
+  const offer = toOffer(placement);
+  const interviews = row.job_interviews
+    .map((i) => hideSelection(i, placement))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
   const rounds = interviews.filter((i) => !i.cancelled_at);
   const interview = rounds.at(-1);
   const events = [
@@ -208,8 +300,13 @@ function toApplication(row: ApplicationRow): Application {
       { label: `Round ${i.round_no} interview scheduled`, at: i.created_at },
       i.cancelled_at && { label: `Round ${i.round_no} interview cancelled`, at: i.cancelled_at },
       i.outcome === "next_round" && i.outcome_at && { label: `Cleared round ${i.round_no}`, at: i.outcome_at },
-      i.outcome === "selected" && i.outcome_at && { label: "Selected", at: i.outcome_at },
     ]),
+    offer && placement?.released_at && { label: "Selected", at: placement.released_at },
+    offer && placement?.accepted_at && { label: "Offer accepted", at: placement.accepted_at },
+    offer && offer.status !== "released" && offer.status !== "accepted" && {
+      label: CLOSED_OFFER_EVENTS[offer.status],
+      at: placement?.closed_at ?? deadlineEnd(offer.deadline).toISOString(),
+    },
     row.rejected_at && { label: "Not selected", at: row.rejected_at },
   ]
     .filter((e): e is { label: string; at: string } => !!e)
@@ -225,7 +322,7 @@ function toApplication(row: ApplicationRow): Application {
         : job.status === "closed" && row.stage < 3
           ? "closed"
           : "active",
-    selected: interview?.outcome === "selected",
+    offer,
     jobClosed: job.status === "closed",
     appliedOn: row.created_at,
     stageDates: [
@@ -233,7 +330,7 @@ function toApplication(row: ApplicationRow): Application {
       row.viewed_at,
       row.shortlisted_at,
       rounds[0]?.created_at ?? null,
-      null,
+      offer ? placement!.released_at : null,
     ].map((at) => (at ? formatShortDate(at) : null)),
     updatedAgo: postedAgo(events[events.length - 1].at),
     update: "",
@@ -280,6 +377,7 @@ type CandidateInterviewRow = InterviewPlaceRow & {
     company_name: string;
     job_title: string;
     companies: { logo_path: string | null } | null;
+    placements: PlacementEmbed | PlacementEmbed[] | null;
   };
 };
 
@@ -287,7 +385,7 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
   const { data, error } = await createAdminClient()
     .from("job_interviews")
     .select(
-      `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path))`,
+      `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path), placements (${PLACEMENT_COLUMNS}))`,
     )
     .eq("candidate_id", candidateId)
     .is("cancelled_at", null)
@@ -295,7 +393,8 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
   if (error) throw error;
   const now = Date.now();
   let firstRounds = 0;
-  return (data as unknown as CandidateInterviewRow[]).map((r) => {
+  return (data as unknown as CandidateInterviewRow[]).map((row) => {
+    const r = hideSelection(row, onePlacement(row.job_applications.placements));
     const endsAt = interviewEnd(r.starts_at, r.duration_mins, r.finished_at);
     return {
       id: r.id,

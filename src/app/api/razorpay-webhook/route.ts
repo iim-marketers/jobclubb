@@ -1,5 +1,6 @@
 import { confirmMembershipPaymentForOrder } from "@/server/candidates/membership";
 import { isValidWebhookSignature } from "@/server/payments/razorpay";
+import { confirmPlacementPaymentForOrder } from "@/server/placements/payments";
 
 type OrderPaidEvent = {
   event: string;
@@ -27,10 +28,10 @@ export async function POST(request: Request) {
   if (!payment?.id || !payment.order_id)
     return Response.json({ error: "Missing payment details." }, { status: 400 });
 
-  const result = await confirmMembershipPaymentForOrder({
-    orderId: payment.order_id,
-    paymentId: payment.id,
-  });
+  const order = { orderId: payment.order_id, paymentId: payment.id };
+  const membership = await confirmMembershipPaymentForOrder(order);
+  const result =
+    membership === "unknown-order" ? await confirmPlacementPaymentForOrder(order) : membership;
   if (result === "failed")
     return Response.json({ error: "Activation failed." }, { status: 500 });
   if (result === "unknown-order")

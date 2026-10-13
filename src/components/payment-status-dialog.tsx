@@ -25,7 +25,13 @@ export type PaymentReceipt = {
   paymentId: string;
   amount?: string;
   paidAt: string;
-  expiresAt: string;
+};
+
+export type PaymentCopy = {
+  item: { label: string; value: string };
+  success: string;
+  successAction: string;
+  retryHint: string;
 };
 
 export type PaymentStatus =
@@ -116,14 +122,14 @@ function PaymentDetails({
 
 export function PaymentStatusDialog({
   status,
-  planName,
-  onGoToDashboard,
+  copy,
+  onSuccessAction,
   onRetry,
   onClose,
 }: {
   status: PaymentStatus | null;
-  planName: string;
-  onGoToDashboard: () => void;
+  copy: PaymentCopy;
+  onSuccessAction: () => void;
   onRetry: () => void;
   onClose: () => void;
 }) {
@@ -176,8 +182,7 @@ export function PaymentStatusDialog({
                 Payment successful
               </DialogTitle>
               <DialogDescription className="text-balance">
-                Welcome to JobClubb! Your {planName} is active until{" "}
-                {formatDate(shown.expiresAt)}.
+                {copy.success}
               </DialogDescription>
             </DialogHeader>
 
@@ -191,7 +196,7 @@ export function PaymentStatusDialog({
                     label="invoice number"
                   />,
                 ],
-                ["Plan", planName],
+                [copy.item.label, copy.item.value],
                 shown.amount && ["Amount paid", shown.amount],
                 ["Paid on", formatDate(shown.paidAt)],
                 [
@@ -208,10 +213,10 @@ export function PaymentStatusDialog({
             <DialogFooter className="-mx-6 -mb-6 px-6 py-4">
               <Button
                 size="lg"
-                onClick={onGoToDashboard}
+                onClick={onSuccessAction}
                 className="w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
               >
-                Go to dashboard
+                {copy.successAction}
               </Button>
             </DialogFooter>
           </>
@@ -232,13 +237,13 @@ export function PaymentStatusDialog({
                 {shown.message}{" "}
                 {shown.stage === "payment"
                   ? "You can try again or use a different payment method."
-                  : "Your payment went through — retry to activate your membership."}
+                  : copy.retryHint}
               </DialogDescription>
             </DialogHeader>
 
             <PaymentDetails
               rows={[
-                ["Plan", planName],
+                [copy.item.label, copy.item.value],
                 shown.amount && ["Amount", shown.amount],
                 shown.paymentId && [
                   "Reference ID",

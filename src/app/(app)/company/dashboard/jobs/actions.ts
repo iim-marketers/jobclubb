@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { COMPANY_JOBS } from "@/components/company/nav";
 import { validateJob } from "@/lib/company-jobs";
+import { EMPLOYER_TERMS_VERSION } from "@/lib/terms-content";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { requireCompany } from "@/server/auth/current-company";
 import {
@@ -20,6 +21,8 @@ export async function createJob(
   formData: FormData,
 ): Promise<JobFormState> {
   const company = await requireCompany(`${COMPANY_JOBS}/new`);
+  if (company.terms_version !== EMPLOYER_TERMS_VERSION)
+    return { error: "Accept the updated terms at the top of the page before posting a job." };
   const { values, errors } = validateJob(formData);
   if (Object.keys(errors).length > 0) return { errors };
 

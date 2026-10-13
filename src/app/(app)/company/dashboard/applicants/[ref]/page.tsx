@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   CalendarDays,
   EyeOff,
+  Handshake,
   MapPin,
   Phone,
   ShieldCheck,
@@ -19,8 +20,10 @@ import { AccordionSections } from "@/components/accordion-sections";
 import { InterviewControls } from "@/components/company/interview-actions";
 import {
   COMPANY_APPLICANTS,
+  COMPANY_SELECTED,
   jobApplicantsHref,
 } from "@/components/company/nav";
+import { Button } from "@/components/ui/button";
 import { ResumeDocument } from "@/components/resume/resume-document";
 import {
   formatInterviewDate,
@@ -34,6 +37,7 @@ import {
   type CompanyInterview,
 } from "@/lib/company-activity";
 import { formatIst, interviewPhase, relativeDay } from "@/lib/interviews";
+import { COMPANY_PLACEMENT_LABELS, type PlacementStatus } from "@/lib/placements";
 import { cn } from "@/lib/utils";
 import {
   NOT_SELECTED_BADGE,
@@ -42,6 +46,19 @@ import {
 } from "@/lib/status-badge";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyApplicant } from "@/server/applications/company";
+import { getCompanyPlacementForApplication } from "@/server/placements/placements";
+
+const OFFER_NOTES: Record<PlacementStatus, string> = {
+  awaiting_offer: "Upload their offer letter so JobClubb can share it with them.",
+  offer_received: "JobClubb is reviewing the offer before sharing it with them.",
+  released: "JobClubb has shared the offer and is waiting for them to confirm.",
+  accepted: "They've confirmed the offer. Mark whether they joined after the joining date.",
+  joined: "They've joined.",
+  not_joined: "They didn't join.",
+  expired: "They didn't confirm the offer in time, so it lapsed.",
+  declined: "They declined the offer.",
+  withdrawn: "The offer was withdrawn.",
+};
 
 export async function generateMetadata({
   params,
@@ -60,7 +77,10 @@ export default async function ApplicantPage({
 }: PageProps<"/company/dashboard/applicants/[ref]">) {
   const [{ ref }, { section }] = await Promise.all([params, searchParams]);
   const company = await requireCompany(`${COMPANY_APPLICANTS}/${ref}`);
-  const applicant = await getCompanyApplicant(company.id, ref);
+  const [applicant, placement] = await Promise.all([
+    getCompanyApplicant(company.id, ref),
+    getCompanyPlacementForApplication(company.id, ref),
+  ]);
   if (!applicant) notFound();
 
   const rejected = applicant.status === "rejected";
@@ -133,6 +153,29 @@ export default async function ApplicantPage({
           )}
         </div>
       </section>
+
+      {placement && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
+          <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-good/12 text-good">
+            <Handshake className="size-4" />
+          </span>
+          <p className="min-w-0 flex-1 basis-56 text-sm leading-6 text-muted-foreground">
+            <span className="font-semibold text-foreground">
+              Offer: {COMPANY_PLACEMENT_LABELS[placement.status]}.
+            </span>{" "}
+            {OFFER_NOTES[placement.status]}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="font-head"
+            nativeButton={false}
+            render={<Link href={COMPANY_SELECTED} />}
+          >
+            Manage offer
+          </Button>
+        </div>
+      )}
 
       <AccordionSections
         defaultOpen={

@@ -357,7 +357,7 @@ export function InterviewControls({
           <ConfirmAction
             label="Selected"
             title="Select this applicant?"
-            description="Use this when they've cleared their final round. The applicant sees that they've been selected, and JobClubb takes it from here. This can't be undone."
+            description="Use this when they've cleared their final round. Then upload their offer letter from your Selected page: JobClubb shares it with the candidate and handles the placement. This can't be undone."
             confirmLabel="Selected"
             onConfirm={run(
               () => recordOutcome(applicantRef, interview.id, "selected"),

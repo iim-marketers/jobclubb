@@ -3,7 +3,7 @@ import "server-only";
 import { assessCompanyVerification, type VerificationRoute } from "@/lib/company-verification";
 import { validateCompany, type FieldErrors } from "@/lib/sign-up-validation";
 import { createAdminClient } from "@/lib/supabase/server";
-import { TERMS_VERSION } from "@/lib/terms-content";
+import { EMPLOYER_TERMS_VERSION } from "@/lib/terms-content";
 import { sendConfirmationEmail } from "@/server/auth/confirmation-email";
 
 const EMAIL_TAKEN = "An account with this email already exists. Each property needs its own email.";
@@ -52,7 +52,7 @@ export async function registerCompany(formData: FormData): Promise<RegisterCompa
       designation: text(formData, "designation"),
       phone: text(formData, "phone"),
       verification_route: route,
-      terms_version: TERMS_VERSION,
+      terms_version: EMPLOYER_TERMS_VERSION,
     },
   });
 

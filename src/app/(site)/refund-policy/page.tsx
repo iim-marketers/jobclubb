@@ -2,7 +2,7 @@ import { PolicyPage, type PolicySection } from "@/components/policy-page";
 
 export const metadata = {
   title: "Refund & Cancellation Policy — JobClubb",
-  description: "Refunds and cancellations for JobClubb memberships.",
+  description: "Refunds and cancellations for JobClubb memberships and placement fees.",
 };
 
 const SECTIONS: PolicySection[] = [
@@ -23,11 +23,15 @@ const SECTIONS: PolicySection[] = [
     body: "We will issue a full refund if you were charged more than once for the same membership, if money was deducted but your membership was not activated, or if you request a refund within 7 days of payment and have not yet used any member feature such as applying to a job or generating a resume.",
   },
   {
-    heading: "5. How to request a refund",
+    heading: "5. Placement fee",
+    body: "When an employer selects you, you pay a one-time placement fee, equal to one month's fixed gross salary with GST included, to receive your offer letter. You can decline the offer at no cost before paying. Once paid, the placement fee is non-refundable in all cases, including if you do not join or the employer later withdraws the offer. If you were charged twice for the same offer, we refund the duplicate payment.",
+  },
+  {
+    heading: "6. How to request a refund",
     body: "Email support@jobclubb.com from your registered email address with your Razorpay payment ID and the reason for the request. We will reply within 3 working days.",
   },
   {
-    heading: "6. Refund timeline",
+    heading: "7. Refund timeline",
     body: "Approved refunds are returned to the original payment method within 5–7 working days. Your bank may take a few more days to show the credit.",
   },
 ];
@@ -36,10 +40,10 @@ export default function RefundPolicyPage() {
   return (
     <PolicyPage
       title="Refund & Cancellation Policy"
-      description="How refunds and cancellations work for JobClubb memberships."
-      eyebrow="Last updated 9 October 2026"
+      description="How refunds and cancellations work for JobClubb memberships and placement fees."
+      eyebrow="Last updated 14 October 2026"
       sections={SECTIONS}
-      footnote="Last updated 9 October 2026"
+      footnote="Last updated 14 October 2026"
     />
   );
 }

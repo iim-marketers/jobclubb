@@ -7,6 +7,7 @@ import { sendEmail } from "@/lib/email/mailer";
 import { applicationDeclinedEmail } from "@/lib/email/templates/application-declined";
 import { applicationReceivedEmail } from "@/lib/email/templates/application-received";
 import { candidateSelectedEmail } from "@/lib/email/templates/candidate-selected";
+import { PLACEMENT_EMAIL } from "@/lib/placements";
 import { candidateShortlistedEmail } from "@/lib/email/templates/candidate-shortlisted";
 import { interviewCancelledEmail } from "@/lib/email/templates/interview-cancelled";
 import {
@@ -24,7 +25,6 @@ import {
 import { SITE_URL } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/server";
 
-const PLACEMENT_EMAIL = "placement@jobclubb.com";
 
 type Candidate = { first_name: string; last_name: string; email: string; phone: string };
 
@@ -129,7 +129,11 @@ type InterviewRow = InterviewPlaceRow & {
   job_title: string;
   company_name: string;
   candidates: Candidate;
-  job_applications: { ref: string; company_jobs: { city: string } };
+  job_applications: {
+    ref: string;
+    company_jobs: { city: string };
+    placements: { id: string } | { id: string }[] | null;
+  };
   companies: { contact_name: string; designation: string; email: string; phone: string };
 };
 
@@ -137,7 +141,7 @@ async function getInterview(companyId: string | null, id: string) {
   let query = createAdminClient()
     .from("job_interviews")
     .select(
-      `starts_at, duration_mins, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, outcome_at, job_title, company_name, candidates (first_name, last_name, email, phone), job_applications (ref, company_jobs (city)), companies (contact_name, designation, email, phone)`,
+      `starts_at, duration_mins, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, outcome_at, job_title, company_name, candidates (first_name, last_name, email, phone), job_applications (ref, company_jobs (city), placements (id)), companies (contact_name, designation, email, phone)`,
     )
     .eq("id", id);
   if (companyId) query = query.eq("company_id", companyId);
@@ -205,6 +209,11 @@ export function sendInterviewCancelled(companyId: string, id: string) {
   });
 }
 
+const placementPath = (embed: { id: string } | { id: string }[] | null) => {
+  const placement = Array.isArray(embed) ? embed[0] : embed;
+  return placement ? `/${placement.id}` : "";
+};
+
 export function sendInterviewOutcome(companyId: string, id: string) {
   return send("interview outcome", async () => {
     const interview = await getInterview(companyId, id);
@@ -244,6 +253,7 @@ export function sendInterviewOutcome(companyId: string, id: string) {
           applicationRef: interview.job_applications.ref,
           rounds: interview.round_no,
           selectedOn: formatDate(interview.outcome_at!),
+          adminUrl: `${SITE_URL}/admin/placements${placementPath(interview.job_applications.placements)}`,
         }),
       };
 

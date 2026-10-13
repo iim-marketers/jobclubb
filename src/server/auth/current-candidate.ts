@@ -11,7 +11,10 @@ import {
   planFor,
   type MembershipPlan,
 } from "@/lib/membership";
+import { addDays, deadlineEnd } from "@/lib/placements";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+
+const OFFER_ACCESS_DAYS = 30;
 
 export const getCurrentCandidate = cache(async () => {
   const supabase = await createClient();
@@ -52,21 +55,40 @@ export async function requireCandidate(returnTo: string) {
 
 export const getLapsedAccessUntil = cache(
   async (candidateId: string, expiresAt: string) => {
-    const { data, error } = await createAdminClient()
-      .from("job_interviews")
-      .select("starts_at")
-      .eq("candidate_id", candidateId)
-      .is("cancelled_at", null)
-      .gt("starts_at", expiresAt)
-      .order("starts_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (error) console.error("Loading lapsed member access failed", error);
-    if (!data) return null;
+    const admin = createAdminClient();
+    const [interview, offers] = await Promise.all([
+      admin
+        .from("job_interviews")
+        .select("starts_at")
+        .eq("candidate_id", candidateId)
+        .is("cancelled_at", null)
+        .gt("starts_at", expiresAt)
+        .order("starts_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      admin
+        .from("placements")
+        .select("status, offer_deadline, joining_date")
+        .eq("candidate_id", candidateId)
+        .in("status", ["released", "accepted", "joined", "not_joined"]),
+    ]);
+    if (interview.error) console.error("Loading lapsed member access failed", interview.error);
+    if (offers.error) console.error("Loading lapsed member offers failed", offers.error);
 
-    const until = new Date(data.starts_at);
-    until.setDate(until.getDate() + INTERVIEW_GRACE_DAYS);
-    return until.getTime() > Date.now() ? until : null;
+    const ends: Date[] = (offers.data ?? []).flatMap((o) =>
+      o.status === "released" && o.offer_deadline
+        ? [deadlineEnd(o.offer_deadline)]
+        : o.joining_date
+          ? [deadlineEnd(addDays(o.joining_date, OFFER_ACCESS_DAYS))]
+          : [],
+    );
+    if (interview.data) {
+      const until = new Date(interview.data.starts_at);
+      until.setDate(until.getDate() + INTERVIEW_GRACE_DAYS);
+      ends.push(until);
+    }
+    const until = ends.reduce<Date | null>((latest, d) => (!latest || d > latest ? d : latest), null);
+    return until && until.getTime() > Date.now() ? until : null;
   },
 );
 

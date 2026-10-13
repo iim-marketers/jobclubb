@@ -6,7 +6,7 @@ import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import {
-  STAGES,
+  applicationStatus,
   formatShortDate,
   type Application,
 } from "@/lib/candidate-activity";
@@ -63,7 +63,7 @@ export function ApplicationJourney({
       ) : (
         <>
           <ul className="divide-y divide-border border-t border-border">
-            {applications.map(({ id, job, stage, appliedOn, status, selected }) => {
+            {applications.map(({ id, job, stage, appliedOn, status, offer }) => {
               const closed = status !== "active";
               return (
                 <li
@@ -89,16 +89,10 @@ export function ApplicationJourney({
                   <span
                     className={cn(
                       "ml-14 rounded-full px-2.5 py-0.5 font-head text-xs font-bold whitespace-nowrap sm:ml-0",
-                      stageBadge({ stage, status, selected }, closed),
+                      stageBadge({ stage, status, offer }, closed),
                     )}
                   >
-                    {status === "rejected"
-                      ? "Not selected"
-                      : closed
-                        ? "Closed"
-                        : selected
-                          ? "Selected"
-                          : STAGES[stage]}
+                    {status === "closed" ? "Closed" : applicationStatus({ stage, status, offer })}
                   </span>
                 </li>
               );

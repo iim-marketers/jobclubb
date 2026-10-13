@@ -1,6 +1,7 @@
 import "server-only";
 
-import { splitGst, stateFromPincode, type GstSplit } from "@/lib/gst";
+import { SUPPLIER, splitGst, stateFromPincode, type GstSplit } from "@/lib/gst";
+import { formatIst } from "@/lib/interviews";
 import {
   MEMBERSHIP_DAYS,
   PLAN_DETAILS,
@@ -8,18 +9,24 @@ import {
 } from "@/lib/membership";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export type MembershipInvoice = GstSplit & {
+export type Invoice = GstSplit & {
   invoiceNumber: string;
   issuedAt: string;
   paymentId: string;
-  planName: string;
-  validFrom: string;
-  validUntil: string;
+  item: { name: string; detail: string; sac: string };
   amount: number;
   currency: string;
   placeOfSupply: string;
   billedTo: { name: string; email: string; city: string; pincode: string };
 };
+
+export type MembershipInvoice = Invoice & {
+  planName: string;
+  validFrom: string;
+  validUntil: string;
+};
+
+const day = (iso: string) => formatIst(iso, { day: "numeric", month: "short", year: "numeric" });
 
 type InvoiceRow = {
   invoice_number: string | null;
@@ -105,12 +112,18 @@ export async function getMembershipInvoice(
   const validUntil = new Date(row.paid_at);
   validUntil.setDate(validUntil.getDate() + MEMBERSHIP_DAYS);
 
+  const planName = PLAN_DETAILS[row.plan].name;
   return {
     ...gst,
     invoiceNumber: row.invoice_number,
     issuedAt: row.paid_at,
     paymentId: row.payment_id,
-    planName: PLAN_DETAILS[row.plan].name,
+    item: {
+      name: planName,
+      detail: `12 months, ${day(row.paid_at)} to ${day(validUntil.toISOString())}`,
+      sac: SUPPLIER.sac,
+    },
+    planName,
     validFrom: row.paid_at,
     validUntil: validUntil.toISOString(),
     amount: row.amount,
@@ -125,5 +138,5 @@ export async function getMembershipInvoice(
   };
 }
 
-export const invoiceFilename = (invoice: MembershipInvoice) =>
+export const invoiceFilename = (invoice: Invoice) =>
   `JobClubb-Invoice-${invoice.invoiceNumber.replaceAll("/", "-")}.pdf`;

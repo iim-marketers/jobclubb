@@ -5,15 +5,25 @@ import { Check, Lock } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { TERMS_SECTIONS, TERMS_VERSION } from "@/lib/terms-content";
+import {
+  EMPLOYER_TERMS_SECTIONS,
+  EMPLOYER_TERMS_VERSION,
+  TERMS_SECTIONS,
+  TERMS_VERSION,
+} from "@/lib/terms-content";
 
 export function ScrollGatedTerms({
   onAccept,
   onRead,
+  employer = false,
 }: {
   onAccept?: (v: boolean) => void;
   onRead?: (v: boolean) => void;
+  employer?: boolean;
 }) {
+  const [version, sections] = employer
+    ? [EMPLOYER_TERMS_VERSION, EMPLOYER_TERMS_SECTIONS]
+    : [TERMS_VERSION, TERMS_SECTIONS];
   const [hasRead, setHasRead] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -43,7 +53,7 @@ export function ScrollGatedTerms({
           Terms &amp; Conditions
         </h3>
         <span className="text-xs text-muted-foreground">
-          Version {TERMS_VERSION}
+          Version {version}
         </span>
       </div>
 
@@ -52,7 +62,7 @@ export function ScrollGatedTerms({
         onScroll={handleScroll}
         className="h-64 space-y-4 overflow-y-auto px-5 py-4 text-sm leading-6 text-muted-foreground"
       >
-        {TERMS_SECTIONS.map((section) => (
+        {sections.map((section) => (
           <section key={section.heading}>
             <h4 className="font-head font-bold text-foreground">
               {section.heading}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeCheck, Check, Info, Lock, Share2 } from "lucide-react";
+import { BadgeCheck, Check, Handshake, Info, Lock, Share2 } from "lucide-react";
 
 import { PageHeader, Section, SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -123,6 +123,32 @@ export default async function MembershipPage() {
                   0 of 5 redemptions used
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-border bg-card p-8">
+          <div className="flex flex-wrap items-start gap-5">
+            <span className="flex size-12 flex-none items-center justify-center rounded-2xl bg-brand/10 text-brand">
+              <Handshake className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <SectionEyebrow>When you&apos;re selected</SectionEyebrow>
+              <h2 className="mt-1.5 font-head text-xl font-bold tracking-tight">
+                A placement fee applies only when you land the job
+              </h2>
+              <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
+                Membership covers your job search. When an employer selects
+                you, JobClubb shares the offer with you, and you pay a one-time
+                placement fee equal to one month&apos;s fixed gross salary (GST
+                included) to receive your offer letter. You can decline an offer
+                at no cost before paying; once paid, the fee is non-refundable.
+                See our{" "}
+                <Link href="/terms" className="font-medium text-foreground underline underline-offset-2">
+                  terms
+                </Link>{" "}
+                for details.
+              </p>
             </div>
           </div>
         </div>

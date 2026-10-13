@@ -27,7 +27,7 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { RecruiterBoard } from "@/components/recruiter-board";
 import { SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { STAGES, type Application } from "@/lib/candidate-activity";
+import { STAGES, applicationStatus, type Application } from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH, type MembershipPlan } from "@/lib/membership";
@@ -445,13 +445,7 @@ function ApplicationCard({ application: a }: { application: Application }) {
             stageBadge(a, closed),
           )}
         >
-          {a.status === "rejected"
-            ? "Not selected"
-            : closed
-              ? "Closed"
-              : a.selected
-                ? "Selected"
-                : STAGES[a.stage]}
+          {a.status === "closed" ? "Closed" : applicationStatus(a)}
         </span>
         <span className="text-xs text-muted-foreground">
           Updated {a.updatedAgo.toLowerCase()}
