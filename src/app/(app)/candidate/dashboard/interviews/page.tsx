@@ -40,7 +40,7 @@ import {
 import { interviewPhase, relativeDay } from "@/lib/interviews";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import { NOT_SELECTED_BADGE, SELECTED_BADGE } from "@/lib/status-badge";
 import { listCandidateInterviews } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 
@@ -674,7 +674,9 @@ function StatusPill({
     <span
       className={cn(
         "rounded-full px-2.5 py-1 font-head text-[11px] font-bold",
-        i.outcome === "Cleared" || i.outcome === "Selected"
+        i.outcome === "Selected"
+          ? SELECTED_BADGE
+          : i.outcome === "Cleared"
           ? "bg-good/12 text-good"
           : i.outcome === "Not selected"
             ? NOT_SELECTED_BADGE

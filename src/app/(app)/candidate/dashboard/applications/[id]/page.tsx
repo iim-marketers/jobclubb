@@ -26,7 +26,7 @@ import {
 } from "@/lib/candidate-activity";
 import { interviewPhase } from "@/lib/interviews";
 import { toRichTextHtml } from "@/lib/rich-text";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import { NOT_SELECTED_BADGE, stageBadge } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
 import {
   getCandidateApplication,
@@ -99,13 +99,7 @@ export default async function ApplicationDetailPage({
             <span
               className={cn(
                 "rounded-full px-2.5 py-0.5 font-head text-xs font-bold",
-                rejected
-                  ? NOT_SELECTED_BADGE
-                  : archived
-                    ? "bg-muted text-muted-foreground"
-                    : good
-                      ? "bg-good/12 text-good"
-                      : "bg-brand/10 text-brand",
+                stageBadge(application, archived),
               )}
             >
               {applicationStatus(application)}

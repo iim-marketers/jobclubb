@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   LayoutDashboard,
   Settings,
+  UserRoundCheck,
   UserRoundSearch,
 } from "lucide-react";
 
@@ -10,6 +11,8 @@ export const COMPANY_HOME = "/company/dashboard";
 export const COMPANY_JOBS = `${COMPANY_HOME}/jobs`;
 export const COMPANY_APPLICANTS = `${COMPANY_HOME}/applicants`;
 export const COMPANY_INTERVIEWS = `${COMPANY_HOME}/interviews`;
+export const COMPANY_SELECTED = `${COMPANY_HOME}/selected`;
+export const applicantHref = (ref: string) => `${COMPANY_APPLICANTS}/${ref}`;
 export const jobApplicantsHref = (jobId: string) =>
   `${COMPANY_APPLICANTS}/jobs/${jobId}`;
 
@@ -27,6 +30,7 @@ export const COMPANY_NAV: { title: string; items: CompanyNavItem[] }[] = [
       { label: "Job postings", href: COMPANY_JOBS, icon: Briefcase },
       { label: "Applicants", href: COMPANY_APPLICANTS, icon: UserRoundSearch },
       { label: "Interviews", href: COMPANY_INTERVIEWS, icon: CalendarCheck },
+      { label: "Selected", href: COMPANY_SELECTED, icon: UserRoundCheck },
     ],
   },
   {

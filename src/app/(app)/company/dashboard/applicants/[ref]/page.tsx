@@ -35,7 +35,11 @@ import {
 } from "@/lib/company-activity";
 import { formatIst, interviewPhase, relativeDay } from "@/lib/interviews";
 import { cn } from "@/lib/utils";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import {
+  NOT_SELECTED_BADGE,
+  SELECTED_BADGE,
+  stageBadge,
+} from "@/lib/status-badge";
 import { requireCompany } from "@/server/auth/current-company";
 import { getCompanyApplicant } from "@/server/applications/company";
 
@@ -61,7 +65,11 @@ export default async function ApplicantPage({
 
   const rejected = applicant.status === "rejected";
   const latestRound = applicant.interviews.at(-1);
-  const status = rejected ? "Not selected" : STAGES[applicant.stage];
+  const status = rejected
+    ? "Not selected"
+    : applicant.selected
+      ? "Selected"
+      : STAGES[applicant.stage];
   const now = new Date();
 
   return (
@@ -85,11 +93,7 @@ export default async function ApplicantPage({
               <span
                 className={cn(
                   "rounded-full px-2.5 py-0.5 font-head text-xs font-bold",
-                  rejected
-                    ? NOT_SELECTED_BADGE
-                    : applicant.stage >= 2
-                      ? "bg-good/12 text-good"
-                      : "bg-brand/10 text-brand",
+                  stageBadge(applicant),
                 )}
               >
                 {status}
@@ -119,7 +123,7 @@ export default async function ApplicantPage({
               </span>
             </p>
           </div>
-          {!rejected && applicant.stage < 4 && (
+          {!rejected && !applicant.selected && applicant.stage < 4 && (
             <ApplicantActions
               applicantRef={applicant.ref}
               jobLocation={applicant.jobLocation}
@@ -383,7 +387,11 @@ function InterviewStatus({
   const [label, tone] = i.outcome
     ? [
         i.outcome,
-        i.outcome === "Not selected" ? NOT_SELECTED_BADGE : "bg-good/12 text-good",
+        i.outcome === "Not selected"
+          ? NOT_SELECTED_BADGE
+          : i.outcome === "Selected"
+            ? SELECTED_BADGE
+            : "bg-good/12 text-good",
       ]
     : phase === "ended"
       ? ["Result pending", "bg-amber-500/12 text-amber-700 dark:text-amber-300"]

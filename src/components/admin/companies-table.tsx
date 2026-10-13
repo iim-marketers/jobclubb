@@ -25,6 +25,7 @@ import {
   formatDate,
   industryName,
 } from "@/components/admin/data-table";
+import { FilterSelect } from "@/components/table-toolbar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -355,40 +356,12 @@ export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
         onRowClick={(c) => setViewingId(c.id)}
         emptyTitle="No companies in this view"
         toolbar={
-          <div
-            role="tablist"
-            aria-label="Filter by status"
-            className="flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1"
-          >
-            {TABS.map((t) => {
-              const selected = tab === t.key;
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setTab(t.key)}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 font-head text-xs lg:flex-none font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                    selected
-                      ? "bg-brand text-brand-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  {t.label}
-                  <span
-                    className={cn(
-                      "rounded-full px-1.5 text-[9px] leading-4",
-                      selected ? "bg-white/20" : "bg-muted",
-                    )}
-                  >
-                    {counts[t.key]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <FilterSelect
+            label="Status"
+            options={TABS.map((t) => ({ value: t.key, label: t.label }))}
+            value={tab}
+            onChange={setTab}
+          />
         }
       />
 

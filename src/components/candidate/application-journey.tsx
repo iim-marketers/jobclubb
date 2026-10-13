@@ -10,7 +10,7 @@ import {
   formatShortDate,
   type Application,
 } from "@/lib/candidate-activity";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import { stageBadge } from "@/lib/status-badge";
 import { cn } from "@/lib/utils";
 
 const MIN_ROWS = 4;
@@ -63,7 +63,7 @@ export function ApplicationJourney({
       ) : (
         <>
           <ul className="divide-y divide-border border-t border-border">
-            {applications.map(({ id, job, stage, appliedOn, status }) => {
+            {applications.map(({ id, job, stage, appliedOn, status, selected }) => {
               const closed = status !== "active";
               return (
                 <li
@@ -89,20 +89,16 @@ export function ApplicationJourney({
                   <span
                     className={cn(
                       "ml-14 rounded-full px-2.5 py-0.5 font-head text-xs font-bold whitespace-nowrap sm:ml-0",
-                      status === "rejected"
-                        ? NOT_SELECTED_BADGE
-                        : closed
-                          ? "bg-muted text-muted-foreground"
-                          : stage >= 3
-                            ? "bg-good/12 text-good"
-                            : "bg-brand/10 text-brand",
+                      stageBadge({ stage, status, selected }, closed),
                     )}
                   >
                     {status === "rejected"
                       ? "Not selected"
                       : closed
                         ? "Closed"
-                        : STAGES[stage]}
+                        : selected
+                          ? "Selected"
+                          : STAGES[stage]}
                   </span>
                 </li>
               );

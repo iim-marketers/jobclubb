@@ -225,6 +225,7 @@ function toApplication(row: ApplicationRow): Application {
         : job.status === "closed" && row.stage < 3
           ? "closed"
           : "active",
+    selected: interview?.outcome === "selected",
     jobClosed: job.status === "closed",
     appliedOn: row.created_at,
     stageDates: [

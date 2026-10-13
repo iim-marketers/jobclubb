@@ -16,6 +16,7 @@ export type Application = {
   job: JobListing;
   stage: number;
   status: ApplicationStatus;
+  selected: boolean;
   // Separate from status, which shows "rejected" even when the job has also closed.
   jobClosed: boolean;
   appliedOn: string;
@@ -28,7 +29,7 @@ export type Application = {
 export function applicationStatus(a: Application) {
   if (a.status === "closed") return "Job closed";
   if (a.status === "rejected") return "Not selected";
-  return STAGES[a.stage];
+  return a.selected ? "Selected" : STAGES[a.stage];
 }
 
 export type SavedJob = {

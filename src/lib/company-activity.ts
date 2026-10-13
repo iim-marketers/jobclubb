@@ -15,6 +15,7 @@ export type Applicant = {
   skills: string[];
   stage: number;
   status: "active" | "rejected";
+  selected: boolean;
   appliedOn: string;
 };
 
@@ -43,6 +44,17 @@ export type CompanyInterview = {
   roundNo: number;
   round: string;
   outcome: InterviewOutcomeLabel | null;
+};
+
+export type SelectedCandidate = {
+  ref: string;
+  name: string;
+  city: string;
+  experienceMonths: number;
+  jobId: string;
+  designation: string;
+  rounds: number;
+  selectedOn: string;
 };
 
 export function upcomingCompanyInterviews(interviews: CompanyInterview[], now = new Date()) {

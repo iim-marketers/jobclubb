@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { STAGES, type Application } from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
 import type { JobListing } from "@/lib/jobs-data";
-import { NOT_SELECTED_BADGE } from "@/lib/status-badge";
+import { stageBadge } from "@/lib/status-badge";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import { listCandidateApplications } from "@/server/applications/candidate";
@@ -501,20 +501,16 @@ function ApplicationCard({ application: a }: { application: Application }) {
         <span
           className={cn(
             "rounded-full px-2.5 py-0.5 font-head text-xs font-bold",
-            a.status === "rejected"
-              ? NOT_SELECTED_BADGE
-              : closed
-                ? "bg-muted text-muted-foreground"
-                : a.stage >= 3
-                  ? "bg-good/12 text-good"
-                  : "bg-brand/10 text-brand",
+            stageBadge(a, closed),
           )}
         >
           {a.status === "rejected"
             ? "Not selected"
             : closed
               ? "Closed"
-              : STAGES[a.stage]}
+              : a.selected
+                ? "Selected"
+                : STAGES[a.stage]}
         </span>
         <span className="text-xs text-muted-foreground">
           Updated {a.updatedAgo.toLowerCase()}

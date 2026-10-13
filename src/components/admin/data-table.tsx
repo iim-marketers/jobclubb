@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Inbox,
-  Search,
 } from "lucide-react";
 import {
   columnFilteringFeature,
@@ -28,6 +27,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 
+import { TableSearch, TableToolbar } from "@/components/table-toolbar";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -106,20 +106,15 @@ export function DataTable<T extends object>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">{toolbar}</div>
-        <div className="relative lg:w-80">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => table.setGlobalFilter(e.target.value)}
-            placeholder={searchPlaceholder}
-            aria-label={searchPlaceholder}
-            className="h-10 w-full rounded-full border border-border bg-card pr-4 pl-10 text-sm shadow-xs transition-colors outline-none placeholder:text-muted-foreground focus:border-brand focus:ring-3 focus:ring-brand/15"
-          />
-        </div>
-      </div>
+      <TableToolbar>
+        <TableSearch
+          value={query}
+          onChange={(v) => table.setGlobalFilter(v)}
+          placeholder={searchPlaceholder}
+          label={searchPlaceholder}
+        />
+        {toolbar}
+      </TableToolbar>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         <Table>
