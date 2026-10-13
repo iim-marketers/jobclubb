@@ -117,6 +117,8 @@ The confirmation email is `src/lib/email/templates/confirm-signup.ts`: email-saf
 
 Candidates pay for membership on `/onboarding/membership` after verifying their email. `POST /api/create-order` creates a Razorpay order for the candidate's plan and records it in `membership_payments`; `POST /api/verify-payment` checks the checkout signature and then activates the membership.
 
+Prices include 18% GST. Each order stores who it's billed to and its GST split (CGST + SGST for West Bengal, where JobClubb is registered, or IGST for any other state, worked out from the candidate's pincode), so an issued invoice never changes. The receipt email attaches a PDF tax invoice. Whichever confirmation (browser callback or webhook) claims `receipt_sent_at` first sends it, and a failed send releases the claim for the next one to retry. `GET /api/invoices/<payment id>` serves the invoice again from the Billing table. The supplier details and SAC code live in `src/lib/gst.ts`.
+
 When a membership expires, the candidate goes straight to the renewal checkout. The exception is a candidate with interviews scheduled after their expiry date: they keep view-only access to Applications, Interviews, Membership and Settings until 3 days after the last of those interviews. Either way they can't change anything: the RLS policies on `public.candidates` and the `candidate-photos` bucket only allow writes while `membership_expires_at` is in the future.
 
 - Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` from the Razorpay dashboard (**Account & Settings → API Keys**), and `NEXT_PUBLIC_RAZORPAY_KEY_ID` to the same key ID. The secret is server-only.

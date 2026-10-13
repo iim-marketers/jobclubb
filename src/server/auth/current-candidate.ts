@@ -50,9 +50,6 @@ export async function requireCandidate(returnTo: string) {
   return candidate;
 }
 
-// A lapsed member with interviews set after their expiry keeps read-only access
-// until INTERVIEW_GRACE_DAYS after the last one, so the lapse doesn't cut them
-// off mid-hiring. Returns null once that window has passed.
 export const getLapsedAccessUntil = cache(
   async (candidateId: string, expiresAt: string) => {
     const { data, error } = await createAdminClient()
@@ -80,8 +77,6 @@ export async function getLapsedAccess() {
   return getLapsedAccessUntil(candidate.id, expiresAt);
 }
 
-// allowLapsed is for the read-only pages a lapsed member keeps during their
-// interview window (see getLapsedAccessUntil).
 export async function requireMember(
   returnTo: string,
   { allowLapsed = false }: { allowLapsed?: boolean } = {},

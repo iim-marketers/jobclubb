@@ -148,8 +148,7 @@ async function getInterview(companyId: string | null, id: string) {
 
 async function interviewEmail(companyId: string | null, id: string, kind: InterviewEmailKind) {
   const interview = await getInterview(companyId, id);
-  // A retired phone interview's place is the employer's number, which
-  // candidates must never see.
+  // A retired phone interview's place is the employer's number.
   if (!interview || interview.mode === "phone") return null;
   const { candidates: candidate } = interview;
   return {

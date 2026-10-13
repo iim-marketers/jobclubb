@@ -29,7 +29,7 @@ import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "Membership — JobClubb" };
 
-const SUPPORT_EMAIL = "contact@jobclubb.com";
+const SUPPORT_EMAIL = "support@jobclubb.com";
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -197,6 +197,9 @@ export default async function MembershipPage() {
                   <TableHead className="h-11 px-3 text-right text-xs font-semibold text-muted-foreground">
                     Status
                   </TableHead>
+                  <TableHead className="h-11 px-3 text-right text-xs font-semibold text-muted-foreground">
+                    Invoice
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -216,11 +219,25 @@ export default async function MembershipPage() {
                     </TableCell>
                     <TableCell className="px-3 py-3.5 text-right font-head font-bold">
                       {formatAmount(payment.amount, payment.currency)}
+                      <span className="block text-[11px] font-normal text-muted-foreground">
+                        incl. GST
+                      </span>
                     </TableCell>
                     <TableCell className="px-3 py-3.5 text-right">
                       <span className="inline-flex items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
                         <Check className="size-3" strokeWidth={3} /> Paid
                       </span>
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 text-right">
+                      <a
+                        href={`/api/invoices/${payment.paymentId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`View invoice ${payment.invoiceNumber}`}
+                        className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
+                      >
+                        <Eye className="size-3.5" /> View
+                      </a>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -27,8 +27,8 @@ export const CONTACT_ITEMS = [
   { icon: MapPin, text: "Kolkata, India", href: null },
   {
     icon: Mail,
-    text: "contact@jobclubb.com",
-    href: "mailto:contact@jobclubb.com",
+    text: "support@jobclubb.com",
+    href: "mailto:support@jobclubb.com",
   },
   { icon: Phone, text: "+91 90739 33000", href: "tel:+919073933000" },
   { icon: Clock, text: "Mon-Sat, 10:30am - 6:30pm", href: null },

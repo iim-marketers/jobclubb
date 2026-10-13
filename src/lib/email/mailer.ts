@@ -5,7 +5,7 @@ type EmailMessage = {
   subject: string;
   html: string;
   text: string;
-  attachments?: { filename: string; content: Buffer; cid: string; contentType: string }[];
+  attachments?: { filename: string; content: Buffer; cid?: string; contentType: string }[];
 };
 
 export async function sendEmail(message: EmailMessage) {

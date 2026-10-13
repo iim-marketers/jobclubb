@@ -111,7 +111,7 @@ export default async function SettingsPage() {
                   nativeButton={false}
                   render={
                     <a
-                      href={`mailto:contact@jobclubb.com?subject=${encodeURIComponent(
+                      href={`mailto:support@jobclubb.com?subject=${encodeURIComponent(
                         "Delete my JobClubb account",
                       )}&body=${encodeURIComponent(
                         `Please delete the account registered to ${candidate.email}.`,

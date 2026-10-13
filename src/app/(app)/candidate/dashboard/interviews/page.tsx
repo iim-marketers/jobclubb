@@ -349,10 +349,10 @@ function NextInterview({
               <>
                 Phone interview. Email{" "}
                 <a
-                  href="mailto:contact@jobclubb.com"
+                  href="mailto:support@jobclubb.com"
                   className="text-brand hover:underline"
                 >
-                  contact@jobclubb.com
+                  support@jobclubb.com
                 </a>{" "}
                 for the call details.
               </>

@@ -50,7 +50,7 @@ export default async function CompanySettingsPage() {
     ],
   ];
 
-  const changeRequest = `mailto:contact@jobclubb.com?subject=${encodeURIComponent(
+  const changeRequest = `mailto:support@jobclubb.com?subject=${encodeURIComponent(
     `Update verified details for ${company.company_name}`,
   )}&body=${encodeURIComponent(
     `Account: ${company.email}\n\nPlease change the following details:\n`,
@@ -143,7 +143,7 @@ export default async function CompanySettingsPage() {
                   nativeButton={false}
                   render={
                     <a
-                      href={`mailto:contact@jobclubb.com?subject=${encodeURIComponent(
+                      href={`mailto:support@jobclubb.com?subject=${encodeURIComponent(
                         "Close my JobClubb company account",
                       )}&body=${encodeURIComponent(
                         `Please close the company account registered to ${company.email}.`,

@@ -183,7 +183,7 @@ export function CandidateHeader({
             className="hidden sm:inline-flex"
             aria-label="Help"
             nativeButton={false}
-            render={<a href="mailto:contact@jobclubb.com" />}
+            render={<a href="mailto:support@jobclubb.com" />}
           >
             <CircleHelp className="size-4.5" />
           </Button>

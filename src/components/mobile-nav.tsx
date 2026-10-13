@@ -217,11 +217,11 @@ export function MobileNav({
 
           <div className="mt-4 space-y-2">
             <a
-              href="mailto:contact@jobclubb.com"
+              href="mailto:support@jobclubb.com"
               className="flex items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-brand"
             >
               <Mail className="size-3.5 flex-none text-brand" />
-              contact@jobclubb.com
+              support@jobclubb.com
             </a>
             <a
               href="tel:+919073933000"

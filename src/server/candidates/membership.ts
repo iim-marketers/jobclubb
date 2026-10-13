@@ -13,6 +13,13 @@ import {
 } from "@/lib/membership";
 import { SITE_URL } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/server";
+import {
+  billingFor,
+  getMembershipInvoice,
+  gstColumns,
+  invoiceFilename,
+} from "@/server/candidates/invoice";
+import { renderInvoicePdf } from "@/server/candidates/invoice-pdf";
 import { createRazorpayOrder } from "@/server/payments/razorpay";
 
 const CURRENCY = "INR";
@@ -20,6 +27,10 @@ const CURRENCY = "INR";
 export async function createMembershipOrder(candidate: {
   id: string;
   plan: MembershipPlan;
+  first_name: string;
+  last_name: string;
+  city: string;
+  pincode: string;
 }) {
   const amount = PLAN_DETAILS[candidate.plan].amount * 100;
   const order = await createRazorpayOrder({
@@ -29,12 +40,15 @@ export async function createMembershipOrder(candidate: {
     notes: { candidate_id: candidate.id, plan: candidate.plan },
   });
 
+  const billing = billingFor(candidate);
   const { error } = await createAdminClient().from("membership_payments").insert({
     order_id: order.id,
     candidate_id: candidate.id,
     plan: candidate.plan,
     amount,
     currency: CURRENCY,
+    ...billing,
+    ...gstColumns(amount, billing.place_of_supply),
   });
   if (error) {
     console.error("Recording Razorpay order failed", error);
@@ -103,21 +117,7 @@ export async function confirmMembershipPayment({
   );
   if (!expiresAt) return "failed";
 
-  // Only the call that marked the order paid gets a row back, so the browser
-  // callback and the webhook can't both send a receipt.
-  if (marked) {
-    const receipt = {
-      candidateId,
-      plan: payment.plan,
-      amount: payment.amount,
-      currency: payment.currency,
-      invoiceNumber: payment.invoice_number,
-      paymentId,
-      paidAt: payment.paid_at,
-      expiresAt: expiresAt.toISOString(),
-    };
-    after(() => sendMembershipReceipt(receipt));
-  }
+  after(() => sendMembershipReceipt(candidateId, paymentId));
 
   return {
     invoiceNumber: payment.invoice_number,
@@ -126,40 +126,58 @@ export async function confirmMembershipPayment({
   };
 }
 
-async function sendMembershipReceipt(receipt: {
-  candidateId: string;
-  plan: MembershipPlan;
-  amount: number;
-  currency: string;
-  invoiceNumber: string;
-  paymentId: string;
-  paidAt: string;
-  expiresAt: string;
-}) {
+async function sendMembershipReceipt(candidateId: string, paymentId: string) {
+  const admin = createAdminClient();
+  const { data: claimed, error: claimError } = await admin
+    .from("membership_payments")
+    .update({ receipt_sent_at: new Date().toISOString() })
+    .eq("payment_id", paymentId)
+    .eq("candidate_id", candidateId)
+    .is("receipt_sent_at", null)
+    .select("order_id")
+    .maybeSingle();
+  if (claimError) {
+    console.error("Claiming membership receipt failed", claimError);
+    return;
+  }
+  if (!claimed) return;
+
   try {
-    const { data: candidate, error } = await createAdminClient()
-      .from("candidates")
-      .select("first_name, email")
-      .eq("id", receipt.candidateId)
-      .single();
+    const [invoice, { data: candidate, error }] = await Promise.all([
+      getMembershipInvoice(candidateId, paymentId),
+      admin
+        .from("candidates")
+        .select("first_name")
+        .eq("id", candidateId)
+        .single(),
+    ]);
     if (error) throw error;
+    if (!invoice) throw new Error(`No invoice for payment ${paymentId}`);
+
+    const email = membershipReceiptEmail({
+      firstName: candidate.first_name,
+      invoice,
+      membershipUrl: `${SITE_URL}${CANDIDATE_HOME}/membership`,
+    });
     await sendEmail({
-      to: candidate.email,
-      ...membershipReceiptEmail({
-        firstName: candidate.first_name,
-        email: candidate.email,
-        planName: PLAN_DETAILS[receipt.plan].name,
-        amount: receipt.amount,
-        currency: receipt.currency,
-        invoiceNumber: receipt.invoiceNumber,
-        paymentId: receipt.paymentId,
-        paidAt: receipt.paidAt,
-        expiresAt: receipt.expiresAt,
-        membershipUrl: `${SITE_URL}${CANDIDATE_HOME}/membership`,
-      }),
+      to: invoice.billedTo.email,
+      ...email,
+      attachments: [
+        ...email.attachments,
+        {
+          filename: invoiceFilename(invoice),
+          content: await renderInvoicePdf(invoice),
+          contentType: "application/pdf",
+        },
+      ],
     });
   } catch (error) {
     console.error("Sending membership receipt failed", error);
+    const { error: releaseError } = await admin
+      .from("membership_payments")
+      .update({ receipt_sent_at: null })
+      .eq("payment_id", paymentId);
+    if (releaseError) console.error("Releasing membership receipt failed", releaseError);
   }
 }
 

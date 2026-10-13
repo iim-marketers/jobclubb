@@ -1,7 +1,4 @@
--- Phone interviews are retired: their place was the employer's own number,
--- and candidates must never see an employer's contact details. Existing phone
--- rows stay as history (the app never shows their number to candidates), so
--- this blocks new ones instead of tightening the mode check.
+-- A trigger rather than a tighter mode check, so existing phone rows stay valid.
 create function public.job_interviews_no_phone()
 returns trigger
 language plpgsql

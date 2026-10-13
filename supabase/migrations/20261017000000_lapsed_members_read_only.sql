@@ -1,5 +1,3 @@
--- A candidate whose membership has lapsed can still read their profile,
--- applications and interviews, but can't change anything until they renew.
 -- membership_expires_at isn't writable by candidates, so checking it on their
 -- own row is safe.
 drop policy "Candidates update their own profile" on public.candidates;
