@@ -9,7 +9,10 @@ import { applicationReceivedEmail } from "@/lib/email/templates/application-rece
 import { candidateSelectedEmail } from "@/lib/email/templates/candidate-selected";
 import { candidateShortlistedEmail } from "@/lib/email/templates/candidate-shortlisted";
 import { interviewCancelledEmail } from "@/lib/email/templates/interview-cancelled";
-import { interviewScheduledEmail } from "@/lib/email/templates/interview-scheduled";
+import {
+  interviewScheduledEmail,
+  type InterviewEmailKind,
+} from "@/lib/email/templates/interview-scheduled";
 import {
   PLACE_COLUMNS,
   formatIst,
@@ -117,7 +120,7 @@ export function sendRejected(companyId: string, ref: string) {
 type InterviewRow = InterviewPlaceRow & {
   starts_at: string;
   duration_mins: number;
-  mode: InterviewModeValue;
+  mode: InterviewModeValue | "phone";
   interviewer: string;
   round_no: number;
   round: string;
@@ -130,43 +133,56 @@ type InterviewRow = InterviewPlaceRow & {
   companies: { contact_name: string; designation: string; email: string; phone: string };
 };
 
-async function getInterview(companyId: string, id: string) {
-  const { data, error } = await createAdminClient()
+async function getInterview(companyId: string | null, id: string) {
+  let query = createAdminClient()
     .from("job_interviews")
     .select(
       `starts_at, duration_mins, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, outcome_at, job_title, company_name, candidates (first_name, last_name, email, phone), job_applications (ref, company_jobs (city)), companies (contact_name, designation, email, phone)`,
     )
-    .eq("company_id", companyId)
-    .eq("id", id)
-    .maybeSingle();
+    .eq("id", id);
+  if (companyId) query = query.eq("company_id", companyId);
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return data as unknown as InterviewRow | null;
 }
 
+async function interviewEmail(companyId: string | null, id: string, kind: InterviewEmailKind) {
+  const interview = await getInterview(companyId, id);
+  // A retired phone interview's place is the employer's number, which
+  // candidates must never see.
+  if (!interview || interview.mode === "phone") return null;
+  const { candidates: candidate } = interview;
+  return {
+    to: candidate.email,
+    ...interviewScheduledEmail({
+      firstName: candidate.first_name,
+      email: candidate.email,
+      companyName: interview.company_name,
+      jobTitle: interview.job_title,
+      roundNo: interview.round_no,
+      round: interview.round,
+      startsAt: interview.starts_at,
+      durationMins: interview.duration_mins,
+      mode: interview.mode,
+      ...interviewPlace(interview),
+      interviewer: interview.interviewer,
+      interviewsUrl: `${SITE_URL}${CANDIDATE_HOME}/interviews`,
+      kind,
+    }),
+  };
+}
+
 export function sendInterviewScheduled(companyId: string, id: string, rescheduled: boolean) {
-  return send("interview scheduled", async () => {
-    const interview = await getInterview(companyId, id);
-    if (!interview) return null;
-    const { candidates: candidate } = interview;
-    return {
-      to: candidate.email,
-      ...interviewScheduledEmail({
-        firstName: candidate.first_name,
-        email: candidate.email,
-        companyName: interview.company_name,
-        jobTitle: interview.job_title,
-        roundNo: interview.round_no,
-        round: interview.round,
-        startsAt: interview.starts_at,
-        durationMins: interview.duration_mins,
-        mode: interview.mode,
-        ...interviewPlace(interview),
-        interviewer: interview.interviewer,
-        interviewsUrl: `${SITE_URL}${CANDIDATE_HOME}/interviews`,
-        rescheduled,
-      }),
-    };
-  });
+  return send("interview scheduled", () =>
+    interviewEmail(companyId, id, rescheduled ? "rescheduled" : "scheduled"),
+  );
+}
+
+// Throws, unlike the senders above, so the reminder job can release the claim
+// and retry on its next run.
+export async function sendInterviewReminder(id: string) {
+  const message = await interviewEmail(null, id, "reminder");
+  if (message) await sendEmail(message);
 }
 
 export function sendInterviewCancelled(companyId: string, id: string) {

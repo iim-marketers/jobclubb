@@ -4,13 +4,15 @@ import type { FieldErrors } from "@/lib/sign-up-validation";
 export const INTERVIEW_MODES = [
   { value: "video", label: "Video call" },
   { value: "in_person", label: "In-person" },
-  { value: "phone", label: "Phone" },
 ] as const satisfies readonly { value: string; label: InterviewMode }[];
 
 export type InterviewModeValue = (typeof INTERVIEW_MODES)[number]["value"];
 
+// Phone interviews were retired, but older rows still carry "phone".
 export const modeLabel = (value: string): InterviewMode =>
-  INTERVIEW_MODES.find((m) => m.value === value)?.label ?? "Video call";
+  value === "phone"
+    ? "Phone"
+    : (INTERVIEW_MODES.find((m) => m.value === value)?.label ?? "Video call");
 
 export const modeValue = (label: InterviewMode): InterviewModeValue =>
   INTERVIEW_MODES.find((m) => m.label === label)?.value ?? "video";
@@ -25,11 +27,6 @@ export const PLACE_FIELD: Record<
     label: "Meeting link",
     placeholder: "e.g. https://meet.google.com/abc-defg-hij",
     hint: "The candidate joins from their Interviews page.",
-  },
-  phone: {
-    label: "Number to call",
-    placeholder: "e.g. 9876543210",
-    hint: "The candidate's number stays private, so they call you on this one.",
   },
 };
 
@@ -147,11 +144,6 @@ function placeError(mode: RemoteMode, place: string) {
     } catch {}
     if (url?.protocol !== "https:")
       return "Enter a link starting with https://.";
-  }
-  if (mode === "phone") {
-    const digits = place.replace(/\D/g, "").length;
-    if (!/^[+\d\s()-]+$/.test(place) || digits < 10 || digits > 13)
-      return "Enter a phone number with 10 to 13 digits.";
   }
 }
 

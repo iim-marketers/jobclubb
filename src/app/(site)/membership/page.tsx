@@ -3,9 +3,12 @@ import { BadgeCheck, Check, Info, Lock, Share2 } from "lucide-react";
 
 import { PageHeader, Section, SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
 import {
   CHECKOUT_PATH,
+  PLAN_DETAILS,
+  type MembershipPlan,
+} from "@/lib/membership";
+import {
   getMembershipView,
   type MembershipView,
 } from "@/server/auth/current-candidate";
@@ -240,6 +243,7 @@ function MembershipBanner({
 }) {
   const details = PLAN_DETAILS[viewer.plan];
   const member = viewer.kind === "member";
+  const expired = viewer.kind === "unpaid" && viewer.expired;
 
   return (
     <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4 rounded-2xl border border-border bg-card p-5 sm:p-6">
@@ -259,13 +263,15 @@ function MembershipBanner({
                 : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
             }`}
           >
-            {member ? "Active" : "Payment pending"}
+            {member ? "Active" : expired ? "Expired" : "Payment pending"}
           </span>
         </div>
         <p className="mt-0.5 text-sm text-muted-foreground">
           {member
             ? `Valid till ${viewer.validUntil} · ${viewer.daysLeft} days left`
-            : `${details.price} / year · pay to unlock jobs and applying`}
+            : expired
+              ? `${details.price} / year · renew to unlock jobs and applying`
+              : `${details.price} / year · pay to unlock jobs and applying`}
         </p>
       </div>
       <Button
@@ -276,7 +282,11 @@ function MembershipBanner({
         nativeButton={false}
         render={<Link href={member ? "/candidate/dashboard" : CHECKOUT_PATH} />}
       >
-        {member ? "Go to dashboard" : "Complete payment"}
+        {member
+          ? "Go to dashboard"
+          : expired
+            ? "Renew membership"
+            : "Complete payment"}
       </Button>
     </div>
   );
@@ -294,7 +304,13 @@ function PlanCard({
   const details = PLAN_DETAILS[plan];
   const action = {
     guest: { label: "Join JobClubb", href: "/sign-up" },
-    unpaid: { label: `Pay ${details.price}`, href: CHECKOUT_PATH },
+    unpaid: {
+      label:
+        viewer.kind === "unpaid" && viewer.expired
+          ? `Renew for ${details.price}`
+          : `Pay ${details.price}`,
+      href: CHECKOUT_PATH,
+    },
     member: { label: "Go to dashboard", href: "/candidate/dashboard" },
   }[viewer.kind];
 

@@ -66,7 +66,9 @@ export default async function ApplicationDetailPage({
   params,
 }: PageProps<"/candidate/dashboard/applications/[id]">) {
   const { id } = await params;
-  const candidate = await requireMember(`${APPLICATIONS_PATH}/${id}`);
+  const candidate = await requireMember(`${APPLICATIONS_PATH}/${id}`, {
+    allowLapsed: true,
+  });
   const application = await getCandidateApplication(candidate.id, id);
   if (!application) notFound();
 

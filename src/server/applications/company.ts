@@ -325,6 +325,8 @@ const interviewFields = (input: InterviewInput) => ({
   pincode: input.venue?.pincode ?? null,
   interviewer: input.interviewer,
   round: input.round,
+  scheduled_at: now(),
+  reminder_sent_at: null,
 });
 
 export async function scheduleInterview(

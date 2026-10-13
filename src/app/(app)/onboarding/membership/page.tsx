@@ -1,21 +1,40 @@
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Check, LogOut } from "lucide-react";
+import { ArrowRight, CalendarCheck, Check, LogOut, RotateCcw } from "lucide-react";
 
+import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { MembershipCheckout } from "@/components/membership-checkout";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import {
+  CHECKOUT_PATH,
   MEMBER_FEATURES,
   PLAN_DETAILS,
   isMembershipActive,
   planFor,
 } from "@/lib/membership";
 import {
-  CHECKOUT_PATH,
+  getCurrentCandidate,
+  getLapsedAccessUntil,
   requireCandidate,
 } from "@/server/auth/current-candidate";
 
-export const metadata = { title: "Complete your membership — JobClubb" };
+const formatDate = (d: Date) =>
+  new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(d);
+
+export async function generateMetadata() {
+  const candidate = await getCurrentCandidate();
+  return {
+    title: candidate?.membership_expires_at
+      ? "Renew your membership — JobClubb"
+      : "Complete your membership — JobClubb",
+  };
+}
 
 export default async function CheckoutPage() {
   const candidate = await requireCandidate(CHECKOUT_PATH);
@@ -25,6 +44,11 @@ export default async function CheckoutPage() {
   const plan = planFor(candidate.code);
   const details = PLAN_DETAILS[plan];
   const franchise = plan === "franchise";
+  const expiresAt = candidate.membership_expires_at as string | null;
+  const renewal = !!expiresAt;
+  const accessUntil = expiresAt
+    ? await getLapsedAccessUntil(candidate.id, expiresAt)
+    : null;
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col bg-linear-to-b from-muted/70 to-background">
@@ -59,18 +83,56 @@ export default async function CheckoutPage() {
       </header>
 
       <main className="flex flex-1 flex-col items-center px-4 pt-6 pb-16 sm:px-6 sm:pt-10">
-        <div className="max-w-xl text-center">
-          <p className="font-head text-sm font-semibold text-brand">
-            Your email is verified
-          </p>
-          <h1 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
-            One last step, {candidate.first_name}
-          </h1>
-          <p className="mt-3 text-muted-foreground">
-            Activate your membership to see full job details, apply to employers
-            and get your guaranteed interviews.
-          </p>
-        </div>
+        {expiresAt ? (
+          <div className="flex max-w-xl flex-col items-center text-center">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 font-head text-xs font-bold text-amber-600">
+              <RotateCcw className="size-3.5" />
+              Membership expired on {formatDate(new Date(expiresAt))}
+            </p>
+            <h1 className="mt-3 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Welcome back, {candidate.first_name}
+            </h1>
+            <p className="mt-3 text-muted-foreground">
+              Renew for another year to unlock full job details, one-click apply
+              and your resume tools again.
+            </p>
+            {accessUntil && (
+              <div className="mt-6 flex w-full flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left">
+                <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-brand/10 text-brand">
+                  <CalendarCheck className="size-4.5" />
+                </span>
+                <p className="min-w-0 flex-1 basis-48 text-sm leading-6 text-muted-foreground">
+                  You have interviews scheduled after your membership ended, so
+                  you can still view your applications and interviews until{" "}
+                  <span className="font-semibold text-foreground">
+                    {formatDate(accessUntil)}
+                  </span>
+                  .
+                </p>
+                <Link
+                  href={`${CANDIDATE_HOME}/interviews`}
+                  className="inline-flex flex-none items-center gap-1.5 font-head text-sm font-semibold text-brand hover:underline"
+                >
+                  My interviews
+                  <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="max-w-xl text-center">
+            <p className="font-head text-sm font-semibold text-brand">
+              Your email is verified
+            </p>
+            <h1 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
+              One last step, {candidate.first_name}
+            </h1>
+            <p className="mt-3 text-muted-foreground">
+              Activate your membership to see full job details, apply to
+              employers and get your guaranteed interviews.
+            </p>
+          </div>
+        )}
 
         <div className="mt-10 grid w-full max-w-4xl gap-5 md:grid-cols-[minmax(0,1fr)_20rem]">
           <section className="rounded-3xl border border-border bg-card p-7 sm:p-8">
@@ -78,6 +140,11 @@ export default async function CheckoutPage() {
               <h2 className="font-head text-lg font-bold tracking-tight">
                 {details.name}
               </h2>
+              {renewal && (
+                <span className="rounded-full bg-brand/10 px-2.5 py-0.5 font-head text-xs font-bold text-brand">
+                  Renewal
+                </span>
+              )}
               {franchise && (
                 <span className="rounded-full bg-brand-accent/15 px-2.5 py-0.5 font-head text-xs font-bold text-good">
                   Franchise price applied
@@ -124,9 +191,19 @@ export default async function CheckoutPage() {
                 <dt className="text-muted-foreground">Plan</dt>
                 <dd className="text-right font-medium">{details.name}</dd>
               </div>
+              {expiresAt && (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground">Previous plan ended</dt>
+                  <dd className="text-right font-medium">
+                    {formatDate(new Date(expiresAt))}
+                  </dd>
+                </div>
+              )}
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Validity</dt>
-                <dd className="font-medium">1 year</dd>
+                <dd className="text-right font-medium">
+                  {renewal ? "1 year from today" : "1 year"}
+                </dd>
               </div>
               <div className="flex justify-between gap-4 border-t border-border pt-3">
                 <dt className="font-head font-bold">Total</dt>
@@ -138,7 +215,7 @@ export default async function CheckoutPage() {
 
             <div className="mt-auto pt-5">
               <MembershipCheckout
-                label={`Pay ${details.price}`}
+                label={`${renewal ? "Renew for" : "Pay"} ${details.price}`}
                 planName={details.name}
                 prefill={{
                   name: `${candidate.first_name} ${candidate.last_name}`,

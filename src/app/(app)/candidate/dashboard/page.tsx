@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ArrowRight,
   Briefcase,
@@ -68,7 +69,8 @@ function profileChecklist(resume: Resume | undefined, hasPhoto: boolean) {
 }
 
 export default async function CandidateDashboard() {
-  const candidate = await requireMember(CANDIDATE_HOME);
+  const candidate = await requireMember(CANDIDATE_HOME, { allowLapsed: true });
+  if (candidate.lapsed) redirect(`${CANDIDATE_HOME}/interviews`);
   const industry = INDUSTRIES.find((v) => v.slug === candidate.industry);
   const sector = industry?.name;
   const now = new Date();

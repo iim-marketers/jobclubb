@@ -22,9 +22,9 @@ import { Input } from "@/components/ui/input";
 import { RecruiterBoard } from "@/components/recruiter-board";
 import { cn } from "@/lib/utils";
 import type { JobListing } from "@/lib/jobs-data";
-import { PLAN_DETAILS } from "@/lib/membership";
+import { CHECKOUT_PATH, PLAN_DETAILS } from "@/lib/membership";
 import {
-  CHECKOUT_PATH,
+  getLapsedAccess,
   getMembershipView,
   type MembershipView,
 } from "@/server/auth/current-candidate";
@@ -58,7 +58,11 @@ export default async function Home() {
   if (company) return <CompanyHome company={company} />;
 
   const [view, jobs] = await Promise.all([getMembershipView(), listJobs()]);
-  if (view.kind === "member") return <MemberHome view={view} jobs={jobs} />;
+  if (
+    view.kind === "member" ||
+    (view.kind === "unpaid" && (await getLapsedAccess()))
+  )
+    return <MemberHome jobs={jobs} />;
 
   return (
     <>
@@ -538,12 +542,20 @@ function Membership({ view }: { view: NonMemberView }) {
       href: "/sign-up",
       note: "One year of membership. Renewal reminder before it ends.",
     },
-    unpaid: {
-      badge: "Payment pending",
-      cta: `Pay ${details.price} to activate`,
-      href: CHECKOUT_PATH,
-      note: "Activate to unlock jobs, applying and guaranteed interviews.",
-    },
+    unpaid:
+      view.kind === "unpaid" && view.expired
+        ? {
+            badge: "Membership expired",
+            cta: `Renew for ${details.price}`,
+            href: CHECKOUT_PATH,
+            note: "Renew to unlock jobs, applying and guaranteed interviews again.",
+          }
+        : {
+            badge: "Payment pending",
+            cta: `Pay ${details.price} to activate`,
+            href: CHECKOUT_PATH,
+            note: "Activate to unlock jobs, applying and guaranteed interviews.",
+          },
   }[view.kind];
 
   return (
@@ -735,7 +747,13 @@ function About() {
 function ClosingCta({ view }: { view: NonMemberView }) {
   const primary = {
     guest: { label: "Become a Member", href: "/membership" },
-    unpaid: { label: "Complete payment", href: CHECKOUT_PATH },
+    unpaid: {
+      label:
+        view.kind === "unpaid" && view.expired
+          ? "Renew membership"
+          : "Complete payment",
+      href: CHECKOUT_PATH,
+    },
   }[view.kind];
 
   return (

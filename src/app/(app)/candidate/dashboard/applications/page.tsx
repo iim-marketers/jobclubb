@@ -19,7 +19,9 @@ import { requireMember } from "@/server/auth/current-candidate";
 export const metadata = { title: "Applications — JobClubb" };
 
 export default async function ApplicationsPage() {
-  const candidate = await requireMember(`${CANDIDATE_HOME}/applications`);
+  const candidate = await requireMember(`${CANDIDATE_HOME}/applications`, {
+    allowLapsed: true,
+  });
   const applications = await listCandidateApplications(candidate.id);
 
   const active = applications.filter((a) => a.status === "active");

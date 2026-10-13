@@ -1,4 +1,5 @@
-import { LogOut, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { CircleAlert, LogOut, Trash2 } from "lucide-react";
 
 import { DashboardHeader, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
@@ -12,6 +13,7 @@ import {
 import { SettingsNav } from "@/components/candidate/settings-nav";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
+import { CHECKOUT_PATH } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
@@ -19,7 +21,9 @@ import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 export const metadata = { title: "Settings — JobClubb" };
 
 export default async function SettingsPage() {
-  const candidate = await requireMember(`${CANDIDATE_HOME}/settings`);
+  const candidate = await requireMember(`${CANDIDATE_HOME}/settings`, {
+    allowLapsed: true,
+  });
   const defaults: ProfileDefaults = {
     firstName: candidate.first_name,
     lastName: candidate.last_name,
@@ -42,14 +46,36 @@ export default async function SettingsPage() {
         <SettingsNav />
 
         <div className="min-w-0 space-y-6">
-          <PhotoForm
-            firstName={candidate.first_name}
-            lastName={candidate.last_name}
-            photoUrl={await getCandidatePhotoUrl(candidate.photo_path)}
-          />
-          <PersonalDetailsForm defaults={defaults} />
-          <PreferencesForm defaults={defaults} />
-          <PasswordForm />
+          {candidate.lapsed && (
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-amber-50 p-4 dark:bg-amber-500/10">
+              <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-amber-500/15 text-amber-600">
+                <CircleAlert className="size-4.5" />
+              </span>
+              <p className="min-w-0 flex-1 basis-48 text-sm leading-6 text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  Your membership has expired, so these settings are view-only.
+                </span>{" "}
+                Renew to update your profile, preferences or password.
+              </p>
+              <Button
+                className="w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark sm:w-auto sm:flex-none"
+                nativeButton={false}
+                render={<Link href={CHECKOUT_PATH} />}
+              >
+                Renew
+              </Button>
+            </div>
+          )}
+          <fieldset disabled={candidate.lapsed} className="min-w-0 space-y-6">
+            <PhotoForm
+              firstName={candidate.first_name}
+              lastName={candidate.last_name}
+              photoUrl={await getCandidatePhotoUrl(candidate.photo_path)}
+            />
+            <PersonalDetailsForm defaults={defaults} />
+            <PreferencesForm defaults={defaults} />
+            <PasswordForm />
+          </fieldset>
 
           <Panel
             id="account"

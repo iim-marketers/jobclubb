@@ -77,6 +77,30 @@ Members apply from a job page into `public.job_applications`. The table has no R
 
 Local development sends real email through the same Resend account, so test with addresses you own.
 
+### Scheduled reminders
+
+Two `pg_cron` jobs call the site through `public.request_cron(path)`, which sends `CRON_SECRET` as a bearer token. The app then sends whatever is due:
+
+- **`interview-reminders`** (every 15 minutes, `POST /api/cron/interview-reminders`): a reminder about 24 hours before each interview. Interviews booked or rescheduled less than 24 hours ahead get no reminder, because the scheduled email has only just gone out.
+- **`membership-reminders`** (hourly, `POST /api/cron/membership-reminders`): a reminder 15 days and 1 day before a membership expires, recorded in `membership_reminders`. A membership with under a day left gets only the 1-day one. Renewing sets a new expiry, so the next cycle's reminders go out again.
+
+Set it up once per project:
+
+1. Generate a secret (`openssl rand -hex 32`) and set it as `CRON_SECRET` in the deployed app's environment.
+2. In the SQL Editor, store the site URL and the same secret in Vault:
+
+   ```sql
+   select vault.create_secret('https://www.jobclubb.com', 'site_url');
+   select vault.create_secret('<CRON_SECRET>', 'cron_secret');
+   ```
+
+Without these secrets the jobs log a warning and send nothing. Runs show up under **Integrations → Cron**. To test locally, set `CRON_SECRET` in `.env` and call the endpoint yourself:
+
+```
+curl -X POST http://localhost:3000/api/cron/interview-reminders -H "Authorization: Bearer $CRON_SECRET"
+curl -X POST http://localhost:3000/api/cron/membership-reminders -H "Authorization: Bearer $CRON_SECRET"
+```
+
 Limits:
 - **Per address** (enforced by the app, in `src/server/auth/confirmation-email.ts` using the `email_sends` table): one confirmation email a minute, and at most 5 an hour, and the same again for password reset emails. A resend cancels the previous link.
 - **Resend's own cap:** depends on the Resend plan (see **Settings → Usage**).
@@ -92,6 +116,8 @@ The confirmation email is `src/lib/email/templates/confirm-signup.ts`: email-saf
 ## 6. Payments: Razorpay
 
 Candidates pay for membership on `/onboarding/membership` after verifying their email. `POST /api/create-order` creates a Razorpay order for the candidate's plan and records it in `membership_payments`; `POST /api/verify-payment` checks the checkout signature and then activates the membership.
+
+When a membership expires, the candidate goes straight to the renewal checkout. The exception is a candidate with interviews scheduled after their expiry date: they keep view-only access to Applications, Interviews, Membership and Settings until 3 days after the last of those interviews. Either way they can't change anything: the RLS policies on `public.candidates` and the `candidate-photos` bucket only allow writes while `membership_expires_at` is in the future.
 
 - Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` from the Razorpay dashboard (**Account & Settings → API Keys**), and `NEXT_PUBLIC_RAZORPAY_KEY_ID` to the same key ID. The secret is server-only.
 - Use `rzp_test_` keys locally; test cards and UPI IDs are listed at <https://razorpay.com/docs/payments/payments/test-card-details/>.

@@ -307,7 +307,8 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
       endsAt,
       durationMins: r.duration_mins,
       mode: modeLabel(r.mode),
-      ...interviewPlace(r),
+      // A retired phone interview's place is the employer's number.
+      ...(r.mode === "phone" ? { place: "", venue: null } : interviewPlace(r)),
       interviewer: r.interviewer,
       roundNo: r.round_no,
       round: r.round,
