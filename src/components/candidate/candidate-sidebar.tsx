@@ -16,6 +16,7 @@ import {
   CHECKOUT_PATH,
   MEMBERSHIP_DAYS,
   PLAN_DETAILS,
+  RENEWAL_REMINDER_DAYS,
   type MembershipPlan,
 } from "@/lib/membership";
 import { SignOutDialog } from "@/components/sign-out-dialog";
@@ -90,7 +91,8 @@ export function SidebarContent({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
-  const expiringSoon = candidate.lapsed || candidate.daysLeft <= 15;
+  const expiringSoon =
+    candidate.lapsed || candidate.daysLeft <= RENEWAL_REMINDER_DAYS;
   const used = 1 - candidate.daysLeft / MEMBERSHIP_DAYS;
   const tooltip = candidate.lapsed
     ? "Membership expired"
@@ -275,14 +277,9 @@ export function SidebarContent({
                 </p>
               </div>
               {expiringSoon && (
-                <Link
-                  href="/membership"
-                  onClick={onNavigate}
-                  className="mt-2 inline-flex items-center gap-1 font-head text-xs font-bold text-brand-accent hover:text-white"
-                >
-                  Renew membership
-                  <ArrowUpRight className="size-3.5" />
-                </Link>
+                <p className="mt-2 text-xs leading-5 text-white/60">
+                  You can renew once it ends.
+                </p>
               )}
             </div>
           )}

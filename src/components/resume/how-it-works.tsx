@@ -6,7 +6,7 @@ const STEPS = [
   {
     icon: Upload,
     title: "Add what you have",
-    body: "Upload your current resume as a PDF, or just describe your jobs and education.",
+    body: "Upload your current resume as a PDF for the best result, or describe your jobs and education in detail.",
   },
   {
     icon: Target,
@@ -22,7 +22,7 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="min-w-0 space-y-6 rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white sm:p-7">
+    <section className="flex min-w-0 flex-col gap-6 rounded-3xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white sm:p-7">
       <div>
         <p className="font-head text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
           How it works
@@ -46,30 +46,59 @@ export function HowItWorks() {
         ))}
       </ol>
 
+      {/* Absolutely positioned so the mock resume fills the panel's height without adding to it. */}
       <div
         aria-hidden
-        className="rounded-2xl bg-white p-5 shadow-xl shadow-black/20"
+        className="relative min-h-52 flex-1 overflow-hidden rounded-2xl bg-white shadow-xl shadow-black/20"
       >
-        <div className="h-3 w-2/5 rounded-full bg-neutral-800" />
-        <div className="mt-2 h-2 w-3/5 rounded-full bg-neutral-300" />
-        <div className="mt-4 border-t border-neutral-200 pt-4">
-          <div className="h-1.5 w-1/4 rounded-full bg-neutral-400" />
-          <div className="mt-2.5 space-y-1.5">
-            <div className="h-1.5 rounded-full bg-neutral-200" />
-            <div className="h-1.5 w-11/12 rounded-full bg-neutral-200" />
-            <div className="h-1.5 w-4/5 rounded-full bg-neutral-200" />
-          </div>
-          <div className="mt-4 h-1.5 w-1/4 rounded-full bg-neutral-400" />
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {["w-12", "w-16", "w-10", "w-14", "w-12"].map((w, i) => (
-              <span
-                key={i}
-                className={cn("h-3.5 rounded-full bg-brand/15", w)}
-              />
+        <div className="absolute inset-x-5 top-5">
+          <div className="h-3 w-2/5 rounded-full bg-neutral-800" />
+          <div className="mt-2 h-2 w-3/5 rounded-full bg-neutral-300" />
+          <div className="mt-4 border-t border-neutral-200 pt-4">
+            <SectionHeading />
+            <Lines widths={["w-full", "w-11/12", "w-4/5"]} />
+            <SectionHeading className="mt-4" />
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {["w-12", "w-16", "w-10", "w-14", "w-12"].map((w, i) => (
+                <span
+                  key={i}
+                  className={cn("h-3.5 rounded-full bg-brand/15", w)}
+                />
+              ))}
+            </div>
+            <SectionHeading className="mt-4" />
+            {[0, 1].map((i) => (
+              <div key={i} className="mt-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-2 w-2/5 rounded-full bg-neutral-500" />
+                  <div className="h-1.5 w-1/6 rounded-full bg-neutral-300" />
+                </div>
+                <div className="mt-1.5 h-1.5 w-1/3 rounded-full bg-neutral-300" />
+                <Lines widths={["w-full", "w-5/6", "w-11/12"]} />
+              </div>
             ))}
+            <SectionHeading className="mt-4" />
+            <Lines widths={["w-3/5", "w-2/5"]} />
           </div>
         </div>
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-white to-transparent" />
       </div>
     </section>
+  );
+}
+
+function SectionHeading({ className }: { className?: string }) {
+  return (
+    <div className={cn("h-1.5 w-1/4 rounded-full bg-neutral-400", className)} />
+  );
+}
+
+function Lines({ widths }: { widths: string[] }) {
+  return (
+    <div className="mt-2.5 space-y-1.5">
+      {widths.map((w, i) => (
+        <div key={i} className={cn("h-1.5 rounded-full bg-neutral-200", w)} />
+      ))}
+    </div>
   );
 }

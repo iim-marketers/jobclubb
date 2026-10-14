@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { MailCheck, Store, UserCheck } from "lucide-react";
+import { MailCheck, Store } from "lucide-react";
 
 import { CheckInbox } from "@/components/sign-up/check-inbox";
 import { ResendConfirmation } from "@/components/sign-up/resend-confirmation";
@@ -21,7 +21,7 @@ const CONTENT = {
     icon: MailCheck,
     iconClass: "bg-good/15 text-good",
     title: "Check your work inbox",
-    body: "We've sent a confirmation link to your corporate email address. Click it within 24 hours to verify your company and activate your account.",
+    body: "We've sent a confirmation link to your company email address. Click it within 24 hours to verify your company and activate your account.",
     steps: [
       "Open the email from JobClubb",
       "Click the confirmation link",
@@ -39,21 +39,9 @@ const CONTENT = {
       "Get your franchise code and start adding leads",
     ],
   },
-  manual: {
-    icon: UserCheck,
-    iconClass: "bg-brand/15 text-brand",
-    title: "Your company is under review",
-    body: "We've sent a confirmation link to your email. Once you confirm it, our team will verify your company manually against your GSTIN or business document.",
-    steps: [
-      "Click the confirmation link in your inbox",
-      "We review your details — usually within 2 business days",
-      "We may call you to confirm",
-      "You'll get an email once your account is approved",
-    ],
-  },
 };
 
-const ROUTES = ["franchise", "manual", "email"] as const;
+const ROUTES = ["franchise", "email"] as const;
 
 export default async function SignUpSubmittedPage({
   searchParams,

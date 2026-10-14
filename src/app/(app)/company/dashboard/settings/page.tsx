@@ -76,7 +76,7 @@ export default async function CompanySettingsPage() {
           <Panel
             id="verified"
             title="Verified details"
-            description="Checked when we approved your account, so only our team can change them."
+            description="Tied to your verified account, so only our team can change them."
             action={
               <Button
                 variant="outline"

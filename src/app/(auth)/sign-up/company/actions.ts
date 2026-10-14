@@ -19,5 +19,5 @@ export async function registerCompany(
     path: "/",
     maxAge: 60 * 60 * 24,
   });
-  redirect(`/sign-up/submitted?route=${result.route}`);
+  redirect("/sign-up/submitted?route=email");
 }

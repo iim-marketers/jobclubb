@@ -244,6 +244,13 @@ export default async function MembershipPage() {
                 — your profile is kept safe, and job access resumes as soon as
                 you renew.
               </li>
+              <li>
+                <span className="font-head font-bold text-foreground">
+                  No early renewal
+                </span>{" "}
+                — you can renew only once your membership ends. Your new year
+                starts from the day you renew.
+              </li>
             </ul>
           </div>
         </div>

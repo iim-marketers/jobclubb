@@ -13,8 +13,8 @@ export default async function AdminCompaniesPage() {
       <div>
         <h1 className="font-head text-2xl font-extrabold tracking-tight">Companies</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Review registrations and decide who can sign in. Corporate-email companies verify
-          automatically; free-mail or mismatched-domain sign-ups wait here for manual review.
+          Every company registers with its own company email and is verified once it confirms
+          that address.
         </p>
       </div>
       <CompaniesTable companies={companies} />
