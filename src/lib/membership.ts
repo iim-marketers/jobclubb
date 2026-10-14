@@ -7,7 +7,7 @@ export const PLAN_DETAILS: Record<
   MembershipPlan,
   { name: string; price: string; amount: number }
 > = {
-  member: { name: "JobClubb Membership", price: "₹1,499", amount: 1499 },
+  member: { name: "JobClubb Membership", price: "₹1", amount: 1 },
   franchise: { name: "Franchise Membership", price: "₹1,199", amount: 1199 },
 };
 

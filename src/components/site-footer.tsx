@@ -228,7 +228,8 @@ export async function SiteFooter() {
             <span className="font-head font-semibold text-foreground">
               JobClubb
             </span>{" "}
-            © {new Date().getFullYear()}. All rights reserved.
+            © {new Date().getFullYear()}. All rights reserved. A brand of Raaisha
+            Technologies Private Limited.
           </p>
           <ul className="flex flex-wrap gap-x-5 gap-y-1">
             {(audience === "company" ? COMPANY_LEGAL_LINKS : LEGAL_LINKS).map((link) => (
