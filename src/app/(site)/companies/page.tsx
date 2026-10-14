@@ -92,7 +92,7 @@ export default async function CompaniesPage() {
       </Section>
 
       <Section className="bg-card">
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
             <Building2 className="size-6 text-brand" />
             <h2 className="mt-3 font-head text-3xl font-extrabold tracking-tight">
@@ -103,7 +103,7 @@ export default async function CompaniesPage() {
               Candidate identity stays private until you choose to unlock it —
               so you assess on capability first.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
               <Button
                 className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
                 nativeButton={false}
@@ -136,7 +136,7 @@ export default async function CompaniesPage() {
             <h3 className="font-head font-bold tracking-tight">
               Sectors we cover
             </h3>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {INDUSTRIES.map((v) => (
                 <li key={v.slug} className="text-sm">
                   <span className="font-head font-semibold">{v.name}</span>

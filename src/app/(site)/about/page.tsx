@@ -35,7 +35,7 @@ export default function AboutPage() {
       />
 
       <Section>
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
             <h2 className="font-head text-xl font-bold tracking-tight text-brand">
               Our Mission
@@ -79,7 +79,7 @@ export default function AboutPage() {
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight">
           Purpose-built, not generalist
         </h2>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {WHY.map((item, i) => (
             <li
               key={item}

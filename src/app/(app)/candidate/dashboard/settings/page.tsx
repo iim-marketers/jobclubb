@@ -42,7 +42,7 @@ export default async function SettingsPage() {
         description="Manage your profile, job preferences and sign-in details."
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,52rem)] xl:gap-8">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,52rem)] xl:gap-8">
         <SettingsNav />
 
         <div className="min-w-0 space-y-6">

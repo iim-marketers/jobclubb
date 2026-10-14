@@ -85,7 +85,7 @@ async function JobResults({
 
   return (
     <section className="px-4 pb-12 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[260px_1fr]">
+      <div className="mx-auto grid grid-cols-1 max-w-6xl gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="hidden min-w-0 lg:sticky lg:top-18 lg:block lg:self-start lg:pt-6">
           <JobFiltersPanel
             query={query}
@@ -119,7 +119,7 @@ async function JobResults({
           ) : jobs.length === 0 ? (
             <EmptyState />
           ) : (
-            <ul className="mt-4 grid gap-4 md:grid-cols-2">
+            <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {jobs.map((job) => (
                 <li key={job.slug} className="min-w-0">
                   <JobCard job={job} locked={!access.member} />
@@ -181,7 +181,7 @@ async function JobResults({
 function JobsSkeleton({ member }: { member: boolean }) {
   return (
     <section aria-busy className="px-4 pb-12 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[260px_1fr]">
+      <div className="mx-auto grid grid-cols-1 max-w-6xl gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="hidden lg:block lg:pt-6">
           <div className="rounded-2xl border border-border bg-card">
             <div className="flex h-14 items-center border-b border-border px-5">
@@ -209,7 +209,7 @@ function JobsSkeleton({ member }: { member: boolean }) {
             </div>
           </div>
 
-          <ul className="mt-4 grid gap-4 md:grid-cols-2">
+          <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             {Array.from({ length: 6 }, (_, i) => (
               <li
                 key={i}

@@ -146,11 +146,11 @@ export function AdminHeader() {
     <header className="sticky top-0 z-10 flex h-16 flex-none items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur sm:px-6">
       <SidebarTrigger className="-ml-1" />
       <span aria-hidden className="mx-1 h-5 w-px bg-border" />
-      <p className="text-sm text-muted-foreground">
-        Admin
+      <p className="min-w-0 truncate text-sm text-muted-foreground">
+        <span className={current ? "hidden sm:inline" : undefined}>Admin</span>
         {current && (
           <>
-            <span className="mx-1.5 text-border">/</span>
+            <span className="mx-1.5 hidden text-border sm:inline">/</span>
             <span className="font-head font-semibold text-foreground">
               {current.label}
             </span>

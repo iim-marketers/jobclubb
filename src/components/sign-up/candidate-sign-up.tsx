@@ -112,7 +112,7 @@ export function CandidateSignUp() {
           animate={moved}
           step={CANDIDATE_STEPS[0]}
         >
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field
               id="firstName"
               label="First name"
@@ -173,7 +173,7 @@ export function CandidateSignUp() {
           animate={moved}
           step={CANDIDATE_STEPS[1]}
         >
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field
               id="city"
               label="City"

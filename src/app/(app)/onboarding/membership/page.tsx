@@ -134,7 +134,7 @@ export default async function CheckoutPage() {
           </div>
         )}
 
-        <div className="mt-10 grid w-full max-w-4xl gap-5 md:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="mt-10 grid grid-cols-1 w-full max-w-4xl gap-5 md:grid-cols-[minmax(0,1fr)_20rem]">
           <section className="rounded-3xl border border-border bg-card p-7 sm:p-8">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-head text-lg font-bold tracking-tight">
@@ -172,7 +172,7 @@ export default async function CheckoutPage() {
               </p>
             )}
 
-            <ul className="mt-6 grid gap-3 border-t border-border pt-6 sm:grid-cols-2">
+            <ul className="mt-6 grid grid-cols-1 gap-3 border-t border-border pt-6 sm:grid-cols-2">
               {MEMBER_FEATURES.map((feature) => (
                 <li key={feature} className="flex items-start gap-2.5 text-sm">
                   <Check className="mt-0.5 size-4 flex-none text-good" />

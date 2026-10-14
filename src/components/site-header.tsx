@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LayoutDashboard, Plus } from "lucide-react";
 
+import { CANDIDATE_HOME, candidateNav } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import {
   COMPANY_HOME,
@@ -27,7 +28,18 @@ const NAV_LINKS = [
   { label: "About", href: "/about" },
 ];
 
-const MEMBER_NAV_LINKS = NAV_LINKS.filter((link) => link.href === "/jobs");
+const memberNavLinks = (lapsed: boolean) => [
+  { label: "Jobs", href: "/jobs" },
+  ...candidateNav(lapsed)
+    .flatMap((g) => g.items)
+    .filter(
+      (item) =>
+        item.href !== CANDIDATE_HOME &&
+        !item.href.endsWith("/membership") &&
+        !item.href.endsWith("/settings"),
+    )
+    .map(({ label, href }) => ({ label, href })),
+];
 
 const COMPANY_NAV_LINKS = COMPANY_NAV[0].items
   .filter((item) => item.href !== COMPANY_HOME)
@@ -41,7 +53,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const links = company
     ? COMPANY_NAV_LINKS
     : view?.kind === "member" || lapsed
-      ? MEMBER_NAV_LINKS
+      ? memberNavLinks(lapsed)
       : NAV_LINKS;
 
   return (

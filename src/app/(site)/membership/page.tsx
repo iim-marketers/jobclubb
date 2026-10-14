@@ -61,7 +61,7 @@ export default async function MembershipPage() {
       </PageHeader>
 
       <Section>
-        <div className="mx-auto grid max-w-5xl items-stretch gap-6 md:grid-cols-2">
+        <div className="mx-auto grid grid-cols-1 max-w-5xl items-stretch gap-6 md:grid-cols-2">
           <PlanCard plan={plan} viewer={viewer}>
             <ul className="space-y-2.5">
               {MEMBER_BENEFITS.map((b) => (
@@ -165,7 +165,7 @@ export default async function MembershipPage() {
           with every membership so you walk into the interview prepared.
         </p>
 
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
               title: "Interview coaching",
@@ -200,7 +200,7 @@ export default async function MembershipPage() {
       </Section>
 
       <Section>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-border bg-card p-8">
             <div className="flex flex-row items-center gap-2">
               <Lock className="size-5 text-brand" />

@@ -224,7 +224,7 @@ export function FileField({
             {label}
             {required && <span className="text-destructive">*</span>}
           </span>
-          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+          <span className={`mt-0.5 block text-xs text-muted-foreground ${fileName ? "truncate" : ""}`}>
             {fileName ?? description}
           </span>
         </span>

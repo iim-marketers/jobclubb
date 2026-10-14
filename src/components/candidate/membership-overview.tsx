@@ -50,7 +50,7 @@ export function MembershipOverview({
   return (
     <section
       aria-label="Your plan"
-      className="grid gap-6 rounded-3xl border border-border bg-card p-5 sm:p-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-8"
+      className="grid grid-cols-1 gap-6 rounded-3xl border border-border bg-card p-5 sm:p-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-8"
     >
       <MemberCard
         name={name}
@@ -169,7 +169,7 @@ function MemberCard({
   expiresAt: Date;
 }) {
   return (
-    <div className="relative mx-auto aspect-[1.586] w-full max-w-sm overflow-hidden rounded-2xl bg-linear-to-br from-brand-surface via-brand-dark to-[#023c52] p-5 text-white shadow-xl shadow-brand/20 sm:p-6 lg:mx-0">
+    <div className="relative isolate mx-auto aspect-[1.586] w-full max-w-sm overflow-hidden rounded-2xl bg-linear-to-br from-brand-surface via-brand-dark to-[#023c52] text-white shadow-xl shadow-brand/20 lg:mx-0">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-16 -right-16 size-56 rounded-full border-[28px] border-white/6"
@@ -179,7 +179,7 @@ function MemberCard({
         className="pointer-events-none absolute -right-6 -bottom-24 size-56 rounded-full bg-brand-accent/35 blur-2xl"
       />
 
-      <div className="relative flex h-full flex-col">
+      <div className="absolute inset-0 flex flex-col p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <Image
             src="/brand/jobclubb-logo-dark.png"
@@ -230,7 +230,7 @@ function Stat({
   className?: string;
 }) {
   return (
-    <div className={cn("min-w-0 bg-card px-4 py-3", className)}>
+    <div className={cn("min-w-0 bg-card px-3 py-3 sm:px-4", className)}>
       <dt className="truncate text-xs text-muted-foreground">{label}</dt>
       <dd
         className={cn(

@@ -57,7 +57,7 @@ export function ApplicantActions({
     });
 
   return (
-    <div className="flex flex-none flex-wrap gap-2">
+    <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-none sm:flex-wrap">
       <Dialog
         open={confirming === "reject"}
         onOpenChange={(next) => !pending && setConfirming(next ? "reject" : null)}

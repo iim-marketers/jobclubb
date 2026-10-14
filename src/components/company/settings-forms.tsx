@@ -160,7 +160,7 @@ export function CompanyDetailsForm({
       successMessage="Company details saved"
     >
       {(errors, markDirty) => (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field
             id="propertyName"
             label="Property or branch name"
@@ -230,7 +230,7 @@ export function ContactForm({ defaults }: { defaults: CompanyDefaults }) {
       successMessage="Contact details saved"
     >
       {(errors) => (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field
             id="contactName"
             label="Full name"

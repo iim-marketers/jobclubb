@@ -87,7 +87,7 @@ const FRESH_SLOTS = 3;
 function Hero({ jobs, locked }: { jobs: JobListing[]; locked: boolean }) {
   return (
     <section className="bg-linear-to-b from-muted/60 to-background px-4 pt-8 pb-12 md:py-12 sm:px-6 lg:py-16">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
         <div className="min-w-0">
           <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">
             3 guaranteed interviews for members
@@ -361,7 +361,7 @@ function FeaturedOpenings({
             <div
               aria-hidden
               inert
-              className="grid max-h-96 gap-4 overflow-hidden p-5 blur-[6px] select-none lg:max-h-none lg:grid-cols-2"
+              className="grid grid-cols-1 max-h-96 gap-4 overflow-hidden p-5 blur-[6px] select-none lg:max-h-none lg:grid-cols-2"
             >
               {ghosts.map((job, i) => (
                 <JobCard key={`ghost-${i}`} job={job} locked />
@@ -560,7 +560,7 @@ function Membership({ view }: { view: NonMemberView }) {
 
   return (
     <section className="px-4 py-12 md:py-16 sm:px-6">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
+      <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>Why JobClubb membership</SectionEyebrow>
           <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -685,7 +685,7 @@ function Franchise() {
 function About() {
   return (
     <section className="bg-card px-4 py-12 md:py-16 sm:px-6">
-      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2">
+      <div className="mx-auto grid grid-cols-1 max-w-6xl gap-12 lg:grid-cols-2">
         <div>
           <SectionEyebrow>About JobClubb</SectionEyebrow>
           <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">

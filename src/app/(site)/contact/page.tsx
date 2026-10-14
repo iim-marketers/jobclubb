@@ -17,7 +17,7 @@ export default function ContactPage() {
       />
 
       <section className="px-4 py-12 sm:px-6">
-        <ul className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
+        <ul className="mx-auto grid grid-cols-1 max-w-3xl gap-4 sm:grid-cols-2">
           {CONTACT_ITEMS.map(({ icon: Icon, text, href }) => (
             <li
               key={text}

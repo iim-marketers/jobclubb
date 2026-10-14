@@ -31,6 +31,7 @@ export function Panel({
   description,
   action,
   footer,
+  footerClassName,
   className,
   id,
   children,
@@ -39,6 +40,7 @@ export function Panel({
   description?: string;
   action?: React.ReactNode;
   footer?: React.ReactNode;
+  footerClassName?: string;
   className?: string;
   id?: string;
   children: React.ReactNode;
@@ -51,8 +53,8 @@ export function Panel({
         className,
       )}
     >
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 basis-40">
           <h2 className="font-head font-bold tracking-tight">{title}</h2>
           {description && (
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -64,7 +66,12 @@ export function Panel({
       </div>
       {children}
       {footer && (
-        <div className="-mx-5 mt-4 -mb-5 flex flex-col-reverse gap-3 rounded-b-3xl border-t border-border bg-muted/40 px-5 py-4 sm:-mx-5 sm:-mb-6 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div
+          className={cn(
+            "-mx-5 mt-4 -mb-5 flex flex-col-reverse gap-3 rounded-b-3xl border-t border-border bg-muted/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between",
+            footerClassName,
+          )}
+        >
           {footer}
         </div>
       )}

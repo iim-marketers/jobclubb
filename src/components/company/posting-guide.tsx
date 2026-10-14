@@ -24,7 +24,7 @@ export function PostingGuide() {
       <p className="font-head text-[10px] font-bold tracking-[0.2em] text-white/70 uppercase">
         How posting works
       </p>
-      <ol className="mt-4 grid gap-5 md:grid-cols-3 md:gap-6">
+      <ol className="mt-4 grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6">
         {STEPS.map(({ icon: Icon, title, body }) => (
           <li key={title} className="flex gap-3">
             <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-white/12">

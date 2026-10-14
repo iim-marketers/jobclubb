@@ -69,7 +69,7 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
   return (
     <>
       <section className="jc-auth-panel relative isolate px-4 pt-8 pb-12 text-white sm:px-6 md:py-14">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="min-w-0">
             {/* <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/85 ring-1 ring-white/15">
               <span className="size-1.5 animate-pulse rounded-full bg-brand-accent" />
@@ -195,7 +195,7 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
               href={`${CANDIDATE_HOME}/applications`}
               linkLabel="All applications"
             />
-            <ul className="mt-6 grid gap-4 md:grid-cols-3">
+            <ul className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
               {applications.slice(0, 3).map((a) => (
                 <ApplicationCard key={a.id} application={a} />
               ))}
@@ -277,9 +277,11 @@ function ProfileCard({
           <p className="truncate font-head font-bold tracking-tight">
             {firstName} {lastName}
           </p>
-          <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="size-3 flex-none" />
-            {sector ? `${sector} · ${city}` : city}
+            <span className="truncate">
+              {sector ? `${sector} · ${city}` : city}
+            </span>
           </p>
         </div>
         {accessUntil ? (
@@ -484,7 +486,7 @@ function SectorGrid({ jobs, sector }: { jobs: JobListing[]; sector?: string }) {
                 )}
               >
                 <span className="min-w-0">
-                  <span className="block truncate font-head text-sm font-bold">
+                  <span className="block font-head text-sm font-bold sm:truncate">
                     {name}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -492,7 +494,7 @@ function SectorGrid({ jobs, sector }: { jobs: JobListing[]; sector?: string }) {
                     {name === sector && " · Your sector"}
                   </span>
                 </span>
-                <span className="flex size-8 flex-none items-center justify-center rounded-full bg-muted text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
+                <span className="hidden size-8 flex-none items-center justify-center rounded-full bg-muted text-brand sm:flex transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
                   <ArrowRight className="size-4" />
                 </span>
               </Link>

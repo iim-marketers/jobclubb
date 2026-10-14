@@ -133,7 +133,7 @@ export default async function CompanyDashboard() {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
           <Button
             variant="outline"
             className="font-head"
@@ -154,7 +154,7 @@ export default async function CompanyDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <CompanySummary
           companyName={company.company_name}
           logoUrl={getCompanyLogoUrl(company.logo_path)}
@@ -173,7 +173,7 @@ export default async function CompanyDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <RecentPostings jobs={jobs.slice(0, 5)} applicantCount={applicantCount} />
 
         <Panel

@@ -98,7 +98,7 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
   return (
     <>
       <section className="jc-auth-panel relative isolate px-4 pt-8 pb-12 text-white sm:px-6 md:py-14">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="min-w-0">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/85 ring-1 ring-white/15">
               <span className="size-1.5 animate-pulse rounded-full bg-brand-accent" />
@@ -189,7 +189,7 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
               </EmptyState>
             </div>
           ) : (
-            <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {queue.map((a) => (
                 <ApplicantCard
                   key={a.ref}
@@ -230,7 +230,7 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
               </EmptyState>
             </div>
           ) : (
-            <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {postings.map((job) => (
                 <PostingCard
                   key={job.id}
@@ -249,7 +249,7 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
           <h2 className="mt-2 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
             Talent that&apos;s ready to work
           </h2>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {EMPLOYER_POINTS.map(({ icon: Icon, title, body }) => (
               <li
                 key={title}
@@ -357,7 +357,7 @@ function CompanyCard({
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Button
           variant="outline"
-          className="font-head"
+          className="px-3 font-head sm:px-4"
           nativeButton={false}
           render={<Link href={COMPANY_JOBS} />}
         >
@@ -365,7 +365,7 @@ function CompanyCard({
           Postings
         </Button>
         <Button
-          className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+          className="bg-brand px-3 font-head text-brand-foreground hover:bg-brand-dark sm:px-4"
           nativeButton={false}
           render={<Link href={COMPANY_HOME} />}
         >

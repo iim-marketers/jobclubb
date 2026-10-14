@@ -163,7 +163,7 @@ export default async function CandidateDashboard() {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="grid w-full grid-cols-1 gap-2 min-[375px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap">
           <Button
             variant="outline"
             className="font-head"
@@ -184,7 +184,7 @@ export default async function CandidateDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <ProfileSummary
           plan={candidate.membership_plan}
           firstName={candidate.first_name}
@@ -204,7 +204,7 @@ export default async function CandidateDashboard() {
         {stats.map(({ label, value, note, icon: Icon }) => (
           <div
             key={label}
-            className="rounded-2xl border border-border bg-card p-4 sm:p-5"
+            className="rounded-2xl border border-border bg-card p-3 sm:p-5"
           >
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs text-muted-foreground sm:text-sm">
@@ -224,7 +224,7 @@ export default async function CandidateDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <ApplicationJourney
           applications={recent}
           sector={sector}
@@ -258,7 +258,7 @@ export default async function CandidateDashboard() {
                     </span>
                     <span
                       className={cn(
-                        "truncate",
+                        "min-w-0 sm:truncate",
                         item.done && "text-muted-foreground line-through",
                       )}
                     >
@@ -525,13 +525,13 @@ function InterviewGuarantee({
           : "."}
       </p>
 
-      <ol className="mt-5 grid flex-1 gap-3 sm:grid-cols-3 xl:grid-cols-1 xl:content-start">
+      <ol className="mt-5 grid grid-cols-1 flex-1 gap-3 sm:grid-cols-3 xl:grid-cols-1 xl:content-start">
         {slots.map((item, i) => (
           <li key={i} className="flex items-center gap-3">
             <span
               className={cn(
                 "flex size-10 flex-none items-center justify-center rounded-full font-head text-sm font-extrabold",
-                item.state === "done" && "bg-good text-white",
+                item.state === "done" && "bg-good/12 text-good",
                 item.state === "scheduled" &&
                   "bg-brand/10 text-brand ring-2 ring-brand",
                 item.state === "open" &&
@@ -539,7 +539,7 @@ function InterviewGuarantee({
               )}
             >
               {item.state === "done" ? (
-                <Check className="size-4.5" strokeWidth={3} />
+                <Check className="size-4" strokeWidth={2.5} />
               ) : (
                 i + 1
               )}

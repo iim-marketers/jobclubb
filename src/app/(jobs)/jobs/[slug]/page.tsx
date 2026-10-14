@@ -66,7 +66,7 @@ export default async function JobDetailPage({
           All jobs
         </Link>
 
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_300px]">
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">
             <JobHeader job={job} member={access.member} />
             {access.member ? (

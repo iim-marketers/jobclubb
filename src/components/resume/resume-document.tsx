@@ -19,7 +19,7 @@ export function ResumeDocument({
             {resume.headline}
           </p>
         )}
-        <p className="mt-2 text-neutral-600">
+        <p className="mt-2 break-words text-neutral-600">
           {[contact.city, contact.phone, contact.email]
             .filter(Boolean)
             .join("  |  ")}

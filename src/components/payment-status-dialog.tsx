@@ -265,7 +265,7 @@ export function PaymentStatusDialog({
               </p>
             )}
 
-            <DialogFooter className="-mx-6 -mb-6 grid grid-cols-2 gap-3 px-6 py-4">
+            <DialogFooter className="-mx-6 -mb-6 grid grid-cols-1 gap-3 px-6 py-4 sm:grid-cols-2">
               <Button
                 variant="outline"
                 size="lg"

@@ -101,7 +101,7 @@ export default function FranchisePage() {
 
       <Section>
         <div className="overflow-hidden rounded-3xl border border-brand/25 bg-card">
-          <div className="grid gap-5 p-5 sm:gap-8 sm:p-8 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:gap-12 lg:p-10">
+          <div className="grid grid-cols-1 gap-5 p-5 sm:gap-8 sm:p-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-center lg:gap-12 lg:p-10">
             <div>
               <SectionEyebrow>Revenue model</SectionEyebrow>
               <h2 className="mt-2 font-head text-xl font-extrabold tracking-tight sm:mt-3 sm:text-3xl">
@@ -133,7 +133,7 @@ export default function FranchisePage() {
             </div>
           </div>
           {/* 
-          <div className="grid gap-px border-t border-border bg-border sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-px border-t border-border bg-border sm:grid-cols-3">
             {REVENUE_STREAMS.map((stream) => (
               <div
                 key={stream.label}
@@ -161,7 +161,7 @@ export default function FranchisePage() {
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight">
           Four steps to launch
         </h2>
-        <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((item) => (
             <li
               key={item.step}
@@ -229,7 +229,7 @@ export default function FranchisePage() {
           hiring demand.
         </p>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
           <TrendList title="National trends" items={NATIONAL_TRENDS} />
           <TrendList title="Tier 2 & Tier 3 cities" items={TIER_TRENDS} />
         </div>

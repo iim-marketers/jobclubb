@@ -339,7 +339,7 @@ export function PersonalDetailsForm({
       successMessage="Personal details saved"
     >
       {(errors) => (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field
             id="firstName"
             label="First name"
@@ -406,7 +406,7 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
       successMessage="Job preferences saved"
     >
       {(errors, markDirty) => (
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <SelectField
             id="industry"
             label="Industry"
@@ -536,7 +536,7 @@ export function PasswordForm({
           </>
         }
       >
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <PasswordField
             id="password"
             label="New password"

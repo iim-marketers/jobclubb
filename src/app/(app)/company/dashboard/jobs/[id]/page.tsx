@@ -127,7 +127,7 @@ export default async function JobDetailPage({
           ).map(([label, value]) => (
             <div key={label} className="min-w-0">
               <dt className="text-xs text-muted-foreground">{label}</dt>
-              <dd className="mt-0.5 truncate font-head text-sm font-bold">
+              <dd className="mt-0.5 font-head text-sm font-bold sm:truncate">
                 {value}
               </dd>
             </div>
@@ -213,7 +213,7 @@ export default async function JobDetailPage({
             __html: sanitizeRichText(job.description),
           }}
         />
-        <div className="mt-6 grid gap-6 border-t border-border pt-6 md:grid-cols-2 md:gap-10">
+        <div className="mt-6 grid grid-cols-1 gap-6 border-t border-border pt-6 md:grid-cols-2 md:gap-10">
           <DetailList title="Responsibilities" items={job.responsibilities} />
           <DetailList title="Requirements" items={job.requirements} />
         </div>

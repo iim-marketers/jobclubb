@@ -64,7 +64,7 @@ export default async function CompanySettingsPage() {
         description="Manage your company profile, contact person and sign-in details."
       />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,52rem)] xl:gap-8">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,52rem)] xl:gap-8">
         <CompanySettingsNav />
 
         <div className="min-w-0 space-y-6">
@@ -89,7 +89,7 @@ export default async function CompanySettingsPage() {
               </Button>
             }
           >
-            <dl className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
               {verified.map(([label, value]) => (
                 <div key={label} className="min-w-0">
                   <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">

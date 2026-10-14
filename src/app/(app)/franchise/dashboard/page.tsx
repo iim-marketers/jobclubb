@@ -42,14 +42,14 @@ export default function FranchiseDashboard() {
       }
     >
       <div className="space-y-8">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Leads sent" value={48} tone="brand" />
           <StatCard label="Leads placed" value={19} tone="good" hint="40% conversion" />
           <StatCard label="In review" value={12} />
           <StatCard label="Rejected" value={5} tone="warn" />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <StatCard label="Profit share earned" value="₹1,42,500" tone="good" hint="50% of placement profit" />
           <StatCard label="Registrations collected" value="₹34,171" hint="₹1,199 × 29 leads" />
           <StatCard label="Pending payout" value="₹18,900" tone="brand" />

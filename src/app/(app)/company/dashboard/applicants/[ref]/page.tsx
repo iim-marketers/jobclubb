@@ -337,7 +337,7 @@ function InterviewPanel({
             </p>
           </div>
 
-          <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+          <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex min-w-0 gap-3 rounded-2xl bg-muted/50 p-3.5">
               <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-card text-brand shadow-xs">
                 <ModeIcon className="size-4" />

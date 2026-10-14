@@ -563,7 +563,7 @@ function CompanyDialog({
                 ]}
               />
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <DetailGroup title="Company">
                   <Detail label="Size" value={sizeLabel(company.size)} />
                   <Detail
@@ -718,7 +718,7 @@ function VerificationChecks({ steps }: { steps: Step[] }) {
   return (
     <section>
       <SectionTitle>Verification</SectionTitle>
-      <ol className="grid gap-3 sm:grid-cols-3 sm:gap-0">
+      <ol className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-0">
         {steps.map((step, i) => {
           const next = steps[i + 1];
           const first = i === 0;
