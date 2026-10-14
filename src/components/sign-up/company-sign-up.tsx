@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  Building2,
-  EyeOff,
-  MailCheck,
-  ShieldAlert,
-  UserCheck,
-} from "lucide-react";
+import { Building2, EyeOff, MailCheck, ShieldAlert } from "lucide-react";
 
 import { registerCompany } from "@/app/(auth)/sign-up/company/actions";
 import { CompanyAvatar } from "@/components/company-avatar";
@@ -31,31 +25,18 @@ import {
   StepProgress,
   useStepForm,
 } from "@/components/sign-up/step-form";
-import {
-  COMPANY_SIZES,
-  assessCompanyVerification,
-  type VerificationRoute,
-} from "@/lib/company-verification";
+import { COMPANY_SIZES, checkCompanyEmail } from "@/lib/company-verification";
 import { COMPANY_STEPS, validateCompany } from "@/lib/sign-up-validation";
 import { INDUSTRIES } from "@/lib/taxonomy";
 
 const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
 
-const ROUTE_STYLES: Record<
-  VerificationRoute,
-  { icon: typeof MailCheck; label: string; panel: string; form: string }
-> = {
-  email: {
+const EMAIL_STYLES = {
+  ok: {
     icon: MailCheck,
     label: "Verify by email",
     panel: "bg-brand-accent/20 text-brand-accent",
     form: "bg-good/10 text-good",
-  },
-  manual: {
-    icon: UserCheck,
-    label: "Manual review",
-    panel: "bg-white/15 text-white",
-    form: "bg-brand/10 text-brand",
   },
   blocked: {
     icon: ShieldAlert,
@@ -86,13 +67,7 @@ export function CompanySignUp() {
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
 
-  const assessment = size
-    ? assessCompanyVerification({
-        email: values.email ?? "",
-        size,
-        website: values.website ?? "",
-      })
-    : null;
+  const emailCheck = checkCompanyEmail(values.email ?? "");
 
   return (
     <SignUpLayout
@@ -114,7 +89,7 @@ export function CompanySignUp() {
             industry={industry}
             size={size}
             email={values.email}
-            route={assessment?.route}
+            emailOk={emailCheck?.ok}
           />
           <PanelPoints
             points={[
@@ -124,11 +99,11 @@ export function CompanySignUp() {
               },
               {
                 icon: MailCheck,
-                text: "Corporate email? Confirm one link and you're verified",
+                text: "Sign up with your company email and confirm one link — you're verified",
               },
               {
-                icon: UserCheck,
-                text: "Personal email? Our team verifies you against your GSTIN or documents",
+                icon: ShieldAlert,
+                text: "Personal addresses like Gmail or Outlook aren't accepted",
               },
               {
                 icon: EyeOff,
@@ -204,7 +179,6 @@ export function CompanySignUp() {
               label="GSTIN"
               placeholder="E.g., 19AABCT1234F1Z5"
               optional
-              hint="Speeds up verification."
               error={errors.gstin}
               inputClassName="uppercase placeholder:normal-case"
             />
@@ -265,16 +239,12 @@ export function CompanySignUp() {
                 required
                 error={errors.email}
               />
-              {assessment && !errors.email && (
+              {emailCheck && !errors.email && (
                 <p
                   aria-live="polite"
-                  className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs leading-5 ${ROUTE_STYLES[assessment.route].form}`}
+                  className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs leading-5 ${EMAIL_STYLES[emailCheck.ok ? "ok" : "blocked"].form}`}
                 >
-                  {/* {(() => {
-                    const Icon = ROUTE_STYLES[assessment.route].icon;
-                    return <Icon className="mt-0.5 size-3.5 flex-none" />;
-                  })()} */}
-                  {assessment.reason}
+                  {emailCheck.reason}
                 </p>
               )}
             </div>
@@ -314,13 +284,8 @@ export function CompanySignUp() {
           <div className="space-y-8">
             <FileField
               id="proof"
-              label={
-                assessment?.route === "manual"
-                  ? "Upload a business document (or add your GSTIN)"
-                  : "Upload a business document"
-              }
+              label="Upload a business document (optional)"
               description="Incorporation or GST certificate, or trade licence · PDF, JPG or PNG, up to 5 MB"
-              required={assessment?.route === "manual" && !values.gstin}
               error={errors.proof}
             />
 
@@ -380,7 +345,7 @@ function EmployerBadge({
   industry,
   size,
   email,
-  route,
+  emailOk,
 }: {
   name?: string;
   property?: string;
@@ -388,12 +353,13 @@ function EmployerBadge({
   industry: string | null;
   size: string | null;
   email?: string;
-  route?: VerificationRoute;
+  emailOk?: boolean;
 }) {
   const companyName = name?.trim() || "Your company";
   const industryLabel = INDUSTRIES.find((v) => v.slug === industry)?.name;
   const sizeLabel = COMPANY_SIZES.find((s) => s.value === size)?.label;
-  const status = route ? ROUTE_STYLES[route] : null;
+  const status =
+    emailOk === undefined ? null : EMAIL_STYLES[emailOk ? "ok" : "blocked"];
   const StatusIcon = status?.icon;
 
   return (

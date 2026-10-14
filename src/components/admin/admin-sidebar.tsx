@@ -32,15 +32,12 @@ export const ADMIN_NAV = [
 
 export function AdminSidebar({
   adminEmail,
-  pendingReviews,
   offersToRelease,
 }: {
   adminEmail: string;
-  pendingReviews: number;
   offersToRelease: number;
 }) {
   const badges: Record<string, number> = {
-    "/admin/companies": pendingReviews,
     "/admin/placements": offersToRelease,
   };
   const pathname = usePathname();

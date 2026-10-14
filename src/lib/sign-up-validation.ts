@@ -1,6 +1,6 @@
 import {
   COMPANY_SIZES,
-  assessCompanyVerification,
+  checkCompanyEmail,
   getWebsiteDomain,
 } from "@/lib/company-verification";
 import { GST_STATES, pincodeState } from "@/lib/gst";
@@ -167,8 +167,8 @@ export const COMPANY_STEPS: SignUpStep[] = [
     fields: ["contactName", "designation", "email", "phone", "password", "confirmPassword"],
   },
   {
-    title: "Verification",
-    description: "Help us verify your company.",
+    title: "Finish up",
+    description: "Add a business document if you have one, and accept the terms.",
     fields: ["proof", "acceptTerms"],
   },
 ];
@@ -215,15 +215,12 @@ export function validateCompany(formData: FormData): FieldErrors {
   else if (v.password !== v.confirmPassword) errors.confirmPassword = "Passwords don't match.";
   if (v.acceptTerms !== "yes") errors.acceptTerms = "Read and accept the Terms & Conditions.";
 
-  const assessment = assessCompanyVerification(v);
-  if (!assessment) errors.email = "Enter a valid work email address.";
-  else if (assessment.route === "blocked") errors.email = assessment.reason;
+  const emailCheck = checkCompanyEmail(v.email);
+  if (!emailCheck) errors.email = "Enter a valid company email address.";
+  else if (!emailCheck.ok) errors.email = emailCheck.reason;
 
   const uploadError = checkUpload(proof);
   if (uploadError) errors.proof = uploadError;
-  else if (!proof && assessment?.route === "manual" && !v.gstin) {
-    errors.proof = "Add your GSTIN or upload a business document so we can verify your company.";
-  }
 
   return errors;
 }

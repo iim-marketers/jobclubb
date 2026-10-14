@@ -1,6 +1,5 @@
 import "server-only";
 
-import { assessCompanyVerification, type VerificationRoute } from "@/lib/company-verification";
 import { validateCompany, type FieldErrors } from "@/lib/sign-up-validation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { EMPLOYER_TERMS_VERSION } from "@/lib/terms-content";
@@ -11,7 +10,7 @@ const EMAIL_TAKEN = "An account with this email already exists. Each property ne
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 
 export type RegisterCompanyResult =
-  | { ok: true; userId: string; email: string; route: Exclude<VerificationRoute, "blocked"> }
+  | { ok: true; userId: string; email: string }
   | { ok: false; errors: FieldErrors };
 
 export async function registerCompany(formData: FormData): Promise<RegisterCompanyResult> {
@@ -21,8 +20,6 @@ export async function registerCompany(formData: FormData): Promise<RegisterCompa
   const email = text(formData, "email").toLowerCase();
   const contactName = text(formData, "contactName");
   const website = text(formData, "website");
-  const route = assessCompanyVerification({ email, size: text(formData, "size"), website })!.route;
-  if (route === "blocked") return { ok: false, errors: { email: "Use your corporate email address." } };
 
   const admin = createAdminClient();
 
@@ -51,7 +48,6 @@ export async function registerCompany(formData: FormData): Promise<RegisterCompa
       contact_name: contactName,
       designation: text(formData, "designation"),
       phone: text(formData, "phone"),
-      verification_route: route,
       terms_version: EMPLOYER_TERMS_VERSION,
     },
   });
@@ -70,9 +66,7 @@ export async function registerCompany(formData: FormData): Promise<RegisterCompa
   const proof = formData.get("proof");
   if (proof instanceof File && proof.size > 0) await storeProof(result.userId, proof);
 
-  // TODO: notify the admin review queue for manual-route companies.
-
-  return { ok: true, userId: result.userId, email, route };
+  return { ok: true, userId: result.userId, email };
 }
 
 async function storeProof(userId: string, file: File) {

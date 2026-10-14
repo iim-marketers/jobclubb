@@ -12,7 +12,6 @@ export type SignInResult =
 
 const COMPANY_STATUS_ERRORS: Record<string, string> = {
   pending_email: "Confirm your email before signing in.",
-  pending_review: "Our team is still verifying your company. We'll email you once it's approved.",
   rejected: "We couldn't verify your company. Contact support@jobclubb.com for help.",
 };
 

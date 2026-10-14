@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
 import {
   Check,
   Clock,
@@ -10,15 +9,11 @@ import {
   FileText,
   Globe,
   Mail,
-  MoreHorizontal,
   Phone,
-  RotateCcw,
   TriangleAlert,
-  X,
 } from "lucide-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { updateCompanyStatus } from "@/app/(admin)/admin/(panel)/companies/actions";
 import {
   adminTableFeatures,
   DataTable,
@@ -26,18 +21,8 @@ import {
   industryName,
 } from "@/components/admin/data-table";
 import { FilterSelect } from "@/components/table-toolbar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -46,26 +31,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { COMPANY_SIZES } from "@/lib/company-verification";
 import { cn } from "@/lib/utils";
-import type {
-  AdminCompany,
-  CompanyDecision,
-  CompanyStatus,
-} from "@/server/admin/companies";
+import type { AdminCompany, CompanyStatus } from "@/server/admin/companies";
 
 const STATUS: Record<CompanyStatus, { label: string; className: string }> = {
-  pending_review: {
-    label: "Needs review",
-    className: "bg-amber-500/12 text-amber-700 dark:text-amber-300",
-  },
   pending_email: {
     label: "Awaiting email",
     className: "bg-muted text-muted-foreground",
@@ -79,10 +49,8 @@ const STATUS: Record<CompanyStatus, { label: string; className: string }> = {
 
 const TABS = [
   { key: "all", label: "All" },
-  { key: "pending_review", label: "Needs review" },
-  { key: "pending_email", label: "Awaiting email" },
   { key: "verified", label: "Verified" },
-  { key: "rejected", label: "Rejected" },
+  { key: "pending_email", label: "Awaiting email" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -98,182 +66,84 @@ function StatusBadge({ status }: { status: CompanyStatus }) {
   );
 }
 
-function RouteBadge({ route }: { route: AdminCompany["verificationRoute"] }) {
-  return (
-    <Badge variant="outline" className="font-head text-muted-foreground">
-      {route === "email" ? "Corporate email" : "Manual"}
-    </Badge>
-  );
-}
-
-type Decide = (company: AdminCompany, decision: CompanyDecision) => void;
-
-function availableDecisions(c: AdminCompany): CompanyDecision[] {
-  const emailVerified = c.emailVerifiedAt !== null;
-  if (c.status === "verified") return ["reject", "reopen"];
-  if (c.status === "rejected")
-    return emailVerified ? ["approve", "reopen"] : ["reopen"];
-  return emailVerified ? ["approve", "reject"] : ["reject"];
-}
-
-const DECISION_UI = {
-  approve: { label: "Approve", icon: Check },
-  reject: { label: "Reject", icon: X },
-  reopen: { label: "Move back to review", icon: RotateCcw },
-} as const;
-
 const helper = createColumnHelper<typeof adminTableFeatures, AdminCompany>();
 
-function buildColumns(onDecide: Decide, onView: (c: AdminCompany) => void) {
-  return helper.columns([
-    helper.accessor("companyName", {
-      header: "Company",
-      sortFn: "text",
-      cell: ({ row }) => {
-        const c = row.original;
-        return (
-          <div className="min-w-44">
-            <p className="font-head font-bold">{c.companyName}</p>
-            <p className="text-xs text-muted-foreground">
-              {[c.propertyName, industryName(c.industry)]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          </div>
-        );
-      },
-    }),
-    helper.accessor("contactName", {
-      header: "Contact",
-      sortFn: "text",
-      cell: ({ row }) => {
-        const c = row.original;
-        return (
-          <div className="min-w-44">
-            <p className="font-medium">{c.contactName}</p>
-            <p className="text-xs text-muted-foreground">{c.email}</p>
-          </div>
-        );
-      },
-    }),
-    helper.accessor("email", { header: "Email" }),
-    helper.accessor("city", {
-      header: "City",
-      sortFn: "text",
-      cell: ({ getValue }) => (
-        <span className="text-muted-foreground">{getValue()}</span>
-      ),
-    }),
-    helper.accessor("size", {
-      header: "Size",
-      enableSorting: false,
-      cell: ({ row }) => (
-        <span className="whitespace-nowrap text-muted-foreground">
-          {row.original.size}
-        </span>
-      ),
-    }),
-    helper.accessor("verificationRoute", {
-      header: "Verification",
-      enableSorting: false,
-      cell: ({ row }) => {
-        const c = row.original;
-        return (
-          <div className="flex items-center gap-1.5">
-            <RouteBadge route={c.verificationRoute} />
-          </div>
-        );
-      },
-    }),
-    helper.accessor("status", {
-      header: "Status",
-      sortFn: "text",
-      cell: ({ getValue }) => <StatusBadge status={getValue()} />,
-    }),
-    helper.accessor("createdAt", {
-      header: "Registered",
-      sortFn: "basic",
-      sortDescFirst: true,
-      cell: ({ getValue }) => (
-        <span className="whitespace-nowrap text-muted-foreground">
-          {formatDate(getValue())}
-        </span>
-      ),
-    }),
-    helper.display({
-      id: "actions",
-      header: () => <span className="sr-only">Actions</span>,
-      cell: ({ row }) => (
-        <RowActions
-          company={row.original}
-          onDecide={onDecide}
-          onView={onView}
-        />
-      ),
-    }),
-  ]);
-}
+const COLUMNS = helper.columns([
+  helper.accessor("companyName", {
+    header: "Company",
+    sortFn: "text",
+    cell: ({ row }) => {
+      const c = row.original;
+      return (
+        <div className="min-w-44">
+          <p className="font-head font-bold">{c.companyName}</p>
+          <p className="text-xs text-muted-foreground">
+            {[c.propertyName, industryName(c.industry)]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        </div>
+      );
+    },
+  }),
+  helper.accessor("contactName", {
+    header: "Contact",
+    sortFn: "text",
+    cell: ({ row }) => {
+      const c = row.original;
+      return (
+        <div className="min-w-44">
+          <p className="font-medium">{c.contactName}</p>
+          <p className="text-xs text-muted-foreground">{c.email}</p>
+        </div>
+      );
+    },
+  }),
+  helper.accessor("email", { header: "Email" }),
+  helper.accessor("city", {
+    header: "City",
+    sortFn: "text",
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{getValue()}</span>
+    ),
+  }),
+  helper.accessor("size", {
+    header: "Size",
+    enableSorting: false,
+    cell: ({ row }) => (
+      <span className="whitespace-nowrap text-muted-foreground">
+        {row.original.size}
+      </span>
+    ),
+  }),
+  helper.accessor("status", {
+    header: "Status",
+    sortFn: "text",
+    cell: ({ getValue }) => <StatusBadge status={getValue()} />,
+  }),
+  helper.accessor("createdAt", {
+    header: "Registered",
+    sortFn: "basic",
+    sortDescFirst: true,
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap text-muted-foreground">
+        {formatDate(getValue())}
+      </span>
+    ),
+  }),
+]);
 
 const COLUMN_CLASS: Record<string, string> = {
   email: "hidden",
   contactName: "hidden md:table-cell",
   city: "hidden lg:table-cell",
   size: "hidden xl:table-cell",
-  verificationRoute: "hidden sm:table-cell",
   createdAt: "hidden lg:table-cell",
-  actions: "w-12 text-right",
 };
-
-function RowActions({
-  company,
-  onDecide,
-  onView,
-}: {
-  company: AdminCompany;
-  onDecide: Decide;
-  onView: (c: AdminCompany) => void;
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Actions for ${company.companyName}`}
-          />
-        }
-      >
-        <MoreHorizontal className="size-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => onView(company)}>
-          View details
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {availableDecisions(company).map((d) => {
-          const { label, icon: Icon } = DECISION_UI[d];
-          return (
-            <DropdownMenuItem
-              key={d}
-              variant={d === "reject" ? "destructive" : "default"}
-              onClick={() => onDecide(company, d)}
-            >
-              <Icon />
-              {label}
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
   const counts = useMemo(() => {
-    const byStatus: Record<TabKey, number> = {
-      all: companies.length,
-      pending_review: 0,
+    const byStatus: Record<CompanyStatus, number> = {
       pending_email: 0,
       verified: 0,
       rejected: 0,
@@ -282,12 +152,8 @@ export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
     return byStatus;
   }, [companies]);
 
-  const [tab, setTab] = useState<TabKey>(() =>
-    counts.pending_review > 0 ? "pending_review" : "all",
-  );
+  const [tab, setTab] = useState<TabKey>("all");
   const [viewingId, setViewingId] = useState<string>();
-  const [rejecting, setRejecting] = useState<AdminCompany>();
-  const [pending, startTransition] = useTransition();
 
   const viewing = companies.find((c) => c.id === viewingId);
   const data = useMemo(
@@ -296,58 +162,18 @@ export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
     [companies, tab],
   );
 
-  const run = (company: AdminCompany, decision: CompanyDecision) => {
-    startTransition(async () => {
-      const result = await updateCompanyStatus(company.id, decision);
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
-      }
-      if (result.emailFailed) {
-        toast.warning(
-          `${company.companyName} approved, but the confirmation email couldn't be sent.`,
-        );
-      } else if (result.status === "verified") {
-        toast.success(
-          `${company.companyName} approved — we've emailed ${company.email}`,
-        );
-      } else {
-        toast.success(
-          `${company.companyName} — ${STATUS[result.status].label.toLowerCase()}`,
-        );
-      }
-      setRejecting(undefined);
-    });
-  };
-
-  const decide: Decide = (company, decision) => {
-    if (decision === "reject") setRejecting(company);
-    else run(company, decision);
-  };
-
-  const columns = useMemo(
-    () => buildColumns(decide, (c) => setViewingId(c.id)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile
-          label="Needs review"
-          value={counts.pending_review}
-          highlight={counts.pending_review > 0}
-        />
-        <StatTile label="Awaiting email" value={counts.pending_email} />
+      <div className="grid grid-cols-3 gap-3">
+        <StatTile label="Registered" value={companies.length} />
         <StatTile label="Verified" value={counts.verified} />
-        <StatTile label="Rejected" value={counts.rejected} />
+        <StatTile label="Awaiting email" value={counts.pending_email} />
       </div>
 
       <DataTable
         key={tab}
         data={data}
-        columns={columns}
+        columns={COLUMNS}
         getRowId={(c) => c.id}
         searchable={["companyName", "contactName", "email", "city"]}
         searchPlaceholder="Search company, contact, email or city"
@@ -367,57 +193,16 @@ export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
 
       <CompanyDialog
         company={viewing}
-        pending={pending}
         onClose={() => setViewingId(undefined)}
-        onDecide={decide}
       />
 
-      <AlertDialog
-        open={!!rejecting}
-        onOpenChange={(open) => !open && setRejecting(undefined)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Reject {rejecting?.companyName}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              They won&apos;t be able to sign in. You can move them back to
-              review later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={pending}
-              onClick={() => rejecting && run(rejecting, "reject")}
-            >
-              {pending ? "Rejecting…" : "Reject company"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
 
-function StatTile({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: number;
-  highlight?: boolean;
-}) {
+function StatTile({ label, value }: { label: string; value: number }) {
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-border bg-card px-4 py-3.5",
-        highlight && "border-amber-500/40 bg-amber-500/5",
-      )}
-    >
+    <div className="rounded-2xl border border-border bg-card px-4 py-3.5">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="mt-1 font-head text-2xl font-extrabold tracking-tight">
         {value}
@@ -452,14 +237,10 @@ const LINK = "inline-flex items-center gap-1 text-brand hover:underline";
 
 function CompanyDialog({
   company,
-  pending,
   onClose,
-  onDecide,
 }: {
   company?: AdminCompany;
-  pending: boolean;
   onClose: () => void;
-  onDecide: Decide;
 }) {
   return (
     <Dialog open={!!company} onOpenChange={(open) => !open && onClose()}>
@@ -472,10 +253,7 @@ function CompanyDialog({
                   {initials(company.companyName)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={company.status} />
-                    <RouteBadge route={company.verificationRoute} />
-                  </div>
+                  <StatusBadge status={company.status} />
                   <DialogTitle className="mt-2 font-head text-xl leading-tight font-extrabold sm:text-2xl">
                     {company.companyName}
                   </DialogTitle>
@@ -522,7 +300,7 @@ function CompanyDialog({
                   <div>
                     <p className="font-medium">Email not confirmed</p>
                     <p className="text-xs opacity-80">
-                      This company can&apos;t be approved until it confirms its
+                      This company can&apos;t sign in until it confirms its
                       email.
                     </p>
                   </div>
@@ -614,38 +392,11 @@ function CompanyDialog({
               </div>
             </div>
 
-            <DialogFooter className="m-0 items-center rounded-b-xl px-5 py-4 sm:justify-between sm:px-7">
-              <p className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+            <DialogFooter className="m-0 items-center rounded-b-xl px-5 py-4 sm:justify-start sm:px-7">
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="size-3.5" />
                 Registered {timeAgo(company.createdAt)}
               </p>
-              <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row">
-                {availableDecisions(company).map((d) => {
-                  const { label, icon: Icon } = DECISION_UI[d];
-                  return (
-                    <Button
-                      key={d}
-                      disabled={pending}
-                      variant={
-                        d === "approve"
-                          ? "default"
-                          : d === "reject"
-                            ? "destructive"
-                            : "outline"
-                      }
-                      onClick={() => onDecide(company, d)}
-                      className={cn(
-                        "font-head",
-                        d === "approve" &&
-                          "bg-brand text-brand-foreground hover:bg-brand-dark sm:order-last",
-                      )}
-                    >
-                      <Icon className="size-4" />
-                      {label}
-                    </Button>
-                  );
-                })}
-              </div>
             </DialogFooter>
           </>
         )}

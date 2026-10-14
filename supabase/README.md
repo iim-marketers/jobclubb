@@ -51,7 +51,7 @@ Without these secrets, deletes still work but the files stay in Storage. The dat
 
 ### Company accounts
 
-Company sign-ups land in `public.companies`, with the proof document in the private `company-proofs` bucket. `status` moves from `pending_email` to `verified` (corporate email on the company's domain) or `pending_review` (personal email or mismatched domain) once the email is confirmed. Approve a reviewed company by setting its `status` to `verified`, or `rejected`. Only `verified` companies can sign in. Deleting a company also deletes its login and files.
+Company sign-ups land in `public.companies`, with the proof document in the private `company-proofs` bucket. Sign-up only accepts company email addresses (personal providers like Gmail are refused), so `status` moves from `pending_email` to `verified` as soon as the email is confirmed — there is no admin review. `rejected` only remains on rows rejected before that change. Only `verified` companies can sign in. Deleting a company also deletes its login and files.
 
 ### Job applications
 
