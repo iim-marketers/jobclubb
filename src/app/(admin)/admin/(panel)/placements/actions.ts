@@ -18,7 +18,6 @@ import {
   markOfferReceived,
   recordJoining,
   releasePlacement,
-  saveAdminNotes,
   storeAdminDocuments,
   updatePlacementTerms,
   withdrawPlacement,
@@ -116,12 +115,4 @@ export async function withdraw(id: string): Promise<Result> {
 export async function markJoining(id: string, joined: boolean): Promise<Result> {
   await requireAdmin();
   return attempt(id, "Recording joining", () => recordJoining(id, joined));
-}
-
-export async function saveNotes(id: string, _prev: AdminFormState, formData: FormData): Promise<AdminFormState> {
-  await requireAdmin();
-  const notes = String(formData.get("adminNotes") ?? "").trim();
-  if (notes.length > 4000) return { errors: { adminNotes: "Use 4,000 characters or fewer." } };
-  const result = await attempt(id, "Saving placement notes", () => saveAdminNotes(id, notes));
-  return result.error ? result : { ok: true };
 }

@@ -10,7 +10,6 @@ import {
   markJoining,
   release,
   removeDocument,
-  saveNotes,
   saveTerms,
   uploadDocuments,
   withdraw,
@@ -177,7 +176,7 @@ export function ExtendDeadlineForm({
       <Button
         type="submit"
         variant="outline"
-        className="font-head sm:mt-7.5"
+        className="h-11 font-head sm:mt-5.5"
         disabled={pending}
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
@@ -223,51 +222,6 @@ export function UploadDocumentsForm({ placementId }: { placementId: string }) {
         {pending && <Loader2 className="size-4 animate-spin" />}
         Upload
       </Button>
-    </form>
-  );
-}
-
-export function NotesForm({
-  placementId,
-  notes,
-}: {
-  placementId: string;
-  notes: string;
-}) {
-  const { formAction, pending, errors, formError, clearAll, onChange } =
-    useAdminForm(saveNotes.bind(null, placementId), "Notes saved");
-  return (
-    <form
-      onSubmit={(e) => {
-        clearAll();
-        submitManually(formAction)(e);
-      }}
-      onChange={onChange}
-      noValidate
-      className="space-y-3"
-    >
-      <Textarea
-        id="adminNotes"
-        name="adminNotes"
-        rows={5}
-        maxLength={4000}
-        defaultValue={notes}
-        placeholder="Calls, follow-ups, anything the team should know. Never shown to the candidate or company."
-        className="bg-card"
-      />
-      <FieldError message={errors.adminNotes} />
-      <div className="flex items-center justify-between gap-3">
-        <FormStatus error={formError} />
-        <Button
-          type="submit"
-          variant="outline"
-          size="sm"
-          className="font-head"
-          disabled={pending}
-        >
-          Save notes
-        </Button>
-      </div>
     </form>
   );
 }

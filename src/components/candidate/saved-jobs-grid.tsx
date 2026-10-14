@@ -18,6 +18,13 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { Salary } from "@/components/salary";
 import { updateSavedJob } from "@/components/save-job-button";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatShortDate, type SavedJob } from "@/lib/candidate-activity";
 import { cn } from "@/lib/utils";
 
@@ -28,13 +35,13 @@ const FILTERS = [
   { key: "closed", label: "Closed" },
 ] as const;
 
-const SORTS = [
-  { key: "saved", label: "Recently saved" },
-  { key: "posted", label: "Newest posting" },
-] as const;
+const SORTS = {
+  saved: "Recently saved",
+  posted: "Newest posting",
+} as const;
 
 type FilterKey = (typeof FILTERS)[number]["key"];
-type SortKey = (typeof SORTS)[number]["key"];
+type SortKey = keyof typeof SORTS;
 
 export function SavedJobsGrid({
   saved,
@@ -118,7 +125,7 @@ export function SavedJobsGrid({
                 aria-pressed={active === f.key}
                 onClick={() => setFilter(f.key)}
                 className={cn(
-                  "flex flex-none items-center gap-1.5 rounded-lg px-3 py-1.5 font-head text-xs font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                  "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 font-head text-xs font-semibold whitespace-nowrap transition-colors outline-none sm:flex-none focus-visible:ring-3 focus-visible:ring-ring/50",
                   active === f.key
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
@@ -139,20 +146,29 @@ export function SavedJobsGrid({
             ),
           )}
         </div>
-        <label className="flex flex-none items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex flex-none items-center gap-2 text-sm text-muted-foreground">
           Sort by
-          <select
+          <Select
+            items={SORTS}
             value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            className="h-9 rounded-lg border border-border bg-card px-2.5 font-head text-sm font-semibold text-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            onValueChange={(v) => v && setSort(v as SortKey)}
           >
-            {SORTS.map((s) => (
-              <option key={s.key} value={s.key}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger
+              size="sm"
+              aria-label="Sort saved jobs"
+              className="w-40 bg-card font-head font-medium text-foreground"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(SORTS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -241,7 +257,7 @@ function SavedCard({
         </span>
       </div>
 
-      <div className="-mx-5 mt-auto flex items-center justify-between gap-3 border-t border-border px-5 pt-3">
+      <div className="-mx-4 mt-auto flex items-center justify-between gap-3 border-t border-border px-4 pt-3">
         <div className="min-w-0 text-xs text-muted-foreground">
           <p>Saved {formatShortDate(savedAt)}</p>
         </div>

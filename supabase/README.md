@@ -53,6 +53,8 @@ Without these secrets, deletes still work but the files stay in Storage. The dat
 
 Company sign-ups land in `public.companies`, with the proof document in the private `company-proofs` bucket. Sign-up only accepts company email addresses (personal providers like Gmail are refused), so `status` moves from `pending_email` to `verified` as soon as the email is confirmed — there is no admin review. `rejected` only remains on rows rejected before that change. Only `verified` companies can sign in. Deleting a company also deletes its login and files.
 
+Companies edit most of their profile themselves. Company name, city and GSTIN go through `public.company_change_requests` instead: the company asks from Settings, support@jobclubb.com is emailed, and an admin approves or rejects it from the company's dialog in `/admin/companies`. Approving runs `approve_company_change()`, which updates `companies` and closes the request in one transaction. Only one request per field can be pending at a time.
+
 ### Job applications
 
 Members apply from a job page into `public.job_applications`. The table has no RLS policies: only the server (secret key) reads or writes it, because a company must never see `candidate_id`, the candidate's email or phone, or the unmasked resume.

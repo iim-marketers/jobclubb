@@ -1,4 +1,7 @@
-import { CandidatesTable, type AdminCandidate } from "@/components/admin/candidates-table";
+import {
+  CandidatesTable,
+  type AdminCandidate,
+} from "@/components/admin/candidates-table";
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/server/admin/session";
 
@@ -29,9 +32,11 @@ export default async function AdminCandidatesPage() {
   }));
 
   return (
-    <div className="flex-1 space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+    <div className="flex-1 space-y-6 px-4 py-6">
       <div>
-        <h1 className="font-head text-2xl font-extrabold tracking-tight">Candidates</h1>
+        <h1 className="font-head text-2xl font-extrabold tracking-tight">
+          Candidates
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Everyone who has registered as a candidate, newest first.
         </p>

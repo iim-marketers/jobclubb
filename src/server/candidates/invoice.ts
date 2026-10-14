@@ -80,6 +80,32 @@ export function gstColumns(amount: number, placeOfSupply: string) {
   };
 }
 
+export async function storeLegacyBilling(candidate: {
+  id: string;
+  first_name: string;
+  last_name: string;
+  city: string;
+  pincode: string;
+}) {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("membership_payments")
+    .select("order_id, amount")
+    .eq("candidate_id", candidate.id)
+    .eq("status", "paid")
+    .is("taxable_amount", null);
+  if (error) throw error;
+
+  const billing = billingFor(candidate);
+  for (const row of data) {
+    const { error: updateError } = await admin
+      .from("membership_payments")
+      .update({ ...billing, ...gstColumns(row.amount, billing.place_of_supply) })
+      .eq("order_id", row.order_id);
+    if (updateError) throw updateError;
+  }
+}
+
 export async function getMembershipInvoice(
   candidateId: string,
   paymentId: string,

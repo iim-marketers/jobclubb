@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Lock } from "lucide-react";
 
@@ -31,11 +32,12 @@ export function ScrollGatedTerms({
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    // A hidden box (e.g. on an inactive sign-up step) measures 0×0, which
+    // would otherwise count as "scrolled to the end".
+    if (!el || el.clientHeight === 0) return;
     const max = el.scrollHeight - el.clientHeight;
     const pct = max <= 0 ? 1 : el.scrollTop / max;
     setProgress(Math.min(1, pct));
-    // 2px tolerance for sub-pixel scroll heights
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
       setHasRead(true);
       onRead?.(true);
@@ -43,7 +45,11 @@ export function ScrollGatedTerms({
   }, [onRead]);
 
   useEffect(() => {
-    handleScroll();
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(handleScroll);
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [handleScroll]);
 
   return (
@@ -52,9 +58,7 @@ export function ScrollGatedTerms({
         <h3 className="font-head text-sm font-bold tracking-tight">
           Terms &amp; Conditions
         </h3>
-        <span className="text-xs text-muted-foreground">
-          Version {version}
-        </span>
+        <span className="text-xs text-muted-foreground">Version {version}</span>
       </div>
 
       <div
@@ -97,12 +101,16 @@ export function ScrollGatedTerms({
           />
           <Label
             htmlFor="accept-terms"
-            className={`text-sm font-normal leading-6 text-muted-foreground ${
+            className={`block text-sm font-normal leading-6 text-muted-foreground ${
               hasRead ? "cursor-pointer" : "cursor-not-allowed"
             }`}
           >
-            I have read and agree to the Terms &amp; Conditions and the Privacy
-            Policy, and I consent to my personal data being processed as
+            I have read and agree to the{" "}
+            <PolicyLink href={employer ? "/employer-terms" : "/terms"}>
+              Terms &amp; Conditions
+            </PolicyLink>{" "}
+            and the <PolicyLink href="/privacy">Privacy Policy</PolicyLink>, and
+            I consent to my personal data being processed as
             described, in line with the Digital Personal Data Protection Act.
           </Label>
         </div>
@@ -126,5 +134,25 @@ export function ScrollGatedTerms({
         </p>
       </div>
     </div>
+  );
+}
+
+// New tab so following the link doesn't throw away a half-filled sign-up form.
+function PolicyLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-medium text-brand underline-offset-2 hover:underline"
+    >
+      {children}
+    </Link>
   );
 }

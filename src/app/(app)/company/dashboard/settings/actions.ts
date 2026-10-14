@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import type { SettingsActionState } from "@/app/(app)/candidate/dashboard/settings/actions";
 import { COMPANY_HOME } from "@/components/company/nav";
+import { validateChangeRequest } from "@/lib/company-change-requests";
 import {
   validateCompanyContact,
   validateCompanyDetails,
@@ -12,6 +14,9 @@ import {
 import { createAdminClient } from "@/lib/supabase/server";
 import { changeOwnPassword } from "@/server/auth/change-password";
 import { requireCompany } from "@/server/auth/current-company";
+import { deleteOwnAccount } from "@/server/auth/delete-account";
+import { sendChangeRequested } from "@/server/companies/change-request-emails";
+import { cancelChangeRequest, createChangeRequest } from "@/server/companies/change-requests";
 import {
   deleteCompanyLogo,
   isAcceptedLogo,
@@ -52,6 +57,8 @@ export async function updateCompanyDetails(
     {
       property_name: values.propertyName || null,
       industry: values.industry,
+      size: values.size,
+      website: values.website || null,
       pincode: values.pincode,
     },
     errors,
@@ -71,6 +78,58 @@ export async function updateCompanyContact(
     },
     errors,
   );
+}
+
+export async function requestCompanyChange(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const company = await requireCompany(SETTINGS_PATH);
+  const { values, errors } = validateChangeRequest(formData, {
+    company_name: company.company_name,
+    city: company.city,
+    gstin: company.gstin,
+  });
+  if (Object.keys(errors).length > 0) return { errors };
+
+  let id: string | null;
+  try {
+    id = await createChangeRequest({
+      companyId: company.id,
+      companyName: company.company_name,
+      field: values.field,
+      oldValue: company[values.field],
+      newValue: values.newValue,
+      reason: values.reason,
+    });
+  } catch (error) {
+    console.error("Creating company change request failed", error);
+    return { error: "We couldn't send your request. Please try again." };
+  }
+  if (!id) return { errors: { field: "You already have a request for this under review." } };
+
+  after(() => sendChangeRequested(id));
+  revalidatePath(SETTINGS_PATH);
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+export async function cancelCompanyChange(id: string): Promise<{ error?: string }> {
+  const company = await requireCompany(SETTINGS_PATH);
+  try {
+    await cancelChangeRequest(company.id, id);
+  } catch (error) {
+    console.error("Cancelling company change request failed", error);
+    return { error: "We couldn't cancel the request. Please try again." };
+  }
+  revalidatePath(SETTINGS_PATH);
+  revalidatePath("/admin", "layout");
+  return {};
+}
+
+export async function deleteCompanyAccount(): Promise<{ error?: string }> {
+  const company = await requireCompany(SETTINGS_PATH);
+  return deleteOwnAccount(company);
 }
 
 export async function changeCompanyPassword(

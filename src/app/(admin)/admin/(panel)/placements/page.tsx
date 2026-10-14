@@ -9,12 +9,15 @@ export default async function AdminPlacementsPage() {
   const placements = await listAdminPlacements();
 
   return (
-    <div className="flex-1 space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+    <div className="flex-1 space-y-6 px-4 py-6">
       <div>
-        <h1 className="font-head text-2xl font-extrabold tracking-tight">Placements</h1>
+        <h1 className="font-head text-2xl font-extrabold tracking-tight">
+          Placements
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every candidate a company has selected. Check the offer the company uploads, release it,
-          and the candidate pays the placement fee to unlock it.
+          Every candidate a company has selected. Check the offer the company
+          uploads, release it, and the candidate pays the placement fee to
+          unlock it.
         </p>
       </div>
       <PlacementsTable placements={placements} />

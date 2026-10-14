@@ -237,7 +237,8 @@ export async function getPlacementInvoice(
   const placement = data.placements as unknown as {
     joining_date: string;
     job_applications: { ref: string; job_title: string; company_name: string };
-  };
+  } | null;
+  if (!placement) return null;
   const job = placement.job_applications;
   return {
     taxable: data.taxable_amount,
