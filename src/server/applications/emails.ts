@@ -6,6 +6,7 @@ import { candidateLabel, formatExperienceMonths } from "@/lib/company-activity";
 import { sendEmail } from "@/lib/email/mailer";
 import { applicationDeclinedEmail } from "@/lib/email/templates/application-declined";
 import { applicationReceivedEmail } from "@/lib/email/templates/application-received";
+import { applicationSubmittedEmail } from "@/lib/email/templates/application-submitted";
 import { candidateSelectedEmail } from "@/lib/email/templates/candidate-selected";
 import { PLACEMENT_EMAIL } from "@/lib/placements";
 import { candidateShortlistedEmail } from "@/lib/email/templates/candidate-shortlisted";
@@ -41,33 +42,64 @@ async function send(kind: string, build: () => Promise<Parameters<typeof sendEma
   }
 }
 
+async function getNewApplication(ref: string) {
+  const { data, error } = await createAdminClient()
+    .from("job_applications")
+    .select(
+      "ref, job_title, company_name, candidate_no, city, experience_months, created_at, companies (email, contact_name), candidates (first_name, email)",
+    )
+    .eq("ref", ref)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    ...data,
+    company: data.companies as unknown as { email: string; contact_name: string },
+    candidate: data.candidates as unknown as Pick<Candidate, "first_name" | "email">,
+  };
+}
+
+// Notifies the company and confirms to the candidate; each email fails independently.
 export function sendApplicationReceived(ref: string) {
-  return send("application received", async () => {
-    const { data, error } = await createAdminClient()
-      .from("job_applications")
-      .select(
-        "ref, job_title, company_name, candidate_no, city, experience_months, created_at, companies (email, contact_name)",
-      )
-      .eq("ref", ref)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data) return null;
-    const company = data.companies as unknown as { email: string; contact_name: string };
-    return {
-      to: company.email,
-      ...applicationReceivedEmail({
-        contactName: company.contact_name,
-        companyName: data.company_name,
-        email: company.email,
-        jobTitle: data.job_title,
-        candidateLabel: candidateLabel(data.candidate_no),
-        experience: formatExperienceMonths(data.experience_months),
-        city: data.city,
-        appliedOn: formatDate(data.created_at),
-        reviewUrl: `${SITE_URL}${COMPANY_HOME}/applicants/${data.ref}`,
-      }),
-    };
-  });
+  const application = getNewApplication(ref);
+  return Promise.all([
+    send("application received", async () => {
+      const data = await application;
+      if (!data) return null;
+      const { company } = data;
+      return {
+        to: company.email,
+        ...applicationReceivedEmail({
+          contactName: company.contact_name,
+          companyName: data.company_name,
+          email: company.email,
+          jobTitle: data.job_title,
+          candidateLabel: candidateLabel(data.candidate_no),
+          experience: formatExperienceMonths(data.experience_months),
+          city: data.city,
+          appliedOn: formatDate(data.created_at),
+          reviewUrl: `${SITE_URL}${COMPANY_HOME}/applicants/${data.ref}`,
+        }),
+      };
+    }),
+    send("application submitted", async () => {
+      const data = await application;
+      if (!data) return null;
+      const { candidate } = data;
+      return {
+        to: candidate.email,
+        ...applicationSubmittedEmail({
+          firstName: candidate.first_name,
+          email: candidate.email,
+          companyName: data.company_name,
+          jobTitle: data.job_title,
+          applicationRef: data.ref,
+          appliedOn: formatDate(data.created_at),
+          applicationUrl: `${SITE_URL}${CANDIDATE_HOME}/applications/${data.ref}`,
+        }),
+      };
+    }),
+  ]);
 }
 
 async function applicationWithCandidate(companyId: string, ref: string) {
