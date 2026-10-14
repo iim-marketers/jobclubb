@@ -234,14 +234,12 @@ export type AdminPlacement = PlacementSummary & {
   candidateCity: string;
   propertyName: string | null;
   companyContact: { name: string; designation: string; email: string; phone: string };
-  adminNotes: string;
   offerReceivedAt: string | null;
 };
 
-const ADMIN_COLUMNS = `${BASE_COLUMNS}, admin_notes, candidates (first_name, last_name, email, phone, city), companies (property_name, contact_name, designation, email, phone)`;
+const ADMIN_COLUMNS = `${BASE_COLUMNS}, candidates (first_name, last_name, email, phone, city), companies (property_name, contact_name, designation, email, phone)`;
 
 type AdminRow = BaseRow & {
-  admin_notes: string | null;
   candidates: { first_name: string; last_name: string; email: string; phone: string; city: string };
   companies: {
     property_name: string | null;
@@ -267,7 +265,6 @@ function toAdmin(row: AdminRow): AdminPlacement {
       email: row.companies.email,
       phone: row.companies.phone,
     },
-    adminNotes: row.admin_notes ?? "",
     offerReceivedAt: row.offer_received_at,
   };
 }
@@ -441,17 +438,6 @@ export async function declinePlacement(id: string, scope: { candidateId?: string
   if (scope.candidateId)
     query = query.eq("candidate_id", scope.candidateId).gte("offer_deadline", todayIst());
   const { data, error } = await query.select("id");
-  if (error) throw error;
-  return data.length > 0;
-}
-
-export async function saveAdminNotes(id: string, notes: string) {
-  if (!UUID.test(id)) return false;
-  const { data, error } = await createAdminClient()
-    .from("placements")
-    .update({ admin_notes: notes || null, updated_at: now() })
-    .eq("id", id)
-    .select("id");
   if (error) throw error;
   return data.length > 0;
 }

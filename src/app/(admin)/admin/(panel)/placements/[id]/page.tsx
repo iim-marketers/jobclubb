@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, FileText } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Download,
+  FileText,
+  Mail,
+  MapPin,
+  Phone,
+} from "lucide-react";
 
 import {
   ExtendDeadlineForm,
-  NotesForm,
   PlacementActions,
   RemoveDocumentButton,
   TermsForm,
@@ -37,29 +44,75 @@ const formatDate = (value: string | null) =>
       }).format(new Date(value))
     : "—";
 
-function Card({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+function Section({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <section className={cn("rounded-2xl border border-border bg-card p-5", className)}>
+    <section className={cn("p-6", className)}>
       <h2 className="font-head text-sm font-bold">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
   );
 }
 
-function Details({ rows }: { rows: [string, React.ReactNode][] }) {
+function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <dl className="divide-y divide-border text-sm">
-      {rows.map(([label, value]) => (
-        <div key={label} className="flex items-baseline justify-between gap-4 py-2 first:pt-0 last:pb-0">
-          <dt className="text-muted-foreground">{label}</dt>
-          <dd className="min-w-0 text-right font-medium break-words">{value}</dd>
-        </div>
-      ))}
-    </dl>
+    <div className="divide-y divide-border rounded-2xl border border-border bg-card">
+      {children}
+    </div>
   );
 }
 
-export default async function AdminPlacementPage({ params }: PageProps<"/admin/placements/[id]">) {
+function Disclosure({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-head text-sm font-semibold text-brand hover:text-brand-dark [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
+        {label}
+      </summary>
+      <div className="mt-4">{children}</div>
+    </details>
+  );
+}
+
+function ContactLine({
+  icon: Icon,
+  href,
+  children,
+}: {
+  icon: typeof Mail;
+  href?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-center gap-2.5">
+      <Icon className="size-4 flex-none text-muted-foreground" />
+      {href ? (
+        <a href={href} className="min-w-0 break-all hover:text-brand">
+          {children}
+        </a>
+      ) : (
+        <span className="min-w-0">{children}</span>
+      )}
+    </li>
+  );
+}
+
+export default async function AdminPlacementPage({
+  params,
+}: PageProps<"/admin/placements/[id]">) {
   await requireAdmin();
   const { id } = await params;
   const p = await getAdminPlacement(id);
@@ -68,10 +121,20 @@ export default async function AdminPlacementPage({ params }: PageProps<"/admin/p
   const released = isReleased(p.status);
   const today = todayIst();
   const can = {
-    release: !released && p.documents.length > 0 && !!p.monthlySalary && !!p.joiningDate,
+    release:
+      !released &&
+      p.documents.length > 0 &&
+      !!p.monthlySalary &&
+      !!p.joiningDate,
     decline: p.status === "released",
-    joining: p.status === "accepted" && !!p.joiningDate && p.joiningDate <= today,
-    withdraw: ["awaiting_offer", "offer_received", "released", "accepted"].includes(p.status),
+    joining:
+      p.status === "accepted" && !!p.joiningDate && p.joiningDate <= today,
+    withdraw: [
+      "awaiting_offer",
+      "offer_received",
+      "released",
+      "accepted",
+    ].includes(p.status),
   };
   const releaseBlocker = released
     ? null
@@ -80,65 +143,111 @@ export default async function AdminPlacementPage({ params }: PageProps<"/admin/p
       : !p.monthlySalary || !p.joiningDate
         ? "Add the monthly gross and joining date before releasing."
         : null;
+  const canUpload =
+    p.status !== "withdrawn" && p.documents.length < MAX_OFFER_FILES;
+
+  const terms = [
+    ["Monthly gross", p.monthlySalary ? formatRupees(p.monthlySalary) : "—"],
+    ["Placement fee", p.fee ? formatRupees(p.fee) : "—"],
+    ["Pay by", p.offerDeadline ? formatDateOnly(p.offerDeadline) : "—"],
+    ["Joining date", p.joiningDate ? formatDateOnly(p.joiningDate) : "—"],
+  ];
+  const timeline = (
+    [
+      ["Selected", p.selectedAt],
+      ["Offer uploaded", p.offerReceivedAt],
+      ["Released", p.releasedAt],
+      ["Paid", p.acceptedAt],
+      ["Closed", p.closedAt],
+    ] as const
+  ).filter(([, at]) => at);
 
   return (
-    <div className="flex-1 space-y-6 px-4 py-6 sm:px-6 lg:py-8">
+    <div className="flex-1 space-y-8 px-4 py-6">
       <Link
         href="/admin/placements"
-        className="inline-flex items-center gap-1.5 font-head text-sm font-semibold text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center mb-6 gap-1.5 font-head text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" /> All placements
       </Link>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className={cn("font-head font-bold", placementBadge(p.status))}>
-              {ADMIN_PLACEMENT_LABELS[p.status]}
-            </Badge>
-            <span className="font-mono text-xs text-muted-foreground">{p.ref}</span>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                className={cn("font-head font-bold", placementBadge(p.status))}
+              >
+                {ADMIN_PLACEMENT_LABELS[p.status]}
+              </Badge>
+              <span className="font-mono text-xs text-muted-foreground">
+                {p.ref}
+              </span>
+            </div>
+            <h1 className="mt-2 font-head text-2xl font-extrabold tracking-tight">
+              {p.candidateName}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {p.designation} at {p.companyName}
+              {p.propertyName ? ` (${p.propertyName})` : ""}
+            </p>
           </div>
-          <h1 className="mt-2 font-head text-2xl font-extrabold tracking-tight">{p.candidateName}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {p.designation} at {p.companyName}
-            {p.propertyName ? ` (${p.propertyName})` : ""}
-          </p>
+          <PlacementActions
+            placementId={p.id}
+            candidate={p.candidateName}
+            can={can}
+          />
         </div>
-        <PlacementActions placementId={p.id} candidate={p.candidateName} can={can} />
+        {releaseBlocker && (
+          <p className="rounded-2xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+            {releaseBlocker}
+          </p>
+        )}
       </div>
-      {releaseBlocker && (
-        <p className="rounded-2xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
-          {releaseBlocker}
-        </p>
-      )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <div className="space-y-6">
-          <Card title="Offer terms">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Panel>
+          <Section title="Offer terms">
             {released ? (
-              <div className="space-y-5">
-                <Details
-                  rows={[
-                    ["Monthly gross", p.monthlySalary ? formatRupees(p.monthlySalary) : "—"],
-                    ["Placement fee", p.fee ? formatRupees(p.fee) : "—"],
-                    ["Pay by", p.offerDeadline ? formatDateOnly(p.offerDeadline) : "—"],
-                    ["Joining date", p.joiningDate ? formatDateOnly(p.joiningDate) : "—"],
-                  ]}
-                />
+              <div className="space-y-6">
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+                  {terms.map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-xs text-muted-foreground">{label}</dt>
+                      <dd className="mt-1 font-head text-base font-bold">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
                 {p.notes && (
-                  <p className="rounded-xl bg-muted/50 p-3 text-sm whitespace-pre-line">{p.notes}</p>
-                )}
-                {(p.status === "released" || p.status === "expired") && p.offerDeadline && p.joiningDate && (
-                  <div className="border-t border-border pt-4">
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      Extend the deadline or move the joining date. An expired offer reopens.
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      Joining instructions
                     </p>
-                    <ExtendDeadlineForm
-                      placementId={p.id}
-                      defaults={{ offerDeadline: p.offerDeadline, joiningDate: p.joiningDate }}
-                    />
+                    <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-line">
+                      {p.notes}
+                    </p>
                   </div>
                 )}
+                {(p.status === "released" || p.status === "expired") &&
+                  p.offerDeadline &&
+                  p.joiningDate && (
+                    <div>
+                      <p className="mb-3 text-xs text-muted-foreground">
+                        {p.status === "expired"
+                          ? "Reopen with new dates"
+                          : "Change dates"}
+                      </p>
+                      <ExtendDeadlineForm
+                        placementId={p.id}
+                        defaults={{
+                          offerDeadline: p.offerDeadline,
+                          joiningDate: p.joiningDate,
+                        }}
+                      />
+                    </div>
+                  )}
               </div>
             ) : (
               <TermsForm
@@ -151,99 +260,139 @@ export default async function AdminPlacementPage({ params }: PageProps<"/admin/p
                 }}
               />
             )}
-          </Card>
+          </Section>
 
-          <Card title={`Offer documents (${p.documents.length})`}>
+          <Section title="Offer documents">
             {p.documents.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Nothing uploaded yet. The company uploads the offer from its Selected page, or you can add it here.
+              <p className="mb-4 text-sm text-muted-foreground">
+                Nothing uploaded yet. The company uploads the offer from its
+                Selected page, or you can add it here.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="mb-4 space-y-3">
                 {p.documents.map((d) => (
-                  <li key={d.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3">
-                    <FileText className="size-4 flex-none text-brand" />
+                  <li key={d.id} className="flex flex-wrap items-center gap-3">
+                    <span className="flex size-9 flex-none items-center justify-center rounded-lg bg-brand/10">
+                      <FileText className="size-4 text-brand" />
+                    </span>
                     <div className="min-w-0 flex-1 basis-40">
                       <p className="truncate text-sm font-medium">{d.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {Math.max(1, Math.round(d.size / 1024))} KB · uploaded by {d.uploadedBy} on {formatDate(d.createdAt)}
+                        {Math.max(1, Math.round(d.size / 1024))} KB · uploaded
+                        by {d.uploadedBy} on {formatDate(d.createdAt)}
                       </p>
                     </div>
                     {d.url && (
-                      <Button variant="outline" size="sm" className="font-head" nativeButton={false} render={<a href={d.url} />}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="font-head"
+                        nativeButton={false}
+                        render={<a href={d.url} />}
+                      >
                         <Download className="size-3.5" /> Download
                       </Button>
                     )}
-                    {!released && <RemoveDocumentButton placementId={p.id} documentId={d.id} name={d.name} />}
+                    {!released && (
+                      <RemoveDocumentButton
+                        placementId={p.id}
+                        documentId={d.id}
+                        name={d.name}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>
             )}
-            {p.status !== "withdrawn" && p.documents.length < MAX_OFFER_FILES && (
-              <div className="mt-4 border-t border-border pt-4">
+            {canUpload &&
+              (p.documents.length === 0 ? (
                 <UploadDocumentsForm placementId={p.id} />
-              </div>
-            )}
-          </Card>
+              ) : (
+                <Disclosure label="Upload another document">
+                  <UploadDocumentsForm placementId={p.id} />
+                </Disclosure>
+              ))}
+          </Section>
 
-          <Card title="Payments">
-            {p.payments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No payment attempts yet.</p>
-            ) : (
-              <ul className="divide-y divide-border text-sm">
-                {p.payments.map((pay) => (
-                  <li key={pay.orderId} className="flex flex-wrap items-baseline justify-between gap-2 py-2.5">
-                    <span>
-                      <span className="font-medium">{formatRupees(pay.amount)}</span>{" "}
-                      <span className="text-muted-foreground">
-                        {pay.status === "paid"
-                          ? `paid ${formatDate(pay.paidAt)} · ${pay.invoiceNumber}`
-                          : `checkout started ${formatDate(pay.createdAt)}, not completed`}
+          {released && (
+            <Section title="Payments">
+              {p.payments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No payment attempts yet.
+                </p>
+              ) : (
+                <ul className="space-y-3 text-sm">
+                  {p.payments.map((pay) => (
+                    <li
+                      key={pay.orderId}
+                      className="flex flex-wrap items-baseline justify-between gap-2"
+                    >
+                      <span>
+                        <span className="font-medium">
+                          {formatRupees(pay.amount)}
+                        </span>{" "}
+                        <span className="text-muted-foreground">
+                          {pay.status === "paid"
+                            ? `paid ${formatDate(pay.paidAt)} · ${pay.invoiceNumber}`
+                            : `checkout started ${formatDate(pay.createdAt)}, not completed`}
+                        </span>
                       </span>
-                    </span>
-                    <span className="font-mono text-xs text-muted-foreground">{pay.paymentId ?? pay.orderId}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {pay.paymentId ?? pay.orderId}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Section>
+          )}
+        </Panel>
 
-        <div className="space-y-6">
-          <Card title="Candidate">
-            <Details
-              rows={[
-                ["Name", p.candidateName],
-                ["Email", <a key="e" href={`mailto:${p.candidateEmail}`} className="text-brand">{p.candidateEmail}</a>],
-                ["Phone", <a key="p" href={`tel:${p.candidatePhone}`} className="text-brand">{p.candidatePhone}</a>],
-                ["City", p.candidateCity],
-              ]}
-            />
-          </Card>
-          <Card title="Company contact">
-            <Details
-              rows={[
-                ["Name", `${p.companyContact.name}, ${p.companyContact.designation}`],
-                ["Email", <a key="e" href={`mailto:${p.companyContact.email}`} className="text-brand">{p.companyContact.email}</a>],
-                ["Phone", p.companyContact.phone],
-              ]}
-            />
-          </Card>
-          <Card title="Timeline">
-            <Details
-              rows={[
-                ["Selected", formatDate(p.selectedAt)],
-                ["Offer uploaded", formatDate(p.offerReceivedAt)],
-                ["Released", formatDate(p.releasedAt)],
-                ["Paid", formatDate(p.acceptedAt)],
-                ["Closed", formatDate(p.closedAt)],
-              ]}
-            />
-          </Card>
-          <Card title="Internal notes">
-            <NotesForm placementId={p.id} notes={p.adminNotes} />
-          </Card>
-        </div>
+        <Panel>
+          <Section title="Candidate">
+            <ul className="space-y-2.5 text-sm">
+              <ContactLine icon={Mail} href={`mailto:${p.candidateEmail}`}>
+                {p.candidateEmail}
+              </ContactLine>
+              <ContactLine icon={Phone} href={`tel:${p.candidatePhone}`}>
+                {p.candidatePhone}
+              </ContactLine>
+              <ContactLine icon={MapPin}>{p.candidateCity}</ContactLine>
+            </ul>
+          </Section>
+
+          <Section title="Company contact">
+            <p className="text-sm font-medium">
+              {p.companyContact.name}
+              <span className="font-normal text-muted-foreground">
+                {" "}
+                · {p.companyContact.designation}
+              </span>
+            </p>
+            <ul className="mt-2.5 space-y-2.5 text-sm">
+              <ContactLine
+                icon={Mail}
+                href={`mailto:${p.companyContact.email}`}
+              >
+                {p.companyContact.email}
+              </ContactLine>
+              <ContactLine icon={Phone} href={`tel:${p.companyContact.phone}`}>
+                {p.companyContact.phone}
+              </ContactLine>
+            </ul>
+          </Section>
+
+          <Section title="Timeline">
+            <ol className="space-y-2.5 text-sm">
+              {timeline.map(([label, at]) => (
+                <li key={label} className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className="font-medium">{formatDate(at)}</span>
+                </li>
+              ))}
+            </ol>
+          </Section>
+        </Panel>
       </div>
     </div>
   );
