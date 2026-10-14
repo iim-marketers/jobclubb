@@ -36,7 +36,7 @@ export function AtsInsights({ report }: { report: AtsReport }) {
             </span>
             <span
               className={cn(
-                "truncate",
+                "min-w-0 sm:truncate",
                 !check.passed && "text-muted-foreground",
               )}
             >

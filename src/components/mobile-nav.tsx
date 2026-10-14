@@ -18,7 +18,7 @@ import {
   Store,
 } from "lucide-react";
 
-import { CANDIDATE_HOME } from "@/components/candidate/nav";
+import { CANDIDATE_HOME, CANDIDATE_NAV } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { COMPANY_SIGN_OUT_DESCRIPTION } from "@/components/company/company-sidebar";
 import { COMPANY_HOME, COMPANY_NAV } from "@/components/company/nav";
@@ -40,7 +40,9 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/franchise": Store,
   "/about": Info,
   ...Object.fromEntries(
-    COMPANY_NAV.flatMap((g) => g.items).map((i) => [i.href, i.icon]),
+    [...CANDIDATE_NAV, ...COMPANY_NAV]
+      .flatMap((g) => g.items)
+      .map((i) => [i.href, i.icon]),
   ),
 };
 

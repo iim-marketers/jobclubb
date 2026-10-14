@@ -211,7 +211,7 @@ export default async function ApplicationDetailPage({
         />
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
           {interviews.length > 0 && (
             <Panel
@@ -277,7 +277,7 @@ export default async function ApplicationDetailPage({
                 __html: sanitizeRichText(toRichTextHtml(job.description)),
               }}
             />
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <DetailList
                 title="Responsibilities"
                 items={job.responsibilities}
@@ -389,7 +389,7 @@ async function OfferSection({
   if (offer.status === "released")
     return (
       <section className="rounded-3xl border-2 border-good/40 bg-good/5 p-5 sm:p-7">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
           <div className="min-w-0">
             <p className="flex items-center gap-2 font-head text-xs font-bold tracking-[0.16em] text-good uppercase">
               <PartyPopper className="size-4" /> You&apos;ve been selected
@@ -397,7 +397,7 @@ async function OfferSection({
             <h2 className="mt-2 font-head text-xl font-extrabold tracking-tight sm:text-2xl">
               {companyName} has selected you for {designation}
             </h2>
-            <dl className="mt-5 grid gap-3 sm:grid-cols-3">
+            <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {[
                 [
                   "Placement fee",
@@ -501,7 +501,7 @@ async function OfferSection({
       <h2 className="mt-1 font-head text-xl font-extrabold tracking-tight">
         Your offer letter
       </h2>
-      <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <ul className="space-y-2">
           {documents.map((d) => (
             <li
@@ -523,9 +523,11 @@ async function OfferSection({
                   size="sm"
                   className="font-head"
                   nativeButton={false}
+                  aria-label={`Download ${d.name}`}
                   render={<a href={d.url} />}
                 >
-                  <Download className="size-3.5" /> Download
+                  <Download className="size-3.5" />
+                  <span className="hidden sm:inline">Download</span>
                 </Button>
               )}
             </li>

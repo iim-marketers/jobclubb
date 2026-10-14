@@ -87,7 +87,7 @@ export function JobForm({
         title="Role"
         description="What you're hiring for and how many people you need."
       >
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <SelectField
             id="industry"
             label="Industry"
@@ -140,7 +140,7 @@ export function JobForm({
         title="Location and type"
         description="Candidates near this pincode see the role first."
       >
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <ReadOnlyField
             label="Location"
             value={`${location.city} · ${location.pincode}`}
@@ -183,7 +183,7 @@ export function JobForm({
         title="Experience and pay"
         description="Ranges are fine. Use 0 years for freshers."
       >
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field
             id="experienceMin"
             label="Minimum experience (years)"
@@ -277,7 +277,7 @@ export function JobForm({
           </>
         }
       >
-        <div className="grid gap-5">
+        <div className="grid grid-cols-1 gap-5">
           <div className="space-y-2">
             <Label id="description-label">
               About the role
@@ -296,7 +296,7 @@ export function JobForm({
             />
             <FieldError id="description-error" message={errors.description} />
           </div>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <TextareaField
               id="responsibilities"
               label="Responsibilities"

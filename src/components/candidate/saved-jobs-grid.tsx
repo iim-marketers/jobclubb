@@ -130,7 +130,7 @@ export function SavedJobsGrid({
           Tap the heart on any job to keep it here for later.
         </EmptyState>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((s) => (
             <SavedCard
               key={s.job.slug}

@@ -74,7 +74,7 @@ export function ApplicationJourney({
                     name={job.company}
                     logoUrl={job.companyLogoUrl}
                   />
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-[1_1_calc(100%-3.5rem)] sm:flex-1">
                     <Link
                       href={`${CANDIDATE_HOME}/applications/${id}`}
                       className="block truncate font-head text-sm font-bold hover:text-brand"
@@ -129,7 +129,7 @@ export function ApplicationJourney({
           </ul>
 
           <div className="mt-auto pt-5">
-            <div className="flex flex-col gap-4 rounded-2xl bg-linear-to-br from-brand/8 to-brand-accent/12 p-4 sm:flex-row sm:items-center">
+            <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-linear-to-br from-brand/8 to-brand-accent/12 p-4 sm:flex-nowrap sm:gap-4">
               <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-card text-brand shadow-sm">
                 <Search className="size-4.5" />
               </span>
@@ -152,7 +152,7 @@ export function ApplicationJourney({
               </div>
               <Button
                 size="sm"
-                className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                className="w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark sm:w-auto"
                 nativeButton={false}
                 render={<Link href="/jobs" />}
               >

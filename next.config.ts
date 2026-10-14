@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // pdfkit require()s these at runtime; untraced, every PDF render 500s on Vercel.
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/pdfkit/js/standard-fonts/**/*.cjs"],
+  },
   experimental: {
     serverActions: {
       // Company sign-up accepts a verification document of up to 5 MB,

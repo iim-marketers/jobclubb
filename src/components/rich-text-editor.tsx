@@ -181,7 +181,7 @@ function Toolbar({ editor }: { editor: Editor | null }) {
     <div
       role="toolbar"
       aria-label="Formatting"
-      className="flex gap-0.5 border-b border-border p-1"
+      className="flex flex-wrap gap-0.5 border-b border-border p-1"
     >
       <DropdownMenu>
         <DropdownMenuTrigger

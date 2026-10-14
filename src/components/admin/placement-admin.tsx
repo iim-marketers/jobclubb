@@ -78,7 +78,7 @@ export function TermsForm({
       }}
       onChange={onChange}
       noValidate
-      className="grid gap-4 sm:grid-cols-3"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-3"
     >
       <Field
         id="monthlySalary"
@@ -156,7 +156,7 @@ export function ExtendDeadlineForm({
       }}
       onChange={onChange}
       noValidate
-      className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-start"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-start"
     >
       <Field
         id="offerDeadline"
@@ -357,7 +357,7 @@ export function PlacementActions({
   };
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
       {can.release && (
         <ConfirmButton
           label="Release to candidate"

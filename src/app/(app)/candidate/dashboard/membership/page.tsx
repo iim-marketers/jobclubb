@@ -101,7 +101,7 @@ export default async function MembershipPage() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <BenefitCard
             icon={FileText}
             title="AI-built ATS resume"

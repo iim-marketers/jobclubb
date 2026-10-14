@@ -55,7 +55,7 @@ export function FranchiseSignUp() {
   return (
     <div className="flex-1">
       <section className="jc-auth-panel relative isolate overflow-hidden px-4 pt-7 pb-28 text-white sm:px-6 sm:pt-10 sm:pb-36 lg:pt-14 lg:pb-44">
-        <div className="mx-auto grid max-w-6xl items-center gap-6 sm:gap-10 lg:grid-cols-[1fr_auto]">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-6 sm:gap-10 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="min-w-0">
             <p className="font-head text-xs font-bold tracking-[0.14em] text-brand-accent uppercase">
               Franchise partner onboarding
@@ -98,7 +98,7 @@ export function FranchiseSignUp() {
       </section>
 
       <div className="relative -mt-20 px-3 pb-10 sm:-mt-24 sm:px-6 sm:pb-16 lg:-mt-32">
-        <div className="mx-auto grid max-w-6xl overflow-hidden rounded-2xl border border-border bg-card shadow-xl sm:rounded-3xl shadow-brand-surface-strong/10 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl overflow-hidden rounded-2xl border border-border bg-card shadow-xl sm:rounded-3xl shadow-brand-surface-strong/10 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="border-b border-border bg-muted/40 px-4 py-4 sm:p-6 lg:border-r lg:border-b-0 lg:p-8">
             <VerticalSteps current={step} onJump={goTo} />
 
@@ -129,7 +129,7 @@ export function FranchiseSignUp() {
                 animate={moved}
                 step={FRANCHISE_STEPS[0]}
               >
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div className="space-y-2 sm:col-span-2">
                     <Field
                       id="email"
@@ -196,7 +196,7 @@ export function FranchiseSignUp() {
                 animate={moved}
                 step={FRANCHISE_STEPS[1]}
               >
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <Field
                     id="businessName"
                     label="Registered business name"
@@ -254,7 +254,7 @@ export function FranchiseSignUp() {
                 animate={moved}
                 step={FRANCHISE_STEPS[2]}
               >
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <Field
                     id="ownerName"
                     label="Owner's full name"
@@ -493,12 +493,12 @@ function PartnerCard({
         aria-hidden
         className="absolute -inset-6 rounded-4xl bg-brand-accent/20 blur-3xl"
       />
-      <div className="relative overflow-hidden sm:aspect-[1.586] rounded-2xl bg-linear-to-br from-white/20 via-white/10 to-white/5 p-4 shadow-2xl sm:rounded-3xl sm:p-5 ring-1 ring-white/25 backdrop-blur-xl lg:rotate-2 lg:transition-transform lg:duration-500 lg:hover:rotate-0">
+      <div className="relative overflow-hidden sm:aspect-[1.586] rounded-2xl bg-linear-to-br from-white/20 via-white/10 to-white/5 p-4 shadow-2xl sm:rounded-3xl sm:p-0 ring-1 ring-white/25 backdrop-blur-xl lg:rotate-2 lg:transition-transform lg:duration-500 lg:hover:rotate-0">
         <div
           aria-hidden
           className="absolute -top-20 -right-16 size-56 rounded-full bg-brand-accent/30 blur-2xl"
         />
-        <div className="relative flex h-full flex-col">
+        <div className="relative flex h-full flex-col sm:absolute sm:inset-0 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="font-head text-[10px] font-bold tracking-[0.18em] text-white/60 uppercase">

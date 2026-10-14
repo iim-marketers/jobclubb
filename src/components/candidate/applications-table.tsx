@@ -190,7 +190,7 @@ const columns = helper.columns([
 ]);
 
 const COLUMN_CLASS: Record<string, string> = {
-  role: "min-w-56 pl-4 sm:pl-5",
+  role: "w-full max-w-0 pl-4 sm:w-auto sm:max-w-none sm:min-w-56 sm:pl-5",
   company: "hidden xl:table-cell",
   location: "hidden md:table-cell",
   appliedOn: "hidden sm:table-cell",

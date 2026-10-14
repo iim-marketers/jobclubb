@@ -112,7 +112,7 @@ export default async function AdminPlacementPage({ params }: PageProps<"/admin/p
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <div className="space-y-6">
           <Card title="Offer terms">
             {released ? (
@@ -163,7 +163,7 @@ export default async function AdminPlacementPage({ params }: PageProps<"/admin/p
                 {p.documents.map((d) => (
                   <li key={d.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3">
                     <FileText className="size-4 flex-none text-brand" />
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 basis-40">
                       <p className="truncate text-sm font-medium">{d.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {Math.max(1, Math.round(d.size / 1024))} KB · uploaded by {d.uploadedBy} on {formatDate(d.createdAt)}

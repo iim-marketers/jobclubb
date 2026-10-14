@@ -33,6 +33,7 @@ export function PayOfferButton({
   return (
     <RazorpayCheckout<{ invoice_number: string; paid_at: string; accepted: boolean }>
       label={label}
+      className="h-auto min-h-11 py-2 whitespace-normal"
       description={`Placement fee: ${jobTitle}`}
       prefill={prefill}
       orderUrl={`/api/placements/${placementId}/order`}

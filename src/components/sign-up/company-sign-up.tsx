@@ -149,7 +149,7 @@ export function CompanySignUp() {
           animate={moved}
           step={COMPANY_STEPS[0]}
         >
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field
               id="companyName"
               label="Registered company name"
@@ -237,7 +237,7 @@ export function CompanySignUp() {
           animate={moved}
           step={COMPANY_STEPS[1]}
         >
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field
               id="contactName"
               label="Full name"

@@ -22,7 +22,7 @@ export function PolicyPage({
       <PageHeader eyebrow={eyebrow} title={title} description={description} />
 
       <section className="px-4 py-12 sm:px-6">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-14">
+        <div className="mx-auto grid grid-cols-1 max-w-6xl gap-10 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-14">
           <aside className="hidden min-w-0 lg:block">
             <SectionNav
               headings={sections.map((s) => s.heading)}

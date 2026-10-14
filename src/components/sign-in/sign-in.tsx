@@ -104,7 +104,7 @@ export function SignIn({
     });
 
   return (
-    <div className="grid h-[calc(100dvh-65px)] grid-rows-[auto_minmax(0,1fr)] overflow-hidden lg:h-[calc(100dvh-73px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-1">
+    <div className="grid grid-cols-1 h-[calc(100dvh-65px)] grid-rows-[auto_minmax(0,1fr)] overflow-hidden lg:h-[calc(100dvh-73px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-1">
       <aside className="jc-auth-panel relative isolate overflow-hidden text-white">
         <div
           ref={panelRef}

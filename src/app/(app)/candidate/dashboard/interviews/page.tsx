@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  ArrowUpRight,
   CalendarCheck,
   CalendarClock,
   CalendarPlus,
@@ -27,6 +26,7 @@ import {
 import { InterviewCountdown } from "@/components/candidate/interview-countdown";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { PrepChecklist } from "@/components/candidate/prep-checklist";
+import { ScheduleFit } from "@/components/candidate/schedule-fit";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +46,7 @@ import { requireMember } from "@/server/auth/current-candidate";
 export const metadata = { title: "Interviews — JobClubb" };
 
 const IST = "Asia/Kolkata";
+const ALL_INTERVIEWS = `${CANDIDATE_HOME}/interviews/all`;
 const DAY_MS = 86_400_000;
 
 const MODE_ICONS: Record<InterviewMode, typeof Video> = {
@@ -101,7 +102,6 @@ function calendarLink(i: Interview) {
 function directionsLink(i: Interview) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(i.place)}`;
 }
-
 
 export default async function InterviewsPage() {
   const candidate = await requireMember(`${CANDIDATE_HOME}/interviews`, {
@@ -208,40 +208,60 @@ export default async function InterviewsPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <Panel
-            title="Schedule"
-            description="Every round, in order. Times are in IST."
-            className="flex flex-1 flex-col"
-          >
-            <Agenda title="Upcoming" interviews={upcoming} now={now} />
-            {past.length > 0 && (
-              <div className="mt-8">
-                <Agenda title="Completed" interviews={past} now={now} past />
-              </div>
-            )}
-          </Panel>
-        </div>
-
-        <div className="flex min-w-0 flex-col gap-6">
-          <MonthCalendar
-            interviews={interviews}
-            focus={next ? new Date(next.startsAt) : now}
-            now={now}
-          />
-
-          {next && (
+      {interviews.length > 0 && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+          <div className="flex min-w-0 flex-col gap-6">
             <Panel
-              title="Prep checklist"
-              description={`Get ready for ${next.company} · ${next.round}`}
-              className="flex-1"
+              title="Schedule"
+              description={
+                next
+                  ? "Your next and most recent rounds. Times are in IST."
+                  : "Your most recent rounds. Times are in IST."
+              }
+              className="flex flex-1 flex-col"
+              footerClassName="lg:hidden"
+              footer={
+                interviews.length > 2 && (
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {interviews.length} interviews in total
+                    </p>
+                    <Link
+                      href={ALL_INTERVIEWS}
+                      className="inline-flex items-center gap-1 font-head text-sm font-bold text-brand hover:text-brand-dark hover:underline"
+                    >
+                      View all interviews
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </>
+                )
+              }
             >
-              <PrepChecklist interviewId={next.id} mode={next.mode} />
+              <Schedule upcoming={upcoming} past={past} now={now} />
             </Panel>
-          )}
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-6">
+            <MonthCalendar
+              interviews={interviews}
+              focus={next ? new Date(next.startsAt) : now}
+              now={now}
+            />
+
+            {next ? (
+              <Panel
+                title="Prep checklist"
+                description={`Get ready for ${next.company} · ${next.round}`}
+                className="flex-1"
+              >
+                <PrepChecklist interviewId={next.id} mode={next.mode} />
+              </Panel>
+            ) : (
+              <GuaranteeTracker used={guaranteedUsed} />
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -259,7 +279,7 @@ function NextInterview({
   return (
     <section
       aria-label="Next interview"
-      className="grid overflow-hidden rounded-3xl border border-border bg-card lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
+      className="grid grid-cols-1 overflow-hidden rounded-3xl border border-border bg-card lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
     >
       <div className="relative overflow-hidden bg-linear-to-br from-brand-surface to-brand-surface-strong p-6 text-white">
         <div
@@ -310,7 +330,9 @@ function NextInterview({
             </div>
           ) : (
             <div className="mt-auto">
-              <p className="mb-2 text-xs font-medium text-white/70">Starts in</p>
+              <p className="mb-2 text-xs font-medium text-white/70">
+                Starts in
+              </p>
               <InterviewCountdown
                 startsAt={i.startsAt}
                 serverNow={now.getTime()}
@@ -321,7 +343,7 @@ function NextInterview({
       </div>
 
       <div className="flex flex-col p-6">
-        <dl className="grid gap-4 sm:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <DetailItem icon={CalendarClock} label="Date">
             {fmt(i.startsAt, {
               weekday: "long",
@@ -372,7 +394,7 @@ function NextInterview({
           </DetailItem>
         </dl>
 
-        <div className="mt-6 -mx-6 px-6 flex flex-wrap gap-2 border-t border-border pt-5">
+        <div className="mt-6 -mx-6 grid grid-cols-1 gap-2 border-t border-border px-6 pt-5 sm:flex sm:flex-wrap">
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
             nativeButton={false}
@@ -456,32 +478,83 @@ function DetailItem({
   );
 }
 
-function Agenda({
-  title,
-  interviews,
-  now,
+function Schedule({
+  upcoming,
   past,
+  now,
 }: {
-  title: string;
-  interviews: Interview[];
+  upcoming: Interview[];
+  past: Interview[];
   now: Date;
-  past?: boolean;
 }) {
+  const hasUpcoming = upcoming.length > 0;
+  const first = hasUpcoming ? upcoming[0] : past[0];
+  const extras: { key: string; node: React.ReactNode; lgOnly?: boolean }[] =
+    [];
+  if (hasUpcoming) {
+    if (upcoming[1])
+      extras.push({
+        key: upcoming[1].id,
+        node: <AgendaItem interview={upcoming[1]} now={now} />,
+      });
+    if (past[0])
+      extras.push({
+        key: past[0].id,
+        node: (
+          <div className="pt-5">
+            <AgendaLabel title="Completed" count={past.length} />
+            <AgendaItem interview={past[0]} now={now} past />
+          </div>
+        ),
+      });
+    for (const i of past.slice(1, 5))
+      extras.push({
+        key: i.id,
+        node: <AgendaItem interview={i} now={now} past />,
+        lgOnly: true,
+      });
+  } else {
+    past.slice(1, 6).forEach((i, n) =>
+      extras.push({
+        key: i.id,
+        node: <AgendaItem interview={i} now={now} past />,
+        lgOnly: n >= 2,
+      }),
+    );
+  }
+  const notRendered = upcoming.length + past.length - 1 - extras.length;
+
   return (
-    <div className="flex flex-1 flex-col">
-      <p className="mb-3 font-head text-[11px] font-bold tracking-[0.16em] text-muted-foreground uppercase">
-        {title} · {interviews.length}
+    <>
+      <AgendaLabel
+        title={hasUpcoming ? "Upcoming" : "Completed"}
+        count={hasUpcoming ? upcoming.length : past.length}
+      />
+      <AgendaItem interview={first} now={now} past={!hasUpcoming} />
+      <ScheduleFit
+        items={extras}
+        notRendered={notRendered}
+        upcoming={hasUpcoming}
+      />
+    </>
+  );
+}
+
+function AgendaLabel({ title, count }: { title: string; count: number }) {
+  const upcoming = title === "Upcoming";
+  return (
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <p className="font-head text-[11px] font-bold tracking-[0.16em] text-muted-foreground uppercase">
+        {title} · {count}
       </p>
-      {interviews.length === 0 ? (
-        <p className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-          Nothing scheduled right now.
-        </p>
-      ) : (
-        <ol className="space-y-3">
-          {interviews.map((i) => (
-            <AgendaItem key={i.id} interview={i} now={now} past={past} />
-          ))}
-        </ol>
+      {count > (upcoming ? 2 : 1) && (
+        <Link
+          href={`${ALL_INTERVIEWS}?status=${upcoming ? "upcoming" : "completed"}`}
+          className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand hover:text-brand-dark hover:underline"
+        >
+          See all {count}
+          <ArrowRight className="size-3.5" />
+        </Link>
       )}
     </div>
   );
@@ -499,7 +572,7 @@ function AgendaItem({
   const ModeIcon = MODE_ICONS[i.mode];
 
   return (
-    <li className="flex gap-3 sm:gap-4">
+    <div className="flex gap-3 sm:gap-4">
       <div
         className={cn(
           "flex w-14 flex-none flex-col items-center justify-center rounded-2xl py-2 text-center sm:w-16",
@@ -597,7 +670,7 @@ function AgendaItem({
           </Link>
         </div>
       </div>
-    </li>
+    </div>
   );
 }
 
@@ -629,10 +702,10 @@ function StatusPill({
         i.outcome === "Selected"
           ? SELECTED_BADGE
           : i.outcome === "Cleared"
-          ? "bg-good/12 text-good"
-          : i.outcome === "Not selected"
-            ? NOT_SELECTED_BADGE
-            : "bg-amber-500/12 text-amber-700 dark:text-amber-300",
+            ? "bg-good/12 text-good"
+            : i.outcome === "Not selected"
+              ? NOT_SELECTED_BADGE
+              : "bg-amber-500/12 text-amber-700 dark:text-amber-300",
       )}
     >
       {i.outcome ?? "Completed"}
@@ -694,7 +767,7 @@ function MonthCalendar({
           const day = n + 1;
           const key = `${year}-${pad(month)}-${pad(day)}`;
           const booked = byDay.get(key);
-          const isPast = booked && new Date(booked[0].endsAt) <= now;
+          const isPast = booked?.every((b) => new Date(b.endsAt) <= now);
           return (
             <span
               key={key}
@@ -718,7 +791,15 @@ function MonthCalendar({
             >
               {day}
               {booked && booked.length > 1 && (
-                <span className="absolute right-1 bottom-1 size-1.5 rounded-full bg-current" />
+                <span
+                  aria-label={`${booked.length} interviews`}
+                  className={cn(
+                    "absolute -right-1 -bottom-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 font-head text-[10px] leading-none font-bold ring-2 ring-card",
+                    isPast ? "bg-good text-white" : "bg-brand-dark text-white",
+                  )}
+                >
+                  {booked.length}
+                </span>
               )}
             </span>
           );
@@ -749,11 +830,11 @@ function GuaranteeTracker({ used }: { used: number }) {
             className={cn(
               "flex h-11 flex-1 items-center justify-center rounded-xl font-head text-sm font-extrabold",
               n < used
-                ? "bg-good text-white"
+                ? "bg-good/12 text-good"
                 : "border-2 border-dashed border-border text-muted-foreground",
             )}
           >
-            {n < used ? <Check className="size-4.5" strokeWidth={3} /> : n + 1}
+            {n < used ? <Check className="size-4" strokeWidth={2.5} /> : n + 1}
           </span>
         ))}
       </div>

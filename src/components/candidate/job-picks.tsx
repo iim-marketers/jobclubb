@@ -76,7 +76,7 @@ export function NoNearbyNote({ city }: { city: string }) {
 
 export function JobPicksGrid({ picks }: { picks: JobPicks }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
       <TopMatch pick={picks.items[0]} matched={picks.matched} />
       {picks.items.length > 1 && (
         <ul className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
@@ -91,7 +91,7 @@ export function JobPicksGrid({ picks }: { picks: JobPicks }) {
 
 export function JobPicksList({ picks }: { picks: JobPicks }) {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {picks.items.map(({ job }) => (
         <li
           key={job.slug}

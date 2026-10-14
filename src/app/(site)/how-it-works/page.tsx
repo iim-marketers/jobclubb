@@ -47,7 +47,7 @@ export default async function HowItWorksPage() {
       />
 
       <Section>
-        <ol className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((item) => (
             <li key={item.step} className="rounded-2xl border border-border bg-card p-6">
               <span className="font-head text-3xl font-extrabold text-brand/25">
@@ -61,7 +61,7 @@ export default async function HowItWorksPage() {
       </Section>
 
       <Section className="bg-card">
-        <div className="grid gap-10 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <div>
             <SectionEyebrow>Your resume</SectionEyebrow>
             <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight">
