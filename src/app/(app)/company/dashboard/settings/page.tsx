@@ -1,6 +1,9 @@
 import { LogOut, Trash2 } from "lucide-react";
 
-import { changeCompanyPassword } from "@/app/(app)/company/dashboard/settings/actions";
+import {
+  changeCompanyPassword,
+  deleteCompanyAccount,
+} from "@/app/(app)/company/dashboard/settings/actions";
 import { DashboardHeader, Panel } from "@/components/candidate/dashboard-ui";
 import { PasswordForm } from "@/components/candidate/settings-forms";
 import { COMPANY_SIGN_OUT_DESCRIPTION } from "@/components/company/company-sidebar";
@@ -14,6 +17,8 @@ import {
   type CompanyDefaults,
   type VerifiedItem,
 } from "@/components/company/settings-forms";
+import { CompanyAvatar } from "@/components/company-avatar";
+import { DeleteAccountDialog } from "@/components/delete-account-dialog";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -51,6 +56,7 @@ export default async function CompanySettingsPage() {
     },
   ];
   const pending = await listPendingChanges(company.id);
+  const logoUrl = getCompanyLogoUrl(company.logo_path);
 
   return (
     <div className="space-y-6">
@@ -65,7 +71,7 @@ export default async function CompanySettingsPage() {
         <div className="min-w-0 space-y-6">
           <LogoForm
             companyName={company.company_name}
-            logoUrl={getCompanyLogoUrl(company.logo_path)}
+            logoUrl={logoUrl}
           />
 
           <VerifiedDetails
@@ -117,27 +123,32 @@ export default async function CompanySettingsPage() {
                 </SignOutDialog>
               </AccountRow>
               <AccountRow
-                title="Close account"
-                description="Remove this property, its job postings and applicant history. Our team will confirm with you before anything is deleted."
+                title="Delete account"
+                description="Permanently delete this property, its job postings and applicant history. This can't be undone."
                 destructive
                 className="px-5 pt-4"
               >
-                <Button
-                  variant="destructive"
-                  className="h-10 w-full font-head sm:w-44"
-                  nativeButton={false}
+                <DeleteAccountDialog
+                  action={deleteCompanyAccount}
+                  avatar={
+                    <CompanyAvatar
+                      name={company.property_name ?? company.company_name}
+                      logoUrl={logoUrl}
+                      className="size-14 text-base"
+                    />
+                  }
+                  name={company.property_name ?? company.company_name}
+                  email={company.email}
+                  description="This property, its job postings, applicants, interviews and placements will be permanently deleted. This can't be undone."
                   render={
-                    <a
-                      href={`mailto:support@jobclubb.com?subject=${encodeURIComponent(
-                        "Close my JobClubb company account",
-                      )}&body=${encodeURIComponent(
-                        `Please close the company account registered to ${company.email}.`,
-                      )}`}
+                    <Button
+                      variant="destructive"
+                      className="h-10 w-full font-head sm:w-44"
                     />
                   }
                 >
-                  <Trash2 className="size-4" /> Request closure
-                </Button>
+                  <Trash2 className="size-4" /> Delete account
+                </DeleteAccountDialog>
               </AccountRow>
             </ul>
           </Panel>

@@ -14,6 +14,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/server";
 import { changeOwnPassword } from "@/server/auth/change-password";
 import { requireCompany } from "@/server/auth/current-company";
+import { deleteOwnAccount } from "@/server/auth/delete-account";
 import { sendChangeRequested } from "@/server/companies/change-request-emails";
 import { cancelChangeRequest, createChangeRequest } from "@/server/companies/change-requests";
 import {
@@ -124,6 +125,11 @@ export async function cancelCompanyChange(id: string): Promise<{ error?: string 
   revalidatePath(SETTINGS_PATH);
   revalidatePath("/admin", "layout");
   return {};
+}
+
+export async function deleteCompanyAccount(): Promise<{ error?: string }> {
+  const company = await requireCompany(SETTINGS_PATH);
+  return deleteOwnAccount(company);
 }
 
 export async function changeCompanyPassword(

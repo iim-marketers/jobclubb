@@ -9,7 +9,9 @@ import {
 } from "@/lib/sign-up-validation";
 import { createClient } from "@/lib/supabase/server";
 import { changeOwnPassword } from "@/server/auth/change-password";
-import { requireMember } from "@/server/auth/current-candidate";
+import { requireCandidate, requireMember } from "@/server/auth/current-candidate";
+import { deleteOwnAccount } from "@/server/auth/delete-account";
+import { storeLegacyBilling } from "@/server/candidates/invoice";
 import {
   deleteCandidatePhoto,
   isAcceptedPhoto,
@@ -110,4 +112,15 @@ export async function removePhoto(): Promise<SettingsActionState> {
   await deleteCandidatePhoto(candidate.photo_path);
   revalidatePath("/candidate", "layout");
   return { ok: true };
+}
+
+export async function deleteAccount(): Promise<{ error?: string }> {
+  const candidate = await requireCandidate(SETTINGS_PATH);
+  try {
+    await storeLegacyBilling(candidate);
+  } catch (error) {
+    console.error("Storing invoice billing before account deletion failed", error);
+    return { error: "We couldn't delete your account. Please try again." };
+  }
+  return deleteOwnAccount(candidate);
 }

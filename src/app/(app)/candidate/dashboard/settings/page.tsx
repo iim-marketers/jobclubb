@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CircleAlert, LogOut, Trash2 } from "lucide-react";
 
+import { deleteAccount } from "@/app/(app)/candidate/dashboard/settings/actions";
+import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { DashboardHeader, Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import {
@@ -11,6 +13,7 @@ import {
   type ProfileDefaults,
 } from "@/components/candidate/settings-forms";
 import { SettingsNav } from "@/components/candidate/settings-nav";
+import { DeleteAccountDialog } from "@/components/delete-account-dialog";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import { CHECKOUT_PATH } from "@/lib/membership";
@@ -24,6 +27,7 @@ export default async function SettingsPage() {
   const candidate = await requireMember(`${CANDIDATE_HOME}/settings`, {
     allowLapsed: true,
   });
+  const photoUrl = await getCandidatePhotoUrl(candidate.photo_path);
   const defaults: ProfileDefaults = {
     firstName: candidate.first_name,
     lastName: candidate.last_name,
@@ -70,7 +74,7 @@ export default async function SettingsPage() {
             <PhotoForm
               firstName={candidate.first_name}
               lastName={candidate.last_name}
-              photoUrl={await getCandidatePhotoUrl(candidate.photo_path)}
+              photoUrl={photoUrl}
             />
             <PersonalDetailsForm defaults={defaults} />
             <PreferencesForm defaults={defaults} />
@@ -101,26 +105,32 @@ export default async function SettingsPage() {
               </AccountRow>
               <AccountRow
                 title="Delete account"
-                description="Permanently remove your profile, resume and applications. Our team will confirm with you before anything is deleted."
+                description="Permanently delete your profile, resume and applications. This can't be undone."
                 destructive
                 className="pt-4 px-5"
               >
-                <Button
-                  variant="destructive"
-                  className="h-10 w-full font-head sm:w-44"
-                  nativeButton={false}
+                <DeleteAccountDialog
+                  action={deleteAccount}
+                  avatar={
+                    <CandidateAvatar
+                      firstName={candidate.first_name}
+                      lastName={candidate.last_name}
+                      photoUrl={photoUrl}
+                      className="size-14 bg-primary/10 text-lg text-primary"
+                    />
+                  }
+                  name={`${candidate.first_name} ${candidate.last_name}`}
+                  email={candidate.email}
+                  description="Your profile, resume, applications, interviews and membership will be permanently deleted. This can't be undone. We keep copies of your GST invoices, as the law requires."
                   render={
-                    <a
-                      href={`mailto:support@jobclubb.com?subject=${encodeURIComponent(
-                        "Delete my JobClubb account",
-                      )}&body=${encodeURIComponent(
-                        `Please delete the account registered to ${candidate.email}.`,
-                      )}`}
+                    <Button
+                      variant="destructive"
+                      className="h-10 w-full font-head sm:w-44"
                     />
                   }
                 >
-                  <Trash2 className="size-4" /> Request deletion
-                </Button>
+                  <Trash2 className="size-4" /> Delete account
+                </DeleteAccountDialog>
               </AccountRow>
             </ul>
           </Panel>
