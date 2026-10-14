@@ -257,7 +257,7 @@ function SavedCard({
         </span>
       </div>
 
-      <div className="-mx-5 mt-auto flex items-center justify-between gap-3 border-t border-border px-5 pt-3">
+      <div className="-mx-4 mt-auto flex items-center justify-between gap-3 border-t border-border px-4 pt-3">
         <div className="min-w-0 text-xs text-muted-foreground">
           <p>Saved {formatShortDate(savedAt)}</p>
         </div>
