@@ -109,7 +109,7 @@ function Hero({ jobs, locked }: { jobs: JobListing[]; locked: boolean }) {
         className="absolute inset-0 -z-10 bg-black/70 lg:bg-transparent lg:bg-linear-to-r lg:from-black/85 lg:via-black/65 lg:to-black/40"
       />
 
-      <div className="flex flex-1 items-center px-4 pt-4 pb-12 sm:px-6 md:py-12 lg:py-16">
+      <div className="flex flex-1 items-center px-4 pt-4 pb-12 sm:px-6 md:py-12 lg:pt-6 lg:pb-16">
         <div className="mx-auto grid w-full grid-cols-1 max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
           <div className="min-w-0">
             <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm text-white/90 backdrop-blur-sm">
