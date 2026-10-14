@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/tooltip";
 import {
   GUARANTEED_INTERVIEWS,
-  SAVED_JOBS,
   formatInterviewDate,
   formatInterviewTime,
   guaranteeSlots,
@@ -51,6 +50,7 @@ import {
 } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
+import { listSavedJobs } from "@/server/candidates/saved-jobs";
 import { listJobs } from "@/server/jobs/listings";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
@@ -81,13 +81,15 @@ export default async function CandidateDashboard() {
   const sector = industry?.name;
   const now = new Date();
 
-  const [photoUrl, saved, applications, interviews, jobs] = await Promise.all([
-    getCandidatePhotoUrl(candidate.photo_path),
-    getSavedResume(candidate.id),
-    listCandidateApplications(candidate.id),
-    listCandidateInterviews(candidate.id),
-    listJobs(),
-  ]);
+  const [photoUrl, saved, applications, interviews, jobs, savedJobs] =
+    await Promise.all([
+      getCandidatePhotoUrl(candidate.photo_path),
+      getSavedResume(candidate.id),
+      listCandidateApplications(candidate.id),
+      listCandidateInterviews(candidate.id),
+      listJobs(),
+      listSavedJobs(candidate.id),
+    ]);
   const checklist = profileChecklist(saved?.resume, !!candidate.photo_path);
   const completed = checklist.filter((c) => c.done).length;
   const strength = Math.round((completed / checklist.length) * 100);
@@ -100,6 +102,9 @@ export default async function CandidateDashboard() {
   ).length;
   const recent = applications.slice(0, 4);
   const applied = new Set(applications.map((a) => a.job.slug));
+  const savedToApply = savedJobs.filter(
+    (s) => !s.closed && !applied.has(s.job.slug),
+  ).length;
   const picks = recommendJobs(
     jobs.filter((job) => !applied.has(job.slug)),
     {
@@ -132,8 +137,10 @@ export default async function CandidateDashboard() {
     },
     {
       label: "Saved jobs",
-      value: SAVED_JOBS.length,
-      note: `${SAVED_JOBS.filter((j) => j.closesInDays <= 5).length} closing soon`,
+      value: savedJobs.length,
+      note: savedJobs.length
+        ? `${savedToApply} not applied yet`
+        : "Tap the heart on any job",
       icon: Heart,
     },
   ];

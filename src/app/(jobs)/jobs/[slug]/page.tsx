@@ -18,6 +18,7 @@ import { Salary } from "@/components/salary";
 import { ApplyNowButton } from "@/components/apply-now-button";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { SaveJobButton } from "@/components/save-job-button";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH } from "@/lib/membership";
@@ -32,6 +33,7 @@ import {
   getCurrentCandidate,
   getJobAccess,
 } from "@/server/auth/current-candidate";
+import { isJobSaved } from "@/server/candidates/saved-jobs";
 import { getJob } from "@/server/jobs/listings";
 import { sanitizeRichText } from "@/server/rich-text";
 
@@ -53,7 +55,12 @@ export default async function JobDetailPage({
       }
     : { href: "/sign-up", label: "Join to apply" };
   const candidate = access.member ? await getCurrentCandidate() : null;
-  const applyState = candidate ? await getApplyState(candidate.id, slug) : null;
+  const [applyState, saved] = candidate
+    ? await Promise.all([
+        getApplyState(candidate.id, slug),
+        isJobSaved(candidate.id, slug),
+      ])
+    : [null, false];
 
   return (
     <section className="px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
@@ -87,6 +94,14 @@ export default async function JobDetailPage({
                 </div>
               )}
               <ApplyButton slug={slug} state={applyState} unlock={unlock} />
+              {candidate && (
+                <SaveJobButton
+                  slug={slug}
+                  title={job.designation}
+                  initialSaved={saved}
+                  className="mt-2 w-full"
+                />
+              )}
               <p className="mt-3 text-xs leading-5 text-muted-foreground">
                 One click sends your resume to the employer. Track every step
                 from your dashboard.
@@ -114,6 +129,14 @@ export default async function JobDetailPage({
                 <Salary value={job.salaryRange} />
               </p>
             </div>
+          )}
+          {candidate && (
+            <SaveJobButton
+              slug={slug}
+              title={job.designation}
+              initialSaved={saved}
+              iconOnly
+            />
           )}
           <ApplyButton
             slug={slug}

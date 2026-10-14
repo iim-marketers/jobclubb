@@ -7,6 +7,7 @@ import { applyToJob } from "@/server/applications/candidate";
 import { sendApplicationReceived } from "@/server/applications/emails";
 import { requireMember } from "@/server/auth/current-candidate";
 import { acceptCurrentTerms, hasAcceptedCurrentTerms } from "@/server/auth/terms";
+import { setJobSaved } from "@/server/candidates/saved-jobs";
 
 // Members who joined before the placement-fee terms accept them on their next
 // application, so nobody is selected without having agreed to the fee.
@@ -45,4 +46,23 @@ export async function applyToJobAction(
   revalidatePath(`/jobs/${slug}`);
   revalidatePath("/candidate", "layout");
   return {};
+}
+
+// No revalidatePath: it would re-run the whole /jobs search on every heart tap.
+export async function setJobSavedAction(
+  slug: string,
+  saved: boolean,
+): Promise<{ error?: string }> {
+  const candidate = await requireMember(`/jobs/${slug}`);
+  try {
+    if (await setJobSaved(candidate.id, slug, saved)) return {};
+    return { error: "This job is no longer accepting applications." };
+  } catch (error) {
+    console.error("Saving job failed", error);
+    return {
+      error: saved
+        ? "We couldn't save this job. Please try again."
+        : "We couldn't remove this job. Please try again.",
+    };
+  }
 }
