@@ -22,7 +22,11 @@ import {
   type Paging,
 } from "@/lib/jobs-search";
 import { CHECKOUT_PATH } from "@/lib/membership";
-import { getJobAccess } from "@/server/auth/current-candidate";
+import {
+  getCurrentCandidate,
+  getJobAccess,
+} from "@/server/auth/current-candidate";
+import { listSavedJobSlugs } from "@/server/candidates/saved-jobs";
 import { jobFacetCounts, searchJobListings } from "@/server/jobs/listings";
 
 export const metadata = {
@@ -66,14 +70,18 @@ async function JobResults({
   query: JobQuery;
   paging: Paging;
 }) {
-  const [{ jobs, total }, counts] = await Promise.all([
+  const [{ jobs, total }, counts, savedSlugs] = await Promise.all([
     searchJobListings(
       query,
       access.member,
       access.member ? paging.page * paging.limit : PREVIEW_LIMIT,
     ),
     access.member ? jobFacetCounts(query) : undefined,
+    access.member
+      ? getCurrentCandidate().then((c) => (c ? listSavedJobSlugs(c.id) : []))
+      : undefined,
   ]);
+  const saved = savedSlugs && new Set(savedSlugs);
   const noOpenings = total === 0 && isBlank(query);
   const hasMore = access.member && jobs.length < total;
   const unlock = access.signedIn
@@ -122,7 +130,11 @@ async function JobResults({
             <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               {jobs.map((job) => (
                 <li key={job.slug} className="min-w-0">
-                  <JobCard job={job} locked={!access.member} />
+                  <JobCard
+                    job={job}
+                    locked={!access.member}
+                    saved={saved?.has(job.slug)}
+                  />
                 </li>
               ))}
             </ul>

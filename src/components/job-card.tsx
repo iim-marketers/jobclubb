@@ -3,6 +3,7 @@ import { ArrowRight, Briefcase, Clock, Lock, MapPin } from "lucide-react";
 
 import { Salary } from "@/components/salary";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { SaveJobHeart } from "@/components/save-job-button";
 import type { JobListing } from "@/lib/jobs-data";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,16 @@ const PLACEHOLDER = {
   workMode: "Onsite",
 };
 
-export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
+// saved is left undefined for anyone who can't save jobs, which hides the heart.
+export function JobCard({
+  job,
+  locked,
+  saved,
+}: {
+  job: JobListing;
+  locked: boolean;
+  saved?: boolean;
+}) {
   const shown = locked ? PLACEHOLDER : job;
   const hidden = locked ? HIDDEN : undefined;
 
@@ -58,6 +68,14 @@ export function JobCard({ job, locked }: { job: JobListing; locked: boolean }) {
           <span className="flex-none rounded-full bg-brand-accent/15 px-2 py-0.5 font-head text-[10px] font-bold tracking-wide text-good uppercase">
             Featured
           </span>
+        )}
+        {!locked && saved !== undefined && (
+          <SaveJobHeart
+            slug={job.slug}
+            title={job.designation}
+            initialSaved={saved}
+            className="-mt-1.5 -mr-1.5"
+          />
         )}
       </div>
 

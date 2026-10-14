@@ -55,11 +55,10 @@ export const offerEnded = (offer: CandidateOffer | null) =>
 
 export type SavedJob = {
   job: JobListing;
-  savedOn: string;
-  closesInDays: number;
+  savedAt: string;
+  postedAt: string;
+  closed: boolean;
 };
-
-export const SAVED_JOBS: SavedJob[] = [];
 
 export type InterviewMode = "Video call" | "In-person" | "Phone";
 
