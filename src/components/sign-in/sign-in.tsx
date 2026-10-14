@@ -33,7 +33,7 @@ const ROLES: {
   eyebrow: string;
   title: [string, string, string];
   description: string;
-  disabled?: boolean;
+  comingSoon?: boolean;
 }[] = [
   {
     id: "candidate",
@@ -43,7 +43,6 @@ const ROLES: {
     title: ["Pick up ", "where you left", " off."],
     description:
       "Your matched openings, applications and ATS-ready resume are waiting for you.",
-    disabled: false,
   },
   {
     id: "company",
@@ -53,7 +52,6 @@ const ROLES: {
     title: ["Your next hire is ", "already here", "."],
     description:
       "Review candidates by skills and experience, and manage your job postings.",
-    disabled: true,
   },
   {
     id: "franchise",
@@ -63,7 +61,7 @@ const ROLES: {
     title: ["Track every lead, ", "sent to placed", "."],
     description:
       "Add leads, follow up on payments and see your conversions in one dashboard.",
-    disabled: true,
+    comingSoon: true,
   },
 ];
 
@@ -205,10 +203,10 @@ export function SignIn({
                   aria-label="Account type"
                   className="grid grid-cols-3 gap-2"
                 >
-                  {ROLES.map(({ id, label, icon: Icon }) => (
+                  {ROLES.map(({ id, label, icon: Icon, comingSoon }) => (
                     <label
                       key={id}
-                      className="flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 short:py-2 font-head text-xs font-semibold text-muted-foreground transition-all hover:border-brand/50 hover:text-foreground has-checked:border-brand has-checked:bg-brand has-checked:text-brand-foreground has-checked:shadow-md has-checked:shadow-brand/20 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
+                      className="relative flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 short:py-2 font-head text-xs font-semibold text-muted-foreground transition-all hover:border-brand/50 hover:text-foreground has-checked:border-brand has-checked:bg-brand has-checked:text-brand-foreground has-checked:shadow-md has-checked:shadow-brand/20 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
                     >
                       <input
                         type="radio"
@@ -223,95 +221,106 @@ export function SignIn({
                       />
                       <Icon className="size-5" />
                       {label}
+                      {comingSoon && (
+                        <span className="absolute -top-2 right-1.5 rounded-full bg-brand-accent px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-brand-surface-strong uppercase">
+                          Soon
+                        </span>
+                      )}
                     </label>
                   ))}
                 </div>
                 <FieldError message={errors.role} />
 
-                <IconField
-                  key={`email-${role}`}
-                  id="email"
-                  label="Email"
-                  type="email"
-                  icon={Mail}
-                  placeholder={
-                    role === "candidate"
-                      ? "you@example.com"
-                      : "you@yourcompany.com"
-                  }
-                  autoComplete="email"
-                  defaultValue={verifiedEmail ?? rememberedEmail}
-                  error={errors.email}
-                  onEdit={() => clearError("email")}
-                />
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Lock className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Password"
-                      autoComplete="current-password"
-                      autoFocus={!!(verifiedEmail ?? rememberedEmail)}
-                      aria-invalid={!!errors.password}
-                      onChange={() => clearError("password")}
-                      className="h-11 bg-card pr-11 pl-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                {active.comingSoon ? (
+                  <ComingSoon />
+                ) : (
+                  <>
+                    <IconField
+                      key={`email-${role}`}
+                      id="email"
+                      label="Email"
+                      type="email"
+                      icon={Mail}
+                      placeholder={
+                        role === "candidate"
+                          ? "you@example.com"
+                          : "you@yourcompany.com"
                       }
-                      aria-pressed={showPassword}
-                      className="absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </button>
-                  </div>
-                  <FieldError message={errors.password} />
-                </div>
-
-                <div className="flex items-center justify-between gap-3">
-                  <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
-                    <Checkbox
-                      key={`remember-${role}`}
-                      name="remember"
-                      value="yes"
-                      defaultChecked={!!rememberedEmail}
+                      autoComplete="email"
+                      defaultValue={verifiedEmail ?? rememberedEmail}
+                      error={errors.email}
+                      onEdit={() => clearError("email")}
                     />
-                    Remember me
-                  </label>
-                  <Link
-                    href={
-                      role === "company"
-                        ? "/forgot-password?as=company"
-                        : "/forgot-password"
-                    }
-                    className="-my-1 py-1 text-sm font-semibold text-brand hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={pending}
-                  className="h-12 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                >
-                  {pending
-                    ? "Signing in…"
-                    : `Sign in as ${active.label.toLowerCase()}`}
-                  {!pending && <ArrowRight className="size-4" />}
-                </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password</Label>
+                      <div className="relative">
+                        <Lock className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Password"
+                          autoComplete="current-password"
+                          autoFocus={!!(verifiedEmail ?? rememberedEmail)}
+                          aria-invalid={!!errors.password}
+                          onChange={() => clearError("password")}
+                          className="h-11 bg-card pr-11 pl-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={
+                            showPassword ? "Hide password" : "Show password"
+                          }
+                          aria-pressed={showPassword}
+                          className="absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </button>
+                      </div>
+                      <FieldError message={errors.password} />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
+                        <Checkbox
+                          key={`remember-${role}`}
+                          name="remember"
+                          value="yes"
+                          defaultChecked={!!rememberedEmail}
+                        />
+                        Remember me
+                      </label>
+                      <Link
+                        href={
+                          role === "company"
+                            ? "/forgot-password?as=company"
+                            : "/forgot-password"
+                        }
+                        className="-my-1 py-1 text-sm font-semibold text-brand hover:underline"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      size="lg"
+                      disabled={pending}
+                      className="h-12 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+                    >
+                      {pending
+                        ? "Signing in…"
+                        : `Sign in as ${active.label.toLowerCase()}`}
+                      {!pending && <ArrowRight className="size-4" />}
+                    </Button>
+                  </>
+                )}
               </form>
 
               <div className="mt-6 border-t border-border pt-5 short:mt-4 short:pt-3 text-center text-sm text-muted-foreground">
@@ -339,12 +348,12 @@ export function SignIn({
                 )}
                 {role === "franchise" && (
                   <>
-                    Got your franchise email ID?{" "}
+                    Want to partner with us?{" "}
                     <Link
-                      href="/sign-up/franchise"
+                      href="/franchise"
                       className="font-semibold text-brand hover:underline"
                     >
-                      Activate your franchise
+                      See the franchise program
                     </Link>
                   </>
                 )}
@@ -353,6 +362,30 @@ export function SignIn({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ComingSoon() {
+  return (
+    <div className="rounded-2xl border border-dashed border-brand/40 bg-brand/5 px-5 py-6 text-center">
+      <span className="mx-auto flex size-10 items-center justify-center rounded-full bg-brand/10 text-brand">
+        <Store className="size-5" />
+      </span>
+      <p className="mt-3 font-head text-base font-bold tracking-tight">
+        Franchise sign-in is coming soon
+      </p>
+      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+        We&apos;re getting franchise accounts ready. For anything urgent, write
+        to{" "}
+        <a
+          href="mailto:support@jobclubb.com"
+          className="font-semibold text-brand hover:underline"
+        >
+          support@jobclubb.com
+        </a>
+        .
+      </p>
     </div>
   );
 }

@@ -8,6 +8,7 @@ export const metadata = {
   title: "About — JobClubb",
   description:
     "JobClubb.com is a dedicated recruitment portal where candidates apply directly for live openings.",
+  alternates: { canonical: "/about" },
 };
 
 const STATS = [

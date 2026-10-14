@@ -33,6 +33,7 @@ export const metadata = {
   title: "Jobs — JobClubb",
   description:
     "Live openings across Airlines, Hospitality and Travel & Tourism from verified employers.",
+  alternates: { canonical: "/jobs" },
 };
 
 const PREVIEW_LIMIT = 6;

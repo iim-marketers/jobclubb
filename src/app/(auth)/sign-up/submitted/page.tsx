@@ -13,6 +13,7 @@ export async function generateMetadata({
   const { route } = await searchParams;
   return {
     title: route === "candidate" ? "Check your inbox — JobClubb" : "Registration received — JobClubb",
+    robots: { index: false, follow: false },
   };
 }
 

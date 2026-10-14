@@ -12,6 +12,7 @@ export const metadata = {
   title: "Companies — JobClubb",
   description:
     "Verified employers hiring across Airlines, Hospitality and Travel & Tourism.",
+  alternates: { canonical: "/companies" },
 };
 
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z]+/g, "-");

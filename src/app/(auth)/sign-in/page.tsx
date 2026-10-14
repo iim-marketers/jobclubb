@@ -11,6 +11,7 @@ export const metadata = {
   title: "Sign in — JobClubb",
   description:
     "Sign in to your JobClubb candidate, company or franchise account.",
+  alternates: { canonical: "/sign-in" },
 };
 
 const ROLES = ["candidate", "company", "franchise"] as const;

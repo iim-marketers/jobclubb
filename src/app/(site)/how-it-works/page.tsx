@@ -10,6 +10,7 @@ import { getCompanySession } from "@/server/auth/current-company";
 export const metadata = {
   title: "How it works — JobClubb",
   description: "From sign-up to your first day — how JobClubb gets you hired.",
+  alternates: { canonical: "/how-it-works" },
 };
 
 const STEPS = [

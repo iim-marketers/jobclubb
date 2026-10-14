@@ -17,6 +17,7 @@ export const metadata = {
   title: "Membership — JobClubb",
   description:
     "Unlock the full job board, one-click apply, guaranteed interviews and upskilling.",
+  alternates: { canonical: "/membership" },
 };
 
 const MEMBER_BENEFITS = [

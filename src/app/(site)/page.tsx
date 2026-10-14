@@ -17,6 +17,7 @@ import {
 import { Salary } from "@/components/salary";
 import { MemberHome } from "@/components/candidate/member-home";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { SiteJsonLd } from "@/components/json-ld";
 import { CompanyHome } from "@/components/company/company-home";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,10 @@ import {
   MEMBERSHIP_POINTS,
   RECRUITER_LOGOS,
 } from "@/lib/home-data";
+
+export const metadata = {
+  alternates: { canonical: "/" },
+};
 
 const CAROUSEL =
   "jc-hscroll -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-1 sm:mx-0 sm:grid sm:snap-none sm:scroll-px-0 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0";
@@ -67,6 +72,7 @@ export default async function Home() {
 
   return (
     <>
+      <SiteJsonLd />
       <Hero jobs={jobs.slice(0, 3)} locked />
       <StatsBand />
       <EmployerShowcase />

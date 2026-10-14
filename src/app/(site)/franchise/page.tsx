@@ -8,6 +8,7 @@ export const metadata = {
   title: "Franchise — JobClubb",
   description:
     "Build a job placement and recruitment business in your area with a proven model, training and lifelong support.",
+  alternates: { canonical: "/franchise" },
 };
 
 const STEPS = [

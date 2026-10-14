@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 
 import { AdminHeader, AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -6,6 +7,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/server/admin/session";
 import { countPendingChanges } from "@/server/companies/change-requests";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminPanelLayout({ children }: LayoutProps<"/admin">) {
   await requireAdmin();

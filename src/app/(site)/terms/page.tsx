@@ -4,6 +4,7 @@ import { TERMS_SECTIONS, TERMS_VERSION } from "@/lib/terms-content";
 export const metadata = {
   title: "Terms of Use — JobClubb",
   description: "The terms governing your use of JobClubb.com.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

@@ -6,6 +6,7 @@ import { CONTACT_ITEMS } from "@/components/site-footer";
 export const metadata = {
   title: "Contact Us — JobClubb",
   description: "Get in touch with the JobClubb team.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
