@@ -35,12 +35,7 @@ export default async function ResumePage() {
     saved && keywordScore(resumeToText(saved.resume), saved.keywords);
 
   const builder = (
-    <ResumeBuilder
-      key={saved?.generatedAt ?? "new"}
-      targetRole={saved?.targetRole ?? ""}
-      jobDescription={saved?.jobDescription ?? ""}
-      hasResume={!!saved}
-    />
+    <ResumeBuilder key={saved?.generatedAt ?? "new"} hasResume={!!saved} />
   );
 
   if (!saved || !report) {

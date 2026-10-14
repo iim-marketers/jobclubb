@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
-import { ChevronDown, Loader2, Sparkles } from "lucide-react";
+import { ChevronDown, FileText, Loader2, Sparkles } from "lucide-react";
 
 import {
   buildAtsResume,
@@ -79,15 +79,32 @@ function MoreOptions({
   );
 }
 
-export function ResumeBuilder({
-  targetRole,
-  jobDescription,
-  hasResume,
-}: {
-  targetRole: string;
-  jobDescription: string;
-  hasResume: boolean;
-}) {
+function UploadTip() {
+  return (
+    <div className="flex items-start gap-3 rounded-xl bg-brand/5 p-3.5 ring-1 ring-brand/20">
+      <span className="flex size-7 flex-none items-center justify-center rounded-lg bg-brand/10">
+        <FileText className="size-3.5 text-brand" />
+      </span>
+      <div className="min-w-0">
+        <p className="font-head text-sm font-bold tracking-tight">
+          Upload your resume for the best result
+        </p>
+        <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+          We build your ATS resume only from what you give us. Your current
+          resume has your real job titles, dates, duties and achievements, so
+          the new one comes out detailed and scores higher. With just a role
+          and a few lines, it will be short and generic.
+        </p>
+        <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+          No resume yet? Describe every job below: where you worked, when, what
+          you did and what you achieved.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function ResumeBuilder({ hasResume }: { hasResume: boolean }) {
   const [state, formAction, pending] = useActionState<
     ResumeActionState,
     FormData
@@ -103,7 +120,6 @@ export function ResumeBuilder({
       label="Job description"
       hint="Paste a posting to tailor keywords to it. Leave blank to use common keywords for the role."
       placeholder="Paste the full job description here"
-      defaultValue={jobDescription}
       maxLength={12_000}
     />
   );
@@ -140,7 +156,6 @@ export function ResumeBuilder({
         id="targetRole"
         label="Role you're applying for"
         required
-        defaultValue={targetRole}
         maxLength={120}
         placeholder="e.g. Front Office Executive"
         error={errors.targetRole}
@@ -162,10 +177,7 @@ export function ResumeBuilder({
             error={errors.additions}
           />
           <div className="divide-y divide-border rounded-2xl border border-border">
-            <MoreOptions
-              title="Tailor to a job post"
-              defaultOpen={!!jobDescription}
-            >
+            <MoreOptions title="Tailor to a job post">
               {jobDescriptionField}
             </MoreOptions>
             <MoreOptions
@@ -179,6 +191,7 @@ export function ResumeBuilder({
       ) : (
         <>
           {jobDescriptionField}
+          <UploadTip />
           {resumeField}
           <TextareaField
             id="additions"

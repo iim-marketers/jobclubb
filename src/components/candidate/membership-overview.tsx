@@ -1,12 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, CalendarClock, CircleAlert } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarClock,
+  CircleAlert,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { CHECKOUT_PATH, MEMBERSHIP_DAYS } from "@/lib/membership";
+import {
+  CHECKOUT_PATH,
+  MEMBERSHIP_DAYS,
+  RENEWAL_REMINDER_DAYS,
+} from "@/lib/membership";
 import { cn } from "@/lib/utils";
-
-export const RENEW_WINDOW_DAYS = 30;
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -45,7 +52,7 @@ export function MembershipOverview({
   lapsedAccessUntil: Date | null;
 }) {
   const lapsed = !!lapsedAccessUntil;
-  const renewSoon = lapsed || daysLeft <= RENEW_WINDOW_DAYS;
+  const renewSoon = lapsed || daysLeft <= RENEWAL_REMINDER_DAYS;
 
   return (
     <section
@@ -98,7 +105,10 @@ export function MembershipOverview({
           )}
           <Stat label="Member since" value={formatDate(startedAt)} />
           {lapsed ? (
-            <Stat label="View-only until" value={formatDate(lapsedAccessUntil)} />
+            <Stat
+              label="View-only until"
+              value={formatDate(lapsedAccessUntil)}
+            />
           ) : (
             <Stat label="Valid till" value={formatDate(expiresAt)} />
           )}
@@ -133,20 +143,24 @@ export function MembershipOverview({
             ) : renewSoon ? (
               <>
                 <span className="font-semibold text-foreground">
-                  Your plan ends soon.
+                  Your plan ends in {daysLeft} {daysLeft === 1 ? "day" : "days"}
+                  , on {formatDate(expiresAt)}.
                 </span>{" "}
-                Renew now so your applications and interviews aren&apos;t
-                interrupted.
+                You can renew here as soon as it ends. Your profile,
+                applications and interviews stay as they are.
               </>
             ) : (
-              `Renewal opens ${RENEW_WINDOW_DAYS} days before your plan ends. We'll email you a reminder.`
+              <>
+                We&apos;ll email you a reminder {RENEWAL_REMINDER_DAYS} days
+                before the plan ends, on {formatDate(expiresAt)}.
+              </>
             )}
           </p>
-          {renewSoon && (
+          {lapsed && (
             <Button
               className="w-full bg-brand sm:w-auto sm:flex-none font-head text-brand-foreground hover:bg-brand-dark"
               nativeButton={false}
-              render={<Link href={lapsed ? CHECKOUT_PATH : "/membership"} />}
+              render={<Link href={CHECKOUT_PATH} />}
             >
               Renew <ArrowRight className="size-4" />
             </Button>
