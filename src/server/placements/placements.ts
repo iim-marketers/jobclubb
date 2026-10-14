@@ -57,7 +57,6 @@ type BaseRow = {
 };
 
 const PRE_RELEASE: PlacementStatus[] = ["awaiting_offer", "offer_received"];
-// Once the candidate has paid, only JobClubb can withdraw an offer.
 const COMPANY_WITHDRAWABLE: PlacementStatus[] = ["awaiting_offer", "offer_received", "released"];
 const ADMIN_WITHDRAWABLE: PlacementStatus[] = [...COMPANY_WITHDRAWABLE, "accepted"];
 

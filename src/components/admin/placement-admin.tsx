@@ -176,7 +176,7 @@ export function ExtendDeadlineForm({
       <Button
         type="submit"
         variant="outline"
-        className="font-head sm:mt-7.5"
+        className="h-11 font-head sm:mt-5.5"
         disabled={pending}
       >
         {pending && <Loader2 className="size-4 animate-spin" />}
