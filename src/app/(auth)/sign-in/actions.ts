@@ -33,10 +33,8 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
   if (!(role in DASHBOARDS))
     return { errors: { role: "Choose an account type." } };
 
-  if (role === "franchise") {
-    // TODO: move franchise accounts onto Supabase.
-    redirect(DASHBOARDS.franchise);
-  }
+  if (role === "franchise")
+    return { errors: { role: "Franchise sign-in is coming soon." } };
 
   const signInAs = role === "company" ? signInCompany : signInCandidate;
   const result = await signInAs(await createClient(), {

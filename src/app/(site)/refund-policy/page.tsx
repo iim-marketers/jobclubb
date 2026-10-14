@@ -3,6 +3,7 @@ import { PolicyPage, type PolicySection } from "@/components/policy-page";
 export const metadata = {
   title: "Refund & Cancellation Policy — JobClubb",
   description: "Refunds and cancellations for JobClubb memberships and placement fees.",
+  alternates: { canonical: "/refund-policy" },
 };
 
 const SECTIONS: PolicySection[] = [

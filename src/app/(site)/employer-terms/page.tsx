@@ -4,6 +4,7 @@ import { EMPLOYER_TERMS_SECTIONS, EMPLOYER_TERMS_VERSION } from "@/lib/terms-con
 export const metadata = {
   title: "Employer Terms — JobClubb",
   description: "The terms governing how employers hire on JobClubb.com.",
+  alternates: { canonical: "/employer-terms" },
 };
 
 export default function EmployerTermsPage() {

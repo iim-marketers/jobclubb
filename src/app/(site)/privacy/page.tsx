@@ -3,6 +3,7 @@ import { PolicyPage, type PolicySection } from "@/components/policy-page";
 export const metadata = {
   title: "Privacy Policy — JobClubb",
   description: "How JobClubb collects, uses and protects your personal data.",
+  alternates: { canonical: "/privacy" },
 };
 
 const SECTIONS: PolicySection[] = [

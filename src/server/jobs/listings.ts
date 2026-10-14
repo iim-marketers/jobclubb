@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import {
   formatExperience,
   formatSalary,
@@ -85,7 +87,7 @@ export async function jobFacetCounts(query: JobQuery): Promise<FacetCounts> {
   return counts;
 }
 
-export async function getJob(slug: string): Promise<JobListing | null> {
+export const getJob = cache(async (slug: string): Promise<JobListing | null> => {
   const job = await getLiveJobBySlug(slug);
   return job ? toListing(job) : null;
-}
+});

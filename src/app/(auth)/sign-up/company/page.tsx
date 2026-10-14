@@ -4,6 +4,7 @@ export const metadata = {
   title: "Register your company — JobClubb",
   description:
     "Create a JobClubb employer account to post openings and review candidates by skills and experience.",
+  alternates: { canonical: "/sign-up/company" },
 };
 
 export default function CompanySignUpPage() {

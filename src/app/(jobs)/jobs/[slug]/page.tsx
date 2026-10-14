@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -39,6 +40,21 @@ import { sanitizeRichText } from "@/server/rich-text";
 
 const BRAND_BUTTON =
   "bg-brand font-head text-brand-foreground hover:bg-brand-dark";
+
+// Role only: company, city and salary are members-only, and crawlers are never members.
+export async function generateMetadata({
+  params,
+}: PageProps<"/jobs/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
+  const job = await getJob(slug);
+  if (!job) return {};
+
+  return {
+    title: `${job.title} job — JobClubb`,
+    description: `${job.title} opening in ${job.industry} from a verified employer on JobClubb. Join to see the company, salary and full details, and apply in one click.`,
+    alternates: { canonical: `/jobs/${slug}` },
+  };
+}
 
 export default async function JobDetailPage({
   params,

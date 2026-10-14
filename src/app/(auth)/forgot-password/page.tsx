@@ -3,6 +3,7 @@ import { ForgotPassword } from "@/components/forgot-password/forgot-password";
 export const metadata = {
   title: "Forgot password — JobClubb",
   description: "Reset the password for your JobClubb candidate or company account.",
+  robots: { index: false, follow: false },
 };
 
 export default async function ForgotPasswordPage({

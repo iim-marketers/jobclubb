@@ -149,6 +149,16 @@ export async function listLiveJobs(limit?: number): Promise<PublicJob[]> {
   return (data as unknown as PublicJobRow[]).map(toPublicJob);
 }
 
+export async function listLiveJobSlugs(): Promise<{ slug: string; updatedAt: string }[]> {
+  const { data, error } = await createAdminClient()
+    .from("company_jobs")
+    .select("slug, updated_at")
+    .eq("status", "live")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data.map((row) => ({ slug: row.slug, updatedAt: row.updated_at }));
+}
+
 export type LiveJobSearch = {
   q: string;
   loc: string;
