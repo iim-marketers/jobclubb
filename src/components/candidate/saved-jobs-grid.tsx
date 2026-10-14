@@ -69,7 +69,6 @@ export function SavedJobsGrid({
     }
     toast(`Removed ${item.job.designation}`, {
       description: "It's no longer in your saved jobs.",
-      // A closed job can't be saved again.
       action: item.closed
         ? undefined
         : { label: "Undo", onClick: () => resave(item) },
@@ -245,7 +244,6 @@ function SavedCard({
       <div className="-mx-5 mt-auto flex items-center justify-between gap-3 border-t border-border px-5 pt-3">
         <div className="min-w-0 text-xs text-muted-foreground">
           <p>Saved {formatShortDate(savedAt)}</p>
-          {/* <p className="truncate">Posted {job.postedAgo.toLowerCase()}</p> */}
         </div>
         {appliedRef ? (
           <Button

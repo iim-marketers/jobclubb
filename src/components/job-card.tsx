@@ -20,7 +20,6 @@ const PLACEHOLDER = {
   workMode: "Onsite",
 };
 
-// saved is left undefined for anyone who can't save jobs, which hides the heart.
 export function JobCard({
   job,
   locked,

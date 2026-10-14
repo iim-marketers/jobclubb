@@ -52,8 +52,7 @@ export async function isJobSaved(candidateId: string, slug: string) {
   return !!count;
 }
 
-// Only live jobs can be saved, so a closed job's details stay out of reach
-// unless the candidate saved it while it was open.
+// Saving is live-only so closed jobs can't be pulled in; unsaving isn't.
 export async function setJobSaved(
   candidateId: string,
   slug: string,

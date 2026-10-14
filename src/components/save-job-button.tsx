@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
@@ -10,8 +10,7 @@ import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// Back/forward navigation replays the cached server payload, so the last
-// toggle per job is kept here to stop a stale `initialSaved` from winning.
+// Back/forward navigation replays a stale `initialSaved`, so the last toggle wins.
 const overrides = new Map<string, boolean>();
 const listeners = new Set<() => void>();
 
@@ -45,9 +44,11 @@ function useSavedJob(slug: string, initialSaved: boolean) {
     () => overrides.get(slug) ?? initialSaved,
     () => initialSaved,
   );
+  const [pops, setPops] = useState(0);
 
   async function toggle() {
     const next = !saved;
+    if (next) setPops((n) => n + 1);
     if ((await updateSavedJob(slug, next)) && next)
       toast.success("Job saved", {
         description: "Find it any time under Saved jobs.",
@@ -58,7 +59,33 @@ function useSavedJob(slug: string, initialSaved: boolean) {
       });
   }
 
-  return { saved, toggle };
+  return { saved, pops, toggle };
+}
+
+function HeartIcon({
+  saved,
+  pops,
+  className,
+}: {
+  saved: boolean;
+  pops: number;
+  className?: string;
+}) {
+  const popping = saved && pops > 0;
+  return (
+    <span className="relative inline-flex">
+      <Heart
+        key={pops}
+        className={cn(className, saved && "fill-current", popping && "jc-heart-pop")}
+      />
+      {popping && (
+        <>
+          <span key={`ring-${pops}`} aria-hidden className="jc-heart-ring" />
+          <span key={`sparks-${pops}`} aria-hidden className="jc-heart-sparks" />
+        </>
+      )}
+    </span>
+  );
 }
 
 export function SaveJobHeart({
@@ -72,7 +99,7 @@ export function SaveJobHeart({
   initialSaved: boolean;
   className?: string;
 }) {
-  const { saved, toggle } = useSavedJob(slug, initialSaved);
+  const { saved, pops, toggle } = useSavedJob(slug, initialSaved);
 
   return (
     <button
@@ -89,7 +116,7 @@ export function SaveJobHeart({
         className,
       )}
     >
-      <Heart className={cn("size-4.5", saved && "fill-current")} />
+      <HeartIcon saved={saved} pops={pops} className="size-4.5" />
     </button>
   );
 }
@@ -107,11 +134,11 @@ export function SaveJobButton({
   iconOnly?: boolean;
   className?: string;
 }) {
-  const { saved, toggle } = useSavedJob(slug, initialSaved);
+  const { saved, pops, toggle } = useSavedJob(slug, initialSaved);
   const icon = (
-    <Heart
-      className={cn("size-4", saved && "fill-current text-destructive")}
-    />
+    <span className={cn("inline-flex", saved && "text-destructive")}>
+      <HeartIcon saved={saved} pops={pops} className="size-4" />
+    </span>
   );
 
   if (iconOnly)
