@@ -70,7 +70,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             width={142}
             height={26}
             priority
-            className="h-5 w-auto object-contain sm:h-6.5 dark:hidden"
+            className="h-5 w-auto object-contain sm:h-6.5 sm:w-35.5 dark:hidden"
           />
           <Image
             src="/brand/jobclubb-logo-dark.png"
@@ -79,7 +79,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             width={142}
             height={26}
             priority
-            className="hidden h-5 w-auto object-contain sm:h-6.5 dark:block"
+            className="hidden h-5 w-auto object-contain sm:h-6.5 sm:w-35.5 dark:block"
           />
         </Link>
 

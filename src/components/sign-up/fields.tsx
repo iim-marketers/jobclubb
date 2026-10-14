@@ -183,8 +183,8 @@ export function SelectField({
   );
 }
 
-// A styled drop-zone style file picker. The real input stays in the form (so it
-// submits with FormData) but is visually hidden inside the clickable label.
+// The real input stays in the form (so it submits with FormData) but is
+// visually hidden inside the clickable label.
 export function FileField({
   id,
   label,

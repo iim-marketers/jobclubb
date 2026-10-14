@@ -361,7 +361,6 @@ function VerticalSteps({
   const last = FRANCHISE_STEPS.length - 1;
   return (
     <>
-      {/* Phones & tablets: a compact connected row, naming the current step. */}
       <ol className="flex items-center lg:hidden">
         {FRANCHISE_STEPS.map((s, i) => {
           const done = i < current;
@@ -402,7 +401,6 @@ function VerticalSteps({
         })}
       </ol>
 
-      {/* Desktop: a vertical timeline down the side of the form. */}
       <ol className="hidden lg:block">
         {FRANCHISE_STEPS.map((s, i) => {
           const done = i < current;

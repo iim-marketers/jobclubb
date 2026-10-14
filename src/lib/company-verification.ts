@@ -57,7 +57,6 @@ export function isFreeMailDomain(domain: string): boolean {
   return FREE_MAIL_DOMAINS.has(domain.toLowerCase());
 }
 
-// "https://www.Taj-Hotels.com/careers" -> "taj-hotels.com"
 export function getWebsiteDomain(website: string): string | null {
   const raw = website.trim();
   if (!raw) return null;

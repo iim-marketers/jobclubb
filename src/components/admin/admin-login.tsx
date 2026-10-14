@@ -42,7 +42,7 @@ export function AdminLogin() {
             alt="JobClubb"
             width={150}
             height={28}
-            className="h-7 w-auto object-contain"
+            className="h-7 w-37.5 object-contain"
             priority
           />
           <span className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/8 px-3 py-1 font-head text-[11px] font-bold tracking-[0.14em] text-white/80 uppercase">
