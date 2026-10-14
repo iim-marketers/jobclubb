@@ -11,7 +11,6 @@ import {
   MapPin,
   Search,
   Shield,
-  Star,
   Users,
 } from "lucide-react";
 import { Salary } from "@/components/salary";
@@ -56,7 +55,6 @@ const STAT_ICONS = {
   check: CheckCircle2,
   chart: BarChart3,
   users: Users,
-  star: Star,
 } as const;
 
 export default async function Home() {
@@ -74,9 +72,8 @@ export default async function Home() {
     <>
       <SiteJsonLd />
       <Hero jobs={jobs.slice(0, 3)} locked />
-      <StatsBand />
-      <EmployerShowcase />
       <FeaturedOpenings jobs={jobs} locked />
+      <EmployerShowcase />
       <HowItWorks />
       <Membership view={view} />
       <Franchise />
@@ -92,154 +89,180 @@ const FRESH_SLOTS = 3;
 
 function Hero({ jobs, locked }: { jobs: JobListing[]; locked: boolean }) {
   return (
-    <section className="bg-linear-to-b from-muted/60 to-background px-4 pt-8 pb-12 md:py-12 sm:px-6 lg:py-16">
-      <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <div className="min-w-0">
-          <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm">
-            3 guaranteed interviews for members
-          </span>
+    <section
+      data-overlay-hero
+      className="relative isolate -mt-16.25 flex min-h-svh flex-col overflow-hidden bg-[#0b1723] bg-[url(/hero/hero-poster.jpg)] bg-cover bg-center pt-16.25 lg:-mt-18.25 lg:pt-18.25"
+    >
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster="/hero/hero-poster.jpg"
+        aria-hidden
+        className="absolute inset-0 -z-10 size-full object-cover motion-reduce:hidden"
+      >
+        <source src="/hero/hero-reel.mp4" type="video/mp4" />
+      </video>
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10 bg-black/70 lg:bg-transparent lg:bg-linear-to-r lg:from-black/85 lg:via-black/65 lg:to-black/40"
+      />
 
-          <h1 className="mt-0 md:mt-5 font-head text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-            Find your <span className="text-brand">dream job</span> now.
-          </h1>
-
-          <span className="mt-5 inline-flex items-center rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground shadow-sm md:hidden">
-            3 guaranteed interviews for members
-          </span>
-
-          <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
-            5 lakh+ live jobs from verified employers. Get matched, prepare with
-            upskilling, and land the role that&apos;s right for you.
-          </p>
-
-          <Form
-            action="/jobs"
-            className="mt-7 flex max-w-xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row"
-          >
-            <div className="relative flex-1 border-b border-border sm:border-b-0 -mx-2 px-2">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                name="q"
-                aria-label="Role"
-                placeholder="Search jobs by role"
-                className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="h-11 bg-brand px-6 my-0.5 font-head text-brand-foreground hover:bg-brand-dark"
-            >
-              Search Jobs
-            </Button>
-          </Form>
-        </div>
-
-        <div className="min-w-0 rounded-3xl border border-border bg-card p-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <h2 className="font-head text-lg font-bold tracking-tight">
-              Fresh today
-            </h2>
-            <span className="flex items-center gap-2 text-sm font-medium text-good">
-              <span className="size-2 animate-pulse rounded-full bg-good" />
-              Live
+      <div className="flex flex-1 items-center px-4 pt-4 pb-12 sm:px-6 md:py-12 lg:py-16">
+        <div className="mx-auto grid w-full grid-cols-1 max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="min-w-0">
+            <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm text-white/90 backdrop-blur-sm">
+              3 guaranteed interviews for members
             </span>
+
+            <h1 className="mt-0 md:mt-5 font-head text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Find your <span className="text-brand-accent">dream job</span>{" "}
+              now.
+            </h1>
+
+            <span className="mt-5 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm text-white/90 backdrop-blur-sm md:hidden">
+              3 guaranteed interviews for members
+            </span>
+
+            <p className="mt-5 max-w-lg text-base leading-7 text-white/80 sm:text-lg">
+              5 lakh+ live jobs from verified employers. Get matched, prepare
+              with upskilling, and land the role that&apos;s right for you.
+            </p>
+
+            <Form
+              action="/jobs"
+              className="mt-7 flex max-w-xl flex-col gap-2 rounded-2xl border border-border bg-card p-2 shadow-md sm:flex-row"
+            >
+              <div className="relative flex-1 border-b border-border sm:border-b-0 -mx-2 px-2">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  name="q"
+                  aria-label="Role"
+                  placeholder="Search jobs by role"
+                  className="h-11 border-0 bg-transparent pl-9 shadow-none focus-visible:ring-0"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="h-11 bg-brand px-6 my-0.5 font-head text-brand-foreground hover:bg-brand-dark"
+              >
+                Search Jobs
+              </Button>
+            </Form>
           </div>
 
-          <ul className="mt-4 space-y-3">
-            {jobs.slice(0, FRESH_SLOTS).map((job) => (
-              <li
-                key={job.slug}
-                className="relative flex items-center gap-3 rounded-2xl border border-border p-3 transition-colors hover:border-brand/40"
-              >
-                {locked ? (
+          <div className="min-w-0 rounded-3xl border border-border bg-card p-6 shadow-lg">
+            <div className="flex items-center justify-between">
+              <h2 className="font-head text-lg font-bold tracking-tight">
+                Fresh today
+              </h2>
+              <span className="flex items-center gap-2 text-sm font-medium text-good">
+                <span className="size-2 animate-pulse rounded-full bg-good" />
+                Live
+              </span>
+            </div>
+
+            <ul className="mt-4 space-y-3">
+              {jobs.slice(0, FRESH_SLOTS).map((job) => (
+                <li
+                  key={job.slug}
+                  className="relative flex items-center gap-3 rounded-2xl border border-border p-3 transition-colors hover:border-brand/40"
+                >
+                  {locked ? (
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "size-10 flex-none rounded-full bg-muted",
+                        HIDDEN,
+                      )}
+                    />
+                  ) : (
+                    <CompanyAvatar
+                      name={job.company}
+                      logoUrl={job.companyLogoUrl}
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/jobs/${job.slug}`}
+                      className="block truncate font-head text-sm font-bold after:absolute after:inset-0 after:rounded-2xl"
+                    >
+                      {job.title}
+                    </Link>
+                    <p
+                      aria-hidden={locked}
+                      className={cn(
+                        "truncate text-xs text-muted-foreground",
+                        locked && HIDDEN,
+                      )}
+                    >
+                      {locked
+                        ? "Company name · City"
+                        : `${job.company} · ${job.location}`}
+                    </p>
+                  </div>
                   <span
-                    aria-hidden
-                    className={cn(
-                      "size-10 flex-none rounded-full bg-muted",
-                      HIDDEN,
-                    )}
-                  />
-                ) : (
-                  <CompanyAvatar
-                    name={job.company}
-                    logoUrl={job.companyLogoUrl}
-                  />
-                )}
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/jobs/${job.slug}`}
-                    className="block truncate font-head text-sm font-bold after:absolute after:inset-0 after:rounded-2xl"
-                  >
-                    {job.title}
-                  </Link>
-                  <p
                     aria-hidden={locked}
                     className={cn(
-                      "truncate text-xs text-muted-foreground",
+                      "font-head text-sm font-bold text-brand",
                       locked && HIDDEN,
                     )}
                   >
-                    {locked
-                      ? "Company name · City"
-                      : `${job.company} · ${job.location}`}
-                  </p>
-                </div>
-                <span
-                  aria-hidden={locked}
-                  className={cn(
-                    "font-head text-sm font-bold text-brand",
-                    locked && HIDDEN,
-                  )}
-                >
-                  {locked ? "₹0L" : <Salary value={maxSalary(job)} />}
-                </span>
-              </li>
-            ))}
-            {Array.from(
-              { length: Math.max(0, FRESH_SLOTS - jobs.length) },
-              (_, i) => (
-                <li
-                  key={`soon-${i}`}
-                  className="flex items-center gap-3 rounded-2xl border border-dashed border-border p-3"
-                >
-                  <span className="flex size-10 flex-none items-center justify-center rounded-full bg-muted">
-                    <BriefcaseBusiness className="size-4 text-muted-foreground" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-head text-sm font-bold text-muted-foreground">
-                      New role coming soon
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      Verified employers are hiring
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-muted px-2.5 py-1 font-head text-[11px] font-bold text-muted-foreground">
-                    Soon
+                    {locked ? "₹0L" : <Salary value={maxSalary(job)} />}
                   </span>
                 </li>
-              ),
-            )}
-          </ul>
+              ))}
+              {Array.from(
+                { length: Math.max(0, FRESH_SLOTS - jobs.length) },
+                (_, i) => (
+                  <li
+                    key={`soon-${i}`}
+                    className="flex items-center gap-3 rounded-2xl border border-dashed border-border p-3"
+                  >
+                    <span className="flex size-10 flex-none items-center justify-center rounded-full bg-muted">
+                      <BriefcaseBusiness className="size-4 text-muted-foreground" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-head text-sm font-bold text-muted-foreground">
+                        New role coming soon
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        Verified employers are hiring
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-muted px-2.5 py-1 font-head text-[11px] font-bold text-muted-foreground">
+                      Soon
+                    </span>
+                  </li>
+                ),
+              )}
+            </ul>
 
-          <Link
-            href="/jobs"
-            className="mt-4 block text-center text-sm text-muted-foreground hover:text-brand"
-          >
-            {jobs.length > 0 ? "and many more inside" : "Browse the job board"}
-          </Link>
+            <Link
+              href="/jobs"
+              className="mt-4 block text-center text-sm text-muted-foreground hover:text-brand"
+            >
+              {jobs.length > 0
+                ? "and many more inside"
+                : "Browse the job board"}
+            </Link>
+          </div>
         </div>
       </div>
+
+      <StatsStrip />
     </section>
   );
 }
 
-function StatsBand() {
+function StatsStrip() {
   return (
-    <section className="jc-auth-panel relative isolate overflow-hidden px-4 py-12 text-white sm:px-6">
-      <div className="-mx-4 overflow-hidden sm:hidden">
+    <div className="border-t border-white/15 bg-black/30 py-5 text-white backdrop-blur-md sm:px-6">
+      <div className="overflow-hidden sm:hidden">
         <div
           className="jc-marquee flex w-max gap-10"
-          style={{ animationDuration: "24s" }}
+          style={{ animationDuration: "20s" }}
         >
           {[...HERO_STATS, ...HERO_STATS].map((stat, i) => (
             <StatItem
@@ -250,12 +273,12 @@ function StatsBand() {
           ))}
         </div>
       </div>
-      <div className="mx-auto hidden max-w-6xl gap-8 sm:grid sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mx-auto hidden max-w-6xl gap-x-8 gap-y-5 sm:grid sm:grid-cols-2 lg:grid-cols-4">
         {HERO_STATS.map((stat) => (
           <StatItem key={stat.label} stat={stat} />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -267,23 +290,23 @@ function StatItem({
 } & React.HTMLAttributes<HTMLDivElement>) {
   const Icon = STAT_ICONS[stat.icon];
   return (
-    <div className="flex-none text-center" {...props}>
-      <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-white/10">
+    <div className="flex flex-none items-center gap-3" {...props}>
+      <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-white/10 text-brand-accent">
         <Icon className="size-5" />
       </span>
-      <p className="mt-3 font-head text-xl font-extrabold tracking-tight">
-        {stat.value}
-      </p>
-      <p className="mt-1 text-sm whitespace-nowrap text-white/75 sm:whitespace-normal">
-        {stat.label}
-      </p>
+      <div className="min-w-0">
+        <p className="font-head text-lg leading-tight font-extrabold tracking-tight">
+          {stat.value}
+        </p>
+        <p className="text-sm whitespace-nowrap text-white/70">{stat.label}</p>
+      </div>
     </div>
   );
 }
 
 function EmployerShowcase() {
   return (
-    <section className="border-b border-border bg-card px-4 py-12 sm:px-6 md:py-16">
+    <section className="px-4 py-12 sm:px-6 md:py-16">
       <div className="mx-auto flex max-w-6xl gap-8 flex-col">
         <div>
           <SectionEyebrow>Where our members work</SectionEyebrow>
@@ -319,7 +342,7 @@ function FeaturedOpenings({
     : [];
 
   return (
-    <section className="px-4 py-12 md:py-16  sm:px-6">
+    <section className="bg-card px-4 py-12 md:py-16 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <SectionEyebrow>Featured openings</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -340,7 +363,7 @@ function FeaturedOpenings({
         </div>
 
         {featured.length === 0 ? (
-          <div className="mt-6 rounded-3xl border border-dashed border-border bg-card px-6 py-14 text-center">
+          <div className="mt-6 rounded-3xl border border-dashed border-border bg-background px-6 py-14 text-center">
             <BriefcaseBusiness className="mx-auto size-6 text-brand" />
             <h3 className="mt-3 font-head text-lg font-bold tracking-tight">
               No openings right now
@@ -356,25 +379,30 @@ function FeaturedOpenings({
                 key={job.slug}
                 job={job}
                 locked={locked}
-                className="w-[84%] flex-none snap-start sm:w-[60%] md:w-[46%] lg:w-auto"
+                className="w-[84%] flex-none snap-start bg-background sm:w-[60%] md:w-[46%] lg:w-auto"
               />
             ))}
           </div>
         )}
 
         {featured.length === 0 ? null : locked ? (
-          <div className="relative mt-4 overflow-hidden rounded-3xl border border-border bg-card">
+          <div className="relative mt-4 overflow-hidden rounded-3xl border border-border bg-background">
             <div
               aria-hidden
               inert
               className="grid grid-cols-1 max-h-96 gap-4 overflow-hidden p-5 blur-[6px] select-none lg:max-h-none lg:grid-cols-2"
             >
               {ghosts.map((job, i) => (
-                <JobCard key={`ghost-${i}`} job={job} locked />
+                <JobCard
+                  key={`ghost-${i}`}
+                  job={job}
+                  locked
+                  className="bg-background"
+                />
               ))}
             </div>
 
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-card/70 px-6 text-center backdrop-blur-[2px]">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/70 px-6 text-center backdrop-blur-[2px]">
               <span className="flex size-14.5 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-lg">
                 <Lock className="size-6" />
               </span>
@@ -769,7 +797,8 @@ function ClosingCta({ view }: { view: NonMemberView }) {
           Looking for a career change?
         </h2>
         <p className="mx-auto mt-3 max-w-xl leading-7 text-white/80">
-          Browse our job listings, become a member, and let JobClubb get you hired faster.
+          Browse our job listings, become a member, and let JobClubb get you
+          hired faster.
         </p>
         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
           <Button

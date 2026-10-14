@@ -59,7 +59,7 @@ async function getNewApplication(ref: string) {
   };
 }
 
-// Notifies the company and confirms to the candidate; each email fails independently.
+// Each email fails independently.
 export function sendApplicationReceived(ref: string) {
   const application = getNewApplication(ref);
   return Promise.all([

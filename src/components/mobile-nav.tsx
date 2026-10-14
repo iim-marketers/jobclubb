@@ -31,6 +31,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/jobs": Briefcase,
@@ -67,7 +68,10 @@ export function MobileNav({
           <Button
             variant="ghost"
             size="icon-sm"
-            className={alwaysVisible ? undefined : "lg:hidden"}
+            className={cn(
+              "hero-top:text-white hero-top:hover:bg-white/10 hero-top:hover:text-white",
+              !alwaysVisible && "lg:hidden",
+            )}
             aria-label="Open menu"
           >
             <Menu className="size-5" />

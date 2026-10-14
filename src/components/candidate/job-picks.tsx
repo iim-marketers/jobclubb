@@ -10,7 +10,6 @@ const RECOMMENDED = 6;
 
 type Pick = { job: JobListing; reasons: string[] };
 
-// matches counts jobs in the candidate's sector, for the "N roles match" line.
 export type JobPicks = {
   matched: boolean;
   nearby: boolean;

@@ -10,6 +10,7 @@ import {
   COMPANY_NAV,
 } from "@/components/company/nav";
 import { MobileNav } from "@/components/mobile-nav";
+import { ScrollFlag } from "@/components/scroll-flag";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -57,7 +58,8 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
       : NAV_LINKS;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md transition-[background-color,border-color,backdrop-filter] duration-300 hero-top:border-transparent hero-top:bg-transparent hero-top:backdrop-blur-none">
+      <ScrollFlag />
       <div className="mx-auto flex h-16 max-w-300 items-center gap-3 px-4 sm:px-6 lg:h-[72px] lg:gap-8">
         <Link
           href="/"
@@ -70,7 +72,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             width={142}
             height={26}
             priority
-            className="h-5 w-auto object-contain sm:h-6.5 dark:hidden"
+            className="h-5 w-auto object-contain sm:h-6.5 sm:w-35.5 dark:hidden hero-top:hidden"
           />
           <Image
             src="/brand/jobclubb-logo-dark.png"
@@ -79,14 +81,14 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             width={142}
             height={26}
             priority
-            className="hidden h-5 w-auto object-contain sm:h-6.5 dark:block"
+            className="hidden h-5 w-auto object-contain sm:h-6.5 sm:w-35.5 dark:block hero-top:block"
           />
         </Link>
 
         {search ? (
           <div className="min-w-0 flex-1 lg:max-w-xl">{search}</div>
         ) : (
-          <nav className="hidden flex-1 items-center gap-7 lg:flex">
+          <nav className="hidden flex-1 items-center gap-7 transition-[opacity,visibility] duration-300 lg:flex hero-top:invisible hero-top:opacity-0">
             {links.map((link) => (
               <Link
                 key={link.href}
@@ -144,7 +146,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="hidden font-head lg:inline-flex"
+                className="hidden font-head lg:inline-flex hero-top:text-white hero-top:hover:bg-white/10 hero-top:hover:text-white"
                 nativeButton={false}
                 render={<Link href="/sign-in" />}
               >

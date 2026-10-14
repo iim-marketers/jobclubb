@@ -44,11 +44,10 @@ export const FRESH_JOBS = [
 ];
 
 export const HERO_STATS = [
-  { icon: "shield", value: "Secure", label: "Data protected & private" },
-  { icon: "check", value: "Verified", label: "Employers & job posts" },
   { icon: "chart", value: "5 Lakh+", label: "Live job openings" },
   { icon: "users", value: "15,100+", label: "Candidates placed" },
-  { icon: "star", value: "3", label: "Guaranteed interviews" },
+  { icon: "check", value: "Verified", label: "Employers & job posts" },
+  { icon: "shield", value: "Secure", label: "Data protected & private" },
 ] as const;
 
 // Logos in /public/recruiters share a 260×215 canvas. a4/a8 use their

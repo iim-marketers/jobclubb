@@ -3,8 +3,8 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
-/* Short viewports (small laptops, older phones) — used to tighten no-scroll pages. */
 @custom-variant short (@media (max-height: 44rem));
+@custom-variant hero-top (&:where(html:not([data-scrolled]):has([data-overlay-hero]) *));
 
 @theme inline {
   --color-background: var(--background);
@@ -321,7 +321,6 @@
   color: var(--muted-foreground);
 }
 
-/* Horizontal snap carousels used on small screens (see home page sections). */
 .jc-hscroll {
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -331,8 +330,6 @@
   display: none;
 }
 
-/* Brand panel on the sign-up pages: layered glows over the deep brand blue,
-   with a faint dot grid that fades out toward the bottom. */
 .jc-auth-panel {
   background:
     radial-gradient(
@@ -376,7 +373,6 @@
     #021f2b;
 }
 
-/* Candidate dashboard sidebar: deep brand surface with a soft accent glow. */
 .jc-sidebar {
   background:
     radial-gradient(

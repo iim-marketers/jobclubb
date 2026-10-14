@@ -35,8 +35,6 @@ export function useFitToHeight(
     };
 
     fit();
-    // Re-fit when the viewport changes or the content grows/shrinks (e.g. the
-    // live preview wrapping differently as someone types).
     let frame = 0;
     const schedule = () => {
       cancelAnimationFrame(frame);

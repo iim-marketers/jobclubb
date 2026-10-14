@@ -163,7 +163,7 @@ export function StepProgress({
   );
 }
 
-// One panel of the form. Inactive steps stay in the DOM but hidden.
+// Inactive steps stay in the DOM but hidden.
 export function StepPanel({
   index,
   current,

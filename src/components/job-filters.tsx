@@ -81,8 +81,6 @@ function useNavigate(query: JobQuery) {
   return { current, navigate, pending };
 }
 
-/* ---------- Desktop sidebar ---------- */
-
 export function JobFiltersPanel({
   query,
   member,
@@ -145,8 +143,6 @@ export function JobFiltersPanel({
     </div>
   );
 }
-
-/* ---------- Small screens: toolbar + bottom sheet ---------- */
 
 export function JobFiltersSheet({
   query,
@@ -263,8 +259,6 @@ export function JobFiltersSheet({
   );
 }
 
-/* ---------- Toolbar pieces ---------- */
-
 export function JobSortSelect({ query }: { query: JobQuery }) {
   const { navigate } = useNavigate(query);
 
@@ -331,8 +325,6 @@ export function ActiveFilters({ query }: { query: JobQuery }) {
     </ul>
   );
 }
-
-/* ---------- Shared pieces ---------- */
 
 function CountBadge({ value }: { value: number }) {
   return (
