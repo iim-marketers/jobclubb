@@ -58,6 +58,7 @@ export function useStepForm({
     noValidate: true,
     onSubmit(e: React.FormEvent<HTMLFormElement>) {
       e.preventDefault();
+      if (pending) return;
       const formData = readForm();
 
       if (!isLast) {
@@ -236,12 +237,16 @@ export function StepNav({
 }) {
   return (
     <div className="mt-10 border-t border-border pt-6">
+      {pending && (
+        <div aria-hidden className="fixed inset-0 z-100 cursor-wait" />
+      )}
       <div className="flex items-center gap-3">
         {step > 0 && (
           <Button
             type="button"
             variant="ghost"
             size="lg"
+            disabled={pending}
             onClick={onBack}
             className="font-head"
           >

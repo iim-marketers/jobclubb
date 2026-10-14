@@ -4,9 +4,11 @@ import { requireAdmin } from "@/server/admin/session";
 
 export const metadata = { title: "Companies — JobClubb admin" };
 
-export default async function AdminCompaniesPage() {
+export default async function AdminCompaniesPage({
+  searchParams,
+}: PageProps<"/admin/companies">) {
   await requireAdmin();
-  const companies = await listCompanies();
+  const [companies, { company }] = await Promise.all([listCompanies(), searchParams]);
 
   return (
     <div className="flex-1 space-y-6 px-4 py-6">
@@ -19,7 +21,10 @@ export default async function AdminCompaniesPage() {
           once it confirms that address.
         </p>
       </div>
-      <CompaniesTable companies={companies} />
+      <CompaniesTable
+        companies={companies}
+        initialCompanyId={typeof company === "string" ? company : undefined}
+      />
     </div>
   );
 }

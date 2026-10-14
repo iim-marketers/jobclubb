@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/server";
+import { listPendingChanges, type ChangeRequest } from "@/server/companies/change-requests";
 
 export const COMPANY_STATUSES = ["pending_email", "verified", "rejected"] as const;
 export type CompanyStatus = (typeof COMPANY_STATUSES)[number];
@@ -23,18 +24,22 @@ export type AdminCompany = {
   emailVerifiedAt: string | null;
   proofUrl: string | null;
   createdAt: string;
+  pendingChanges: ChangeRequest[];
 };
 
 const PROOF_URL_TTL = 60 * 60;
 
 export async function listCompanies(): Promise<AdminCompany[]> {
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("companies")
-    .select(
-      "id, company_name, property_name, industry, size, website, gstin, city, pincode, contact_name, designation, email, phone, status, email_verified_at, proof_path, created_at",
-    )
-    .order("created_at", { ascending: false });
+  const [{ data, error }, pendingChanges] = await Promise.all([
+    admin
+      .from("companies")
+      .select(
+        "id, company_name, property_name, industry, size, website, gstin, city, pincode, contact_name, designation, email, phone, status, email_verified_at, proof_path, created_at",
+      )
+      .order("created_at", { ascending: false }),
+    listPendingChanges(),
+  ]);
   if (error) throw error;
 
   const proofPaths = data.flatMap((c) => (c.proof_path ? [c.proof_path] : []));
@@ -64,5 +69,6 @@ export async function listCompanies(): Promise<AdminCompany[]> {
     emailVerifiedAt: c.email_verified_at,
     proofUrl: c.proof_path ? (proofUrls.get(c.proof_path) ?? null) : null,
     createdAt: c.created_at,
+    pendingChanges: pendingChanges.filter((r) => r.companyId === c.id),
   }));
 }

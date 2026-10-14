@@ -1,4 +1,4 @@
-import { Lock, LogOut, Trash2 } from "lucide-react";
+import { LogOut, Trash2 } from "lucide-react";
 
 import { changeCompanyPassword } from "@/app/(app)/company/dashboard/settings/actions";
 import { DashboardHeader, Panel } from "@/components/candidate/dashboard-ui";
@@ -10,14 +10,16 @@ import {
   CompanySettingsNav,
   ContactForm,
   LogoForm,
+  VerifiedDetails,
   type CompanyDefaults,
+  type VerifiedItem,
 } from "@/components/company/settings-forms";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
-import { COMPANY_SIZES } from "@/lib/company-verification";
 import { cn } from "@/lib/utils";
 import { countWalkInsAwayFrom } from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
+import { listPendingChanges } from "@/server/companies/change-requests";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
 
 export const metadata = { title: "Settings — JobClubb" };
@@ -27,35 +29,28 @@ export default async function CompanySettingsPage() {
   const defaults: CompanyDefaults = {
     propertyName: company.property_name ?? "",
     industry: company.industry,
+    size: company.size,
+    website: company.website ?? "",
     pincode: company.pincode,
     contactName: company.contact_name,
     designation: company.designation,
     phone: company.phone,
   };
 
-  const verified = [
-    ["Company name", company.company_name],
-    ["Property city", company.city],
-    ["Sign-in email", company.email],
-    ["Website", company.website ?? "—"],
-    ["GSTIN", company.gstin ?? "—"],
-    [
-      "Company size",
-      COMPANY_SIZES.find((s) => s.value === company.size)?.label ?? company.size,
-    ],
-    [
-      "Verified by",
-      company.verification_route === "email"
-        ? "Corporate email"
-        : "JobClubb review",
-    ],
+  const verified: VerifiedItem[] = [
+    { label: "Company name", value: company.company_name, field: "company_name" },
+    { label: "Property city", value: company.city, field: "city" },
+    { label: "Sign-in email", value: company.email },
+    { label: "GSTIN", value: company.gstin ?? "—", field: "gstin" },
+    {
+      label: "Verified by",
+      value:
+        company.verification_route === "email"
+          ? "Corporate email"
+          : "JobClubb review",
+    },
   ];
-
-  const changeRequest = `mailto:support@jobclubb.com?subject=${encodeURIComponent(
-    `Update verified details for ${company.company_name}`,
-  )}&body=${encodeURIComponent(
-    `Account: ${company.email}\n\nPlease change the following details:\n`,
-  )}`;
+  const pending = await listPendingChanges(company.id);
 
   return (
     <div className="space-y-6">
@@ -73,34 +68,19 @@ export default async function CompanySettingsPage() {
             logoUrl={getCompanyLogoUrl(company.logo_path)}
           />
 
-          <Panel
-            id="verified"
-            title="Verified details"
-            description="Tied to your verified account, so only our team can change them."
-            action={
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-none font-head"
-                nativeButton={false}
-                render={<a href={changeRequest} />}
-              >
-                Request a change
-              </Button>
-            }
-          >
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              {verified.map(([label, value]) => (
-                <div key={label} className="min-w-0">
-                  <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Lock className="size-3" />
-                    {label}
-                  </dt>
-                  <dd className="mt-0.5 truncate text-sm font-medium">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </Panel>
+          <VerifiedDetails
+            items={verified}
+            current={{
+              company_name: company.company_name,
+              city: company.city,
+              gstin: company.gstin,
+            }}
+            pending={pending.map(({ id, field, newValue }) => ({
+              id,
+              field,
+              newValue,
+            }))}
+          />
 
           <CompanyDetailsForm
             defaults={defaults}

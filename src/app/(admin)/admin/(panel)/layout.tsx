@@ -5,17 +5,19 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/server/admin/session";
+import { countPendingChanges } from "@/server/companies/change-requests";
 
 export default async function AdminPanelLayout({ children }: LayoutProps<"/admin">) {
   await requireAdmin();
 
   const admin = createAdminClient();
-  const [cookieStore, { count: offersToRelease }] = await Promise.all([
+  const [cookieStore, { count: offersToRelease }, changesToReview] = await Promise.all([
     cookies(),
     admin
       .from("placements")
       .select("id", { count: "exact", head: true })
       .eq("status", "offer_received"),
+    countPendingChanges(),
   ]);
 
   return (
@@ -24,6 +26,7 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
         <AdminSidebar
           adminEmail={process.env.ADMIN_EMAIL ?? ""}
           offersToRelease={offersToRelease ?? 0}
+          changesToReview={changesToReview}
         />
         <SidebarInset className="min-w-0">
           <AdminHeader />

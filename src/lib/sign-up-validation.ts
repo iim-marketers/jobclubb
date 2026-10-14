@@ -17,7 +17,7 @@ export type SignUpStep = {
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^(\+?91[\s-]?)?[6-9]\d{4}\s?\d{5}$/;
 const PINCODE_PATTERN = /^\d{6}$/;
-const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+export const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const CODE_PATTERN = /^[A-Z0-9-]{4,24}$/;
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -240,12 +240,17 @@ export function validateCompanyDetails(formData: FormData, propertyPincode: stri
   const values = {
     propertyName: readText(formData, "propertyName"),
     industry: readText(formData, "industry"),
+    size: readText(formData, "size"),
+    website: readText(formData, "website"),
     pincode: readText(formData, "pincode"),
   };
   const errors: FieldErrors = {};
 
   if (values.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
   if (!INDUSTRIES.some((s) => s.slug === values.industry)) errors.industry = "Choose an industry.";
+  if (!COMPANY_SIZES.some((s) => s.value === values.size)) errors.size = "Choose your company size.";
+  if (values.website.length > 255 || (values.website && !getWebsiteDomain(values.website)))
+    errors.website = "Enter a valid website, like taj.com.";
   const pincode = propertyPincodeError(values.pincode, propertyPincode);
   if (pincode) errors.pincode = pincode;
 

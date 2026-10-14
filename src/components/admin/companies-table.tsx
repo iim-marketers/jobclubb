@@ -1,18 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import {
+  ArrowRight,
   Check,
   Clock,
   Copy,
   ExternalLink,
   FileText,
   Globe,
+  Loader2,
   Mail,
   Phone,
   TriangleAlert,
 } from "lucide-react";
 import { createColumnHelper } from "@tanstack/react-table";
+import { toast } from "sonner";
+
+import {
+  approveChange,
+  rejectChange,
+} from "@/app/(admin)/admin/(panel)/companies/actions";
 
 import {
   adminTableFeatures,
@@ -20,9 +28,21 @@ import {
   formatDate,
   industryName,
 } from "@/components/admin/data-table";
+import { FormStatus, submitManually } from "@/components/candidate/settings-forms";
+import { FieldError, useFieldErrors } from "@/components/sign-up/fields";
 import { FilterSelect } from "@/components/table-toolbar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -31,9 +51,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { changeFieldLabel } from "@/lib/company-change-requests";
 import { COMPANY_SIZES } from "@/lib/company-verification";
 import { cn } from "@/lib/utils";
 import type { AdminCompany, CompanyStatus } from "@/server/admin/companies";
+import type { ChangeRequest } from "@/server/companies/change-requests";
 
 const STATUS: Record<CompanyStatus, { label: string; className: string }> = {
   pending_email: {
@@ -51,6 +75,7 @@ const TABS = [
   { key: "all", label: "All" },
   { key: "verified", label: "Verified" },
   { key: "pending_email", label: "Awaiting email" },
+  { key: "changes", label: "Change requested" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -76,7 +101,10 @@ const COLUMNS = helper.columns([
       const c = row.original;
       return (
         <div className="min-w-44">
-          <p className="font-head font-bold">{c.companyName}</p>
+          <p className="font-head font-bold">
+            {c.companyName}
+            {c.pendingChanges.length > 0 && <ChangeBadge className="ml-2" />}
+          </p>
           <p className="text-xs text-muted-foreground">
             {[c.propertyName, industryName(c.industry)]
               .filter(Boolean)
@@ -141,7 +169,26 @@ const COLUMN_CLASS: Record<string, string> = {
   createdAt: "hidden lg:table-cell",
 };
 
-export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
+function ChangeBadge({ className }: { className?: string }) {
+  return (
+    <Badge
+      className={cn(
+        "bg-amber-500/12 align-middle font-head font-bold text-amber-700 dark:text-amber-400",
+        className,
+      )}
+    >
+      Change requested
+    </Badge>
+  );
+}
+
+export function CompaniesTable({
+  companies,
+  initialCompanyId,
+}: {
+  companies: AdminCompany[];
+  initialCompanyId?: string;
+}) {
   const counts = useMemo(() => {
     const byStatus: Record<CompanyStatus, number> = {
       pending_email: 0,
@@ -153,21 +200,29 @@ export function CompaniesTable({ companies }: { companies: AdminCompany[] }) {
   }, [companies]);
 
   const [tab, setTab] = useState<TabKey>("all");
-  const [viewingId, setViewingId] = useState<string>();
+  const [viewingId, setViewingId] = useState(initialCompanyId);
 
   const viewing = companies.find((c) => c.id === viewingId);
   const data = useMemo(
     () =>
-      tab === "all" ? companies : companies.filter((c) => c.status === tab),
+      tab === "all"
+        ? companies
+        : tab === "changes"
+          ? companies.filter((c) => c.pendingChanges.length > 0)
+          : companies.filter((c) => c.status === tab),
     [companies, tab],
   );
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile label="Registered" value={companies.length} />
         <StatTile label="Verified" value={counts.verified} />
         <StatTile label="Awaiting email" value={counts.pending_email} />
+        <StatTile
+          label="Change requests"
+          value={companies.reduce((n, c) => n + c.pendingChanges.length, 0)}
+        />
       </div>
 
       <DataTable
@@ -253,7 +308,10 @@ function CompanyDialog({
                   {initials(company.companyName)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <StatusBadge status={company.status} />
+                  <div className="flex flex-wrap gap-1.5">
+                    <StatusBadge status={company.status} />
+                    {company.pendingChanges.length > 0 && <ChangeBadge />}
+                  </div>
                   <DialogTitle className="mt-2 font-head text-xl leading-tight font-extrabold sm:text-2xl">
                     {company.companyName}
                   </DialogTitle>
@@ -294,6 +352,10 @@ function CompanyDialog({
             </DialogHeader>
 
             <div className="flex-1 space-y-6 overflow-y-auto px-5 py-6 sm:px-7">
+              {company.pendingChanges.length > 0 && (
+                <ChangeRequests requests={company.pendingChanges} />
+              )}
+
               {!company.emailVerifiedAt && company.status !== "rejected" && (
                 <div className="flex gap-3 rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
                   <TriangleAlert className="mt-0.5 size-4 flex-none text-amber-600 dark:text-amber-400" />
@@ -598,5 +660,185 @@ function CopyButton({ value, label }: { value: string; label: string }) {
         <Copy className="size-3.5" />
       )}
     </button>
+  );
+}
+
+function ChangeRequests({ requests }: { requests: ChangeRequest[] }) {
+  return (
+    <section>
+      <SectionTitle>Change requests</SectionTitle>
+      <ul className="space-y-3">
+        {requests.map((r) => (
+          <ChangeRequestCard key={r.id} request={r} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ChangeRequestCard({ request }: { request: ChangeRequest }) {
+  const [rejecting, setRejecting] = useState(false);
+  const label = changeFieldLabel(request.field);
+
+  return (
+    <li className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="font-head text-sm font-bold">{label}</p>
+        <p className="text-xs text-muted-foreground">
+          Requested {formatDate(request.createdAt)}
+        </p>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+        <span className="break-all text-muted-foreground line-through">
+          {request.oldValue ?? "Not set"}
+        </span>
+        <ArrowRight className="size-3.5 flex-none text-muted-foreground" />
+        <span className="font-medium break-all">{request.newValue}</span>
+      </div>
+      <p className="mt-2 text-sm break-words text-muted-foreground">
+        <span className="font-medium text-foreground">Reason:</span>{" "}
+        {request.reason}
+      </p>
+
+      {rejecting ? (
+        <RejectForm requestId={request.id} onCancel={() => setRejecting(false)} />
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <ApproveButton id={request.id} label={label} newValue={request.newValue} />
+          <Button
+            variant="outline-destructive"
+            size="sm"
+            className="font-head"
+            onClick={() => setRejecting(true)}
+          >
+            Reject
+          </Button>
+        </div>
+      )}
+    </li>
+  );
+}
+
+function ApproveButton({
+  id,
+  label,
+  newValue,
+}: {
+  id: string;
+  label: string;
+  newValue: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  return (
+    <>
+      <Button
+        size="sm"
+        className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+        onClick={() => setOpen(true)}
+      >
+        Approve
+      </Button>
+      <AlertDialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change {label.toLowerCase()} to “{newValue}”?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The company&apos;s profile, job postings and applications update
+              straight away, and the company is emailed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  const { error } = await approveChange(id);
+                  if (error) {
+                    toast.error(error);
+                    return;
+                  }
+                  setOpen(false);
+                  toast.success("Change approved");
+                })
+              }
+            >
+              {pending ? "Saving…" : "Approve change"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+function RejectForm({
+  requestId,
+  onCancel,
+}: {
+  requestId: string;
+  onCancel: () => void;
+}) {
+  const [state, formAction, pending] = useActionState(
+    rejectChange.bind(null, requestId),
+    {},
+  );
+  const { errors, formError, clearAll, onChange } = useFieldErrors(
+    state,
+    state.errors,
+    state.error,
+  );
+
+  useEffect(() => {
+    if (state.ok) toast.success("Request rejected");
+  }, [state]);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        clearAll();
+        submitManually(formAction)(e);
+      }}
+      onChange={onChange}
+      noValidate
+      className="mt-3 space-y-2"
+    >
+      <Label htmlFor={`note-${requestId}`}>Reason for the company</Label>
+      <Textarea
+        id={`note-${requestId}`}
+        name="note"
+        rows={2}
+        maxLength={500}
+        placeholder="E.g., the GSTIN doesn't match the registered name"
+        aria-invalid={!!errors.note}
+        className="max-h-32 overflow-y-auto bg-card"
+      />
+      <FieldError message={errors.note} />
+      {formError && <FormStatus error={formError} />}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="submit"
+          variant="destructive"
+          size="sm"
+          className="font-head"
+          disabled={pending}
+        >
+          {pending && <Loader2 className="size-4 animate-spin" />}
+          Reject request
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="font-head"
+          disabled={pending}
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }
