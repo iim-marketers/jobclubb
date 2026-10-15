@@ -215,7 +215,8 @@ export function SignIn({
                         checked={role === id}
                         onChange={() => {
                           setRole(id);
-                          clearError("role");
+                          setErrors({});
+                          setShowPassword(false);
                         }}
                         className="sr-only"
                       />
@@ -257,6 +258,7 @@ export function SignIn({
                       <div className="relative">
                         <Lock className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
+                          key={`password-${role}`}
                           id="password"
                           name="password"
                           type={showPassword ? "text" : "password"}

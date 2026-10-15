@@ -26,10 +26,10 @@ export default async function AdminEmporiumPage() {
     name: l.name,
     nextBatchNo: l.nextBatchNo,
   }));
-  const totals = {
-    batches: locations.reduce((sum, l) => sum + l.batches, 0),
-    students: locations.reduce((sum, l) => sum + l.used, 0),
-  };
+  // const totals = {
+  //   batches: locations.reduce((sum, l) => sum + l.batches, 0),
+  //   students: locations.reduce((sum, l) => sum + l.used, 0),
+  // };
 
   return (
     <div className="flex-1 space-y-6 px-4 py-6">

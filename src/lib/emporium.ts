@@ -43,19 +43,33 @@ export type EmporiumCodeCheck = {
   batchNo?: number;
 };
 
+export const batchLabel = (location: string, batchNo: number) =>
+  `Emporium ${location} · Batch ${batchNo}`;
+
+export const locationPrefix = (location: string) =>
+  (location.toUpperCase().replace(/[^A-Z]/g, "") + "XXX").slice(0, 3);
+
+export const batchTag = (location: string, batchNo: number) =>
+  `#${locationPrefix(location)}${String(batchNo).padStart(3, "0")}`;
+
 export function emporiumCodeError(check: EmporiumCodeCheck) {
+  const batch =
+    check.location && check.batchNo
+      ? batchLabel(check.location, check.batchNo)
+      : "This Emporium batch";
+  const tag =
+    check.location && check.batchNo
+      ? `Batch ${batchTag(check.location, check.batchNo)}`
+      : "this batch";
   switch (check.status) {
     case "invalid":
       return "We don't recognise this Emporium code. Check it with your institute.";
     case "paused":
-      return "This Emporium code isn't accepting sign-ups right now. Ask your institute.";
+      return `${batch} isn't accepting sign-ups right now. Contact your institute, or remove the code to sign up without it.`;
     case "full":
-      return "Every seat on this Emporium code has been used. Ask your institute for help.";
+      return `Looks like ${tag} is full! Don't worry, you can reach out to your institute to request access, or remove this code to register.`;
   }
 }
-
-export const batchLabel = (location: string, batchNo: number) =>
-  `Emporium ${location} · Batch ${batchNo}`;
 
 const readText = (formData: FormData, key: string) =>
   String(formData.get(key) ?? "").trim();

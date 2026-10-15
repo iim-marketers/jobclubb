@@ -59,6 +59,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  batchTag,
   MAX_BATCH_NO,
   MAX_BATCH_SEATS,
   type EmporiumBatch,
@@ -295,7 +296,8 @@ function BatchCreated({
           Code generated
         </DialogTitle>
         <DialogDescription className="mt-1">
-          {location} · Batch {batch.batchNo} · {batch.seats}{" "}
+          {location} · Batch {batch.batchNo} ({batchTag(location, batch.batchNo)}) ·{" "}
+          {batch.seats}{" "}
           {batch.seats === 1 ? "student" : "students"}
         </DialogDescription>
 
@@ -452,6 +454,9 @@ export function BatchSection({
             <h2 id={`batch-${batch.id}`} className="font-head text-lg font-extrabold tracking-tight">
               Batch {batch.batchNo}
             </h2>
+            <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
+              {batchTag(location, batch.batchNo)}
+            </span>
             <BatchStatusBadge batch={batch} />
             <span className="text-xs text-muted-foreground">Created {formatDate(batch.createdAt)}</span>
           </div>
@@ -606,6 +611,8 @@ function EditSeatsForm({ batch, onDone }: { batch: EmporiumBatch; onDone: () => 
     {},
   );
   const { errors, formError, clearAll, onChange } = useFieldErrors(state, state.errors, state.error);
+  // Revalidation changes batch.seats while mounted; Base UI warns if defaultValue changes.
+  const [initialSeats] = useState(() => String(batch.seats));
 
   useEffect(() => {
     if (!state.ok) return;
@@ -637,7 +644,7 @@ function EditSeatsForm({ batch, onDone }: { batch: EmporiumBatch; onDone: () => 
           id={`seats-${batch.id}`}
           name="seats"
           inputMode="numeric"
-          defaultValue={String(batch.seats)}
+          defaultValue={initialSeats}
           maxLength={String(MAX_BATCH_SEATS).length}
           aria-invalid={!!errors.seats}
           className="h-11 bg-card"

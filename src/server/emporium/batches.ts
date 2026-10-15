@@ -2,11 +2,12 @@ import "server-only";
 
 import { randomInt } from "node:crypto";
 
-import type {
-  EmporiumBatch,
-  EmporiumCodeCheck,
-  EmporiumLocationSummary,
-  EmporiumStudent,
+import {
+  locationPrefix,
+  type EmporiumBatch,
+  type EmporiumCodeCheck,
+  type EmporiumLocationSummary,
+  type EmporiumStudent,
 } from "@/lib/emporium";
 import { EMPORIUM_CODE_PREFIX, type FieldErrors } from "@/lib/sign-up-validation";
 import { SITE_URL } from "@/lib/site-url";
@@ -31,7 +32,7 @@ export const signUpUrlFor = (code: string) =>
 
 // e.g. JC-EM-SHI-B1-7KQ2MX: readable enough to type, random enough not to guess.
 function generateCode(location: string, batchNo: number) {
-  const prefix = (location.toUpperCase().replace(/[^A-Z]/g, "") + "XXX").slice(0, 3);
+  const prefix = locationPrefix(location);
   let random = "";
   for (let i = 0; i < CODE_RANDOM_LENGTH; i++)
     random += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
