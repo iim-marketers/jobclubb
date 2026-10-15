@@ -4,6 +4,7 @@ import { LayoutDashboard, Plus } from "lucide-react";
 
 import { CANDIDATE_HOME, candidateNav } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { HomeLink } from "@/components/home-link";
 import {
   COMPANY_HOME,
   COMPANY_JOBS,
@@ -61,8 +62,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md transition-[background-color,border-color,backdrop-filter] duration-300 hero-top:border-transparent hero-top:bg-transparent hero-top:backdrop-blur-none">
       <ScrollFlag />
       <div className="mx-auto flex h-16 max-w-300 items-center gap-3 px-4 sm:px-6 lg:h-[72px] lg:gap-8">
-        <Link
-          href="/"
+        <HomeLink
           aria-label="JobClubb — home"
           className="flex min-w-0 flex-none items-center rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         >
@@ -83,7 +83,7 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
             priority
             className="hidden h-5 w-auto object-contain sm:h-6.5 sm:w-35.5 dark:block hero-top:block"
           />
-        </Link>
+        </HomeLink>
 
         {search ? (
           <div className="min-w-0 flex-1 lg:max-w-xl">{search}</div>
