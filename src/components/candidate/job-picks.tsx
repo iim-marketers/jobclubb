@@ -3,61 +3,8 @@ import { ArrowRight, Briefcase, Clock, MapPin, Sparkles } from "lucide-react";
 
 import { Salary } from "@/components/salary";
 import { CompanyAvatar } from "@/components/company-avatar";
-import type { JobListing } from "@/lib/jobs-data";
 import { richTextToPlain } from "@/lib/rich-text";
-
-const RECOMMENDED = 6;
-
-type Pick = { job: JobListing; reasons: string[] };
-
-export type JobPicks = {
-  matched: boolean;
-  nearby: boolean;
-  matches: number;
-  items: Pick[];
-};
-
-// The first three pincode digits mark the sorting district, which keeps a
-// suburb like Bidhannagar (700091) matched with Kolkata (700001).
-const sameArea = (a: string, b: string) => a.slice(0, 3) === b.slice(0, 3);
-
-export function recommendJobs(
-  jobs: JobListing[],
-  profile: { sector?: string; city: string; pincode: string; roles: string[] },
-): JobPicks {
-  const roles = profile.roles.map((r) => r.toLowerCase());
-  const city = profile.city.toLowerCase();
-  const scored = jobs.map((job) => {
-    const title = `${job.title} ${job.designation}`.toLowerCase();
-    const reasons: string[] = [];
-    let score = 0;
-    if (job.industry === profile.sector) {
-      score += 4;
-      reasons.push("Your sector");
-    }
-    if (roles.some((r) => title.includes(r))) {
-      score += 3;
-      reasons.push("Preferred role");
-    }
-    // Properties hire locally, so a nearby job in the candidate's sector
-    // outranks a role match in another city.
-    const inCity = !!city && job.location.toLowerCase() === city;
-    const near = inCity || (!!profile.pincode && sameArea(job.pincode, profile.pincode));
-    if (near) {
-      score += 4;
-      reasons.push(inCity ? "In your city" : "Near you");
-    }
-    return { job, reasons, score, near };
-  });
-  const ranked = scored.toSorted((a, b) => b.score - a.score);
-  const items = ranked.slice(0, RECOMMENDED);
-  return {
-    matched: ranked.some((r) => r.score > 0),
-    nearby: items.some((r) => r.near),
-    matches: jobs.filter((job) => job.industry === profile.sector).length,
-    items,
-  };
-}
+import type { JobPick, JobPicks } from "@/server/jobs/recommend";
 
 export function NoNearbyNote({ city }: { city: string }) {
   return (
@@ -126,7 +73,7 @@ export function JobPicksList({ picks }: { picks: JobPicks }) {
   );
 }
 
-function TopMatch({ pick, matched }: { pick: Pick; matched: boolean }) {
+function TopMatch({ pick, matched }: { pick: JobPick; matched: boolean }) {
   const { job } = pick;
   const meta = [
     { icon: MapPin, value: job.location },
@@ -204,7 +151,7 @@ function TopMatch({ pick, matched }: { pick: Pick; matched: boolean }) {
   );
 }
 
-function PickRow({ pick }: { pick: Pick }) {
+function PickRow({ pick }: { pick: JobPick }) {
   const { job } = pick;
   return (
     <li className="group relative flex flex-1 items-center gap-3 p-4 transition-colors hover:bg-muted/50 sm:gap-4">

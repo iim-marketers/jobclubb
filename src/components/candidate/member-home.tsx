@@ -17,11 +17,7 @@ import {
 
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { EmptyState } from "@/components/candidate/dashboard-ui";
-import {
-  JobPicksGrid,
-  NoNearbyNote,
-  recommendJobs,
-} from "@/components/candidate/job-picks";
+import { JobPicksGrid, NoNearbyNote } from "@/components/candidate/job-picks";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { RecruiterBoard } from "@/components/recruiter-board";
@@ -38,6 +34,7 @@ import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 import { getHireBrands } from "@/server/hire-brands/directory";
+import { recommendJobs } from "@/server/jobs/recommend";
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat("en-IN", {
