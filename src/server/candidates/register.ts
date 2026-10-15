@@ -1,8 +1,15 @@
 import "server-only";
 
 import { sendConfirmationEmail } from "@/server/auth/confirmation-email";
+import { checkEmporiumCode } from "@/server/emporium/batches";
+import { emporiumCodeError } from "@/lib/emporium";
 import { createAdminClient } from "@/lib/supabase/server";
-import { isStudentCode, validateCandidate, type FieldErrors } from "@/lib/sign-up-validation";
+import {
+  isEmporiumCode,
+  isStudentCode,
+  validateCandidate,
+  type FieldErrors,
+} from "@/lib/sign-up-validation";
 import { TERMS_VERSION } from "@/lib/terms-content";
 
 const EMAIL_TAKEN = "An account with this email already exists. Sign in instead.";
@@ -10,8 +17,17 @@ const EMAIL_TAKEN = "An account with this email already exists. Sign in instead.
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
 
 export type RegisterCandidateResult =
-  | { ok: true; userId: string; email: string }
+  | { ok: true; userId: string; email: string; membershipIncluded: boolean }
   | { ok: false; errors: FieldErrors };
+
+async function emporiumCodeProblem(code: string) {
+  try {
+    return emporiumCodeError(await checkEmporiumCode(code));
+  } catch (error) {
+    console.error("Checking Emporium code failed", error);
+    return "We couldn't check this code. Please try again.";
+  }
+}
 
 export async function registerCandidate(formData: FormData): Promise<RegisterCandidateResult> {
   const errors = validateCandidate(formData);
@@ -29,6 +45,12 @@ export async function registerCandidate(formData: FormData): Promise<RegisterCan
     .eq("email", email)
     .maybeSingle();
   if (existing) return { ok: false, errors: { email: EMAIL_TAKEN } };
+
+  const emporium = isEmporiumCode(code);
+  if (emporium) {
+    const problem = await emporiumCodeProblem(code);
+    if (problem) return { ok: false, errors: { code: problem } };
+  }
 
   const result = await sendConfirmationEmail(admin, {
     email,
@@ -56,6 +78,11 @@ export async function registerCandidate(formData: FormData): Promise<RegisterCan
     if (result.error === "rate_limited") {
       return { ok: false, errors: { email: "Please wait a minute before trying again." } };
     }
+    // The database claims the seat; the last one may have gone since the check above.
+    if (emporium) {
+      const problem = await emporiumCodeProblem(code);
+      if (problem) return { ok: false, errors: { code: problem } };
+    }
     return { ok: false, errors: { email: "We couldn't create your account. Please try again." } };
   }
 
@@ -67,7 +94,7 @@ export async function registerCandidate(formData: FormData): Promise<RegisterCan
   // TODO: attribute the franchise / referral code to its owner (SOP §3.1)
   // once franchise accounts are on Supabase.
 
-  return { ok: true, userId: result.userId, email };
+  return { ok: true, userId: result.userId, email, membershipIncluded: emporium };
 }
 
 async function storeStudentId(userId: string, file: File) {

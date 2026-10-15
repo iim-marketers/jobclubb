@@ -47,9 +47,12 @@ const ROUTES = ["franchise", "email"] as const;
 export default async function SignUpSubmittedPage({
   searchParams,
 }: PageProps<"/sign-up/submitted">) {
-  const { route } = await searchParams;
+  const { route, membership } = await searchParams;
   const pendingEmail = (await cookies()).get(PENDING_EMAIL_COOKIE)?.value;
-  if (route === "candidate") return <CheckInbox email={pendingEmail} />;
+  if (route === "candidate")
+    return (
+      <CheckInbox email={pendingEmail} membershipIncluded={membership === "included"} />
+    );
 
   const content = CONTENT[ROUTES.find((r) => r === route) ?? "email"];
   const Icon = content.icon;

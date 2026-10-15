@@ -25,6 +25,8 @@ import { CHECKOUT_PATH, MEMBERSHIP_DAYS, PLAN_DETAILS } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getMembershipPayments } from "@/server/candidates/membership";
+import { getCandidateEmporiumBatch } from "@/server/emporium/batches";
+import { batchLabel } from "@/lib/emporium";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
 export const metadata = { title: "Membership — JobClubb" };
@@ -50,9 +52,11 @@ export default async function MembershipPage() {
   const candidate = await requireMember(`${CANDIDATE_HOME}/membership`, {
     allowLapsed: true,
   });
-  const [resume, payments] = await Promise.all([
+  const emporium = candidate.membership_plan === "emporium";
+  const [resume, payments, batch] = await Promise.all([
     getSavedResume(candidate.id),
     getMembershipPayments(candidate.id),
+    emporium ? getCandidateEmporiumBatch(candidate.id) : null,
   ]);
 
   const plan = PLAN_DETAILS[candidate.membership_plan];
@@ -79,8 +83,10 @@ export default async function MembershipPage() {
       <MembershipOverview
         name={`${candidate.first_name} ${candidate.last_name}`}
         planName={plan.name}
-        franchise={candidate.membership_plan === "franchise"}
-        price={plan.price}
+        badge={plan.badge}
+        price={
+          batch ? `Included with ${batchLabel(batch.location, batch.batchNo)}` : plan.price
+        }
         code={candidate.code}
         startedAt={startedAt}
         expiresAt={expiresAt}
@@ -171,7 +177,9 @@ export default async function MembershipPage() {
             </span>
             <p className="mt-3 font-head text-sm font-bold">No payments yet</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Membership payments you make will show up here.
+              {emporium
+                ? "Your membership is included with your Emporium batch. Renewals you pay for will show up here."
+                : "Membership payments you make will show up here."}
             </p>
           </div>
         ) : (

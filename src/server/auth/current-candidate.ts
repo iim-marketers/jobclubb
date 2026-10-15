@@ -10,6 +10,7 @@ import {
   isMembershipPlan,
   planFor,
   type MembershipPlan,
+  type PaidPlan,
 } from "@/lib/membership";
 import { addDays, deadlineEnd } from "@/lib/placements";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
@@ -126,7 +127,7 @@ export type MembershipView =
   | { kind: "guest" }
   | {
       kind: "unpaid";
-      plan: MembershipPlan;
+      plan: PaidPlan;
       code: string | null;
       expired: boolean;
     }

@@ -8,11 +8,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  CHECKOUT_PATH,
-  MEMBERSHIP_DAYS,
-  RENEWAL_REMINDER_DAYS,
-} from "@/lib/membership";
+import { CHECKOUT_PATH, RENEWAL_REMINDER_DAYS } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 
 const formatDate = (d: Date) =>
@@ -33,7 +29,7 @@ const formatValidThru = (d: Date) =>
 export function MembershipOverview({
   name,
   planName,
-  franchise,
+  badge,
   price,
   code,
   startedAt,
@@ -43,7 +39,7 @@ export function MembershipOverview({
 }: {
   name: string;
   planName: string;
-  franchise: boolean;
+  badge: string;
   price: string;
   code: string | null;
   startedAt: Date;
@@ -59,29 +55,22 @@ export function MembershipOverview({
       aria-label="Your plan"
       className="grid grid-cols-1 gap-6 rounded-3xl border border-border bg-card p-5 sm:p-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-8"
     >
-      <MemberCard
-        name={name}
-        franchise={franchise}
-        code={code}
-        expiresAt={expiresAt}
-      />
+      <MemberCard name={name} badge={badge} code={code} expiresAt={expiresAt} />
 
       <div className="flex min-w-0 flex-col">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <h2 className="font-head text-xl font-extrabold tracking-tight sm:text-2xl">
               {planName}
             </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {price} · {MEMBERSHIP_DAYS}-day plan
-            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{price}</p>
           </div>
           {lapsed ? (
-            <span className="inline-flex flex-none items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 font-head text-xs font-bold text-amber-600">
+            <span className="mt-0.5 inline-flex flex-none items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 font-head text-xs font-bold text-amber-600">
               <CircleAlert className="size-3.5" /> Expired
             </span>
           ) : (
-            <span className="inline-flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
+            <span className="mt-0.5 inline-flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-xs font-bold text-good">
               <BadgeCheck className="size-3.5" /> Active
             </span>
           )}
@@ -130,7 +119,7 @@ export function MembershipOverview({
           >
             <CalendarClock className="size-4.5" />
           </span>
-          <p className="min-w-0 flex-1 basis-48 text-sm leading-6 text-muted-foreground">
+          <p className="min-w-0 flex-1 basis-48 text-xs leading-6 text-muted-foreground">
             {lapsed ? (
               <>
                 <span className="font-semibold text-foreground">
@@ -173,12 +162,12 @@ export function MembershipOverview({
 
 function MemberCard({
   name,
-  franchise,
+  badge,
   code,
   expiresAt,
 }: {
   name: string;
-  franchise: boolean;
+  badge: string;
   code: string | null;
   expiresAt: Date;
 }) {
@@ -203,7 +192,7 @@ function MemberCard({
             className="object-contain"
           />
           <span className="rounded-full bg-white/15 px-2.5 py-0.5 font-head text-[10px] font-bold tracking-[0.14em] uppercase">
-            {franchise ? "Franchise" : "Member"}
+            {badge}
           </span>
         </div>
 
