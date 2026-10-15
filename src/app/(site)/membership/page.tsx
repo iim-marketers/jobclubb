@@ -69,6 +69,16 @@ export default async function MembershipPage() {
                 <Feature key={b}>{b}</Feature>
               ))}
             </ul>
+            {viewer.kind === "member" && viewer.plan === "emporium" && (
+              <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                Your first year is included because you joined with Emporium
+                code{" "}
+                <span className="font-mono font-semibold whitespace-nowrap text-foreground">
+                  {viewer.code}
+                </span>
+                . Renewal is at the standard price.
+              </p>
+            )}
             {viewer.kind !== "guest" && viewer.plan === "franchise" && (
               <p className="mt-4 text-xs leading-5 text-muted-foreground">
                 Franchise price for candidates who joined with code{" "}
@@ -363,7 +373,9 @@ function PlanCard({
         <span className="font-head text-4xl font-extrabold tracking-tight text-brand">
           {details.price}
         </span>
-        <span className="text-sm text-muted-foreground">/ year</span>
+        <span className="text-sm text-muted-foreground">
+          {plan === "emporium" ? "with your Emporium batch" : "/ year"}
+        </span>
       </p>
       <div className="mt-6 flex-1">{children}</div>
       <Button

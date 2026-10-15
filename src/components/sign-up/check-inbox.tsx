@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BadgeCheck,
   Check,
   FileText,
   Mail,
@@ -22,10 +23,23 @@ const PROGRESS = [
     detail: "Your AI-built, ATS-ready resume is waiting",
   },
 ];
+const EMPORIUM_LAST_STEP = {
+  title: "Sign in & start applying",
+  detail: "Your Emporium membership is already active",
+};
 const CURRENT = 1;
 
-export function CheckInbox({ email }: { email?: string }) {
+export function CheckInbox({
+  email,
+  membershipIncluded = false,
+}: {
+  email?: string;
+  membershipIncluded?: boolean;
+}) {
   const inbox = email ? inboxFor(email) : undefined;
+  const progress = membershipIncluded
+    ? [...PROGRESS.slice(0, -1), EMPORIUM_LAST_STEP]
+    : PROGRESS;
 
   return (
     <div className="flex-1 lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
@@ -47,12 +61,12 @@ export function CheckInbox({ email }: { email?: string }) {
               label="Your progress"
               badge={
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/80">
-                  Step {CURRENT + 1} of {PROGRESS.length}
+                  Step {CURRENT + 1} of {progress.length}
                 </span>
               }
             >
               <ol>
-                {PROGRESS.map((step, i) => (
+                {progress.map((step, i) => (
                   <ProgressStep
                     key={step.title}
                     {...step}
@@ -63,7 +77,7 @@ export function CheckInbox({ email }: { email?: string }) {
                           ? "current"
                           : "upcoming"
                     }
-                    last={i === PROGRESS.length - 1}
+                    last={i === progress.length - 1}
                   />
                 ))}
               </ol>
@@ -121,6 +135,21 @@ export function CheckInbox({ email }: { email?: string }) {
               </>
             )}
           </p>
+
+          {membershipIncluded && (
+            <p className="mt-4 flex items-start gap-2.5 rounded-2xl border border-good/30 bg-good/8 px-4 py-3 text-sm leading-6">
+              <BadgeCheck className="mt-0.5 size-4 flex-none text-good" />
+              <span>
+                <span className="font-semibold">
+                  Your membership is included with your Emporium batch.
+                </span>{" "}
+                <span className="text-muted-foreground">
+                  There&apos;s nothing to pay. Once you confirm, sign in and
+                  start applying.
+                </span>
+              </span>
+            </p>
+          )}
 
           <div className="mt-7 space-y-3">
             {inbox && (

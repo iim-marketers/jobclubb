@@ -10,6 +10,7 @@ import {
   PLAN_DETAILS,
   isMembershipPlan,
   type MembershipPlan,
+  type PaidPlan,
 } from "@/lib/membership";
 import { SITE_URL } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/server";
@@ -26,7 +27,7 @@ const CURRENCY = "INR";
 
 export async function createMembershipOrder(candidate: {
   id: string;
-  plan: MembershipPlan;
+  plan: PaidPlan;
   first_name: string;
   last_name: string;
   city: string;

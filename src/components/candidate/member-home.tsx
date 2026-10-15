@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 import { STAGES, applicationStatus, type Application } from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
 import type { JobListing } from "@/lib/jobs-data";
-import { CHECKOUT_PATH, type MembershipPlan } from "@/lib/membership";
+import { CHECKOUT_PATH, PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
 import { stageBadge } from "@/lib/status-badge";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
@@ -292,7 +292,7 @@ function ProfileCard({
         ) : (
           <span className="flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-[11px] font-bold text-good">
             <BadgeCheck className="size-3.5" />
-            {plan === "franchise" ? "Franchise" : "Member"}
+            {PLAN_DETAILS[plan].badge}
           </span>
         )}
       </div>

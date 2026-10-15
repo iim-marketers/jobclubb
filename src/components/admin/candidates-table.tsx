@@ -9,6 +9,7 @@ import {
   industryName,
 } from "@/components/admin/data-table";
 import { Badge } from "@/components/ui/badge";
+import { PLAN_DETAILS, isMembershipActive, type MembershipPlan } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 
 export type AdminCandidate = {
@@ -18,7 +19,7 @@ export type AdminCandidate = {
   phone: string;
   city: string;
   industry: string;
-  plan: "free" | "member" | null;
+  plan: MembershipPlan | null;
   membershipExpiresAt: string | null;
   emailVerified: boolean;
   createdAt: string;
@@ -62,19 +63,20 @@ const columns = helper.columns([
     sortFn: "text",
     cell: ({ row }) => {
       const { plan, membershipExpiresAt } = row.original;
+      const active = isMembershipActive(membershipExpiresAt);
       return (
         <div className="flex flex-col items-start gap-0.5">
           <Badge
             className={cn(
               "font-head font-bold",
-              plan === "member" ? "bg-good/12 text-good" : "bg-muted text-muted-foreground",
+              plan && active ? "bg-good/12 text-good" : "bg-muted text-muted-foreground",
             )}
           >
-            {plan === "member" ? "Member" : plan === "free" ? "Free" : "Not chosen"}
+            {plan ? PLAN_DETAILS[plan].badge : "Unpaid"}
           </Badge>
-          {plan === "member" && membershipExpiresAt && (
+          {plan && membershipExpiresAt && (
             <span className="text-[11px] text-muted-foreground">
-              till {formatDate(membershipExpiresAt)}
+              {active ? "till" : "expired"} {formatDate(membershipExpiresAt)}
             </span>
           )}
         </div>

@@ -42,7 +42,7 @@ import {
 import { greeting } from "@/lib/greeting";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
-import type { MembershipPlan } from "@/lib/membership";
+import { PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
 import type { Resume } from "@/lib/resume";
 import {
   listCandidateApplications,
@@ -391,7 +391,7 @@ function ProfileSummary({
                 {firstName} {lastName}
               </p>
               <span className="rounded-full bg-white/15 px-2.5 py-0.5 font-head text-[11px] font-bold">
-                {plan === "franchise" ? "Franchise member" : "Member"}
+                {plan === "member" ? "Member" : `${PLAN_DETAILS[plan].badge} member`}
               </span>
             </div>
             <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/75">

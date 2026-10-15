@@ -1,17 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  BadgeCheck,
   EyeOff,
   FileText,
+  Loader2,
   Lock,
   MapPin,
+  School,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
 
-import { registerCandidate } from "@/app/(auth)/sign-up/actions";
+import {
+  checkSignUpCode,
+  registerCandidate,
+} from "@/app/(auth)/sign-up/actions";
 import { ScrollGatedTerms } from "@/components/scroll-gated-terms";
 import {
   Field,
@@ -32,16 +38,36 @@ import {
   useStepForm,
 } from "@/components/sign-up/step-form";
 import {
+  batchLabel,
+  emporiumCodeError,
+  type EmporiumCodeCheck,
+} from "@/lib/emporium";
+import {
   CANDIDATE_STEPS,
+  CODE_PATTERN,
+  isEmporiumCode,
   isStudentCode,
   validateCandidate,
 } from "@/lib/sign-up-validation";
 import { SOURCING_CHANNELS, INDUSTRIES } from "@/lib/taxonomy";
 
-const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({
+  value: v.slug,
+  label: v.name,
+}));
 const SOURCE_OPTIONS = SOURCING_CHANNELS.map((c) => ({ value: c, label: c }));
+const EMPORIUM_SOURCE = "Emporium";
+const CODE_CHECK_DELAY_MS = 400;
 
-export function CandidateSignUp() {
+type CodeCheck = EmporiumCodeCheck & { code: string };
+
+export function CandidateSignUp({
+  initialCode,
+  initialEmporium,
+}: {
+  initialCode?: string;
+  initialEmporium?: CodeCheck;
+}) {
   const {
     step,
     isLast,
@@ -52,16 +78,41 @@ export function CandidateSignUp() {
     goTo,
     clearError,
     formProps,
-  } =
-    useStepForm({
-      steps: CANDIDATE_STEPS,
-      validate: validateCandidate,
-      action: registerCandidate,
-    });
+  } = useStepForm({
+    steps: CANDIDATE_STEPS,
+    validate: validateCandidate,
+    action: registerCandidate,
+  });
   const [industry, setIndustry] = useState<string | null>("airlines");
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
-  const studentCode = isStudentCode(values.code ?? "");
+  const code = (values.code ?? initialCode ?? "").trim().toUpperCase();
+  const studentCode = isStudentCode(code);
+  const [source, setSource] = useState<string | null>(
+    initialEmporium?.status === "ok" ? EMPORIUM_SOURCE : null,
+  );
+  const [codeCheck, setCodeCheck] = useState(initialEmporium);
+  const checkable = isEmporiumCode(code) && CODE_PATTERN.test(code);
+  const emporium =
+    checkable && codeCheck?.code === code ? codeCheck : undefined;
+  const checking = checkable && !emporium;
+  const emporiumOk = emporium?.status === "ok";
+
+  useEffect(() => {
+    if (!checkable || codeCheck?.code === code) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const result = await checkSignUpCode(code);
+      if (cancelled) return;
+      setCodeCheck({ code, ...(result ?? { status: "invalid" }) });
+      if (result?.status === "ok")
+        setSource((current) => current ?? EMPORIUM_SOURCE);
+    }, CODE_CHECK_DELAY_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [checkable, code, codeCheck?.code]);
 
   return (
     <SignUpLayout
@@ -73,7 +124,11 @@ export function CandidateSignUp() {
           employer.
         </>
       }
-      description="Create your JobClubb profile in under two minutes. Your AI-built, ATS-ready resume is included with membership."
+      description={
+        emporiumOk
+          ? "Your Emporium batch includes a year of JobClubb membership. Create your profile in under two minutes and start applying, with nothing to pay."
+          : "Create your JobClubb profile in under two minutes. Your AI-built, ATS-ready resume is included with membership."
+      }
       panel={
         <>
           <ProfilePreview
@@ -85,6 +140,14 @@ export function CandidateSignUp() {
           />
           <PanelPoints
             points={[
+              ...(emporiumOk
+                ? [
+                    {
+                      icon: BadgeCheck,
+                      text: "1-year membership included with your Emporium batch",
+                    },
+                  ]
+                : []),
               {
                 icon: FileText,
                 text: "AI-built, ATS-approved resume on every plan",
@@ -102,6 +165,10 @@ export function CandidateSignUp() {
         </>
       }
     >
+      {/* {emporiumOk && emporium.location && emporium.batchNo && (
+        <EmporiumBanner location={emporium.location} batchNo={emporium.batchNo} />
+      )} */}
+
       <StepProgress steps={CANDIDATE_STEPS} current={step} onJump={goTo} />
 
       <form {...formProps} className="mt-10">
@@ -221,19 +288,57 @@ export function CandidateSignUp() {
               label="How did you hear about JobClubb?"
               options={SOURCE_OPTIONS}
               placeholder="Select an option"
-              onValueChange={() => clearError("source")}
+              value={source}
+              onValueChange={(v) => {
+                setSource(v);
+                clearError("source");
+              }}
               required
               error={errors.source}
             />
-            <Field
-              id="code"
-              label="Franchise, student or referral code"
-              placeholder="JC-STU-7F2A"
-              optional
-              hint="Have a code from a franchise partner, your college or a friend? Add it here."
-              error={errors.code}
-              inputClassName="uppercase placeholder:normal-case"
-            />
+            <div>
+              <Field
+                id="code"
+                label="Emporium, franchise, student or referral code"
+                placeholder="JC-STU-7F2A"
+                optional
+                defaultValue={initialCode}
+                hint={
+                  checkable
+                    ? undefined
+                    : "Have a code from your Emporium centre, a franchise partner, your college or a friend? Add it here."
+                }
+                error={
+                  errors.code ??
+                  (emporium && !emporiumOk
+                    ? emporiumCodeError(emporium)
+                    : undefined)
+                }
+                inputClassName="uppercase placeholder:normal-case"
+              />
+              {checking && (
+                <p
+                  role="status"
+                  className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"
+                >
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Checking your Emporium code…
+                </p>
+              )}
+              {emporiumOk &&
+                !errors.code &&
+                emporium.location &&
+                emporium.batchNo && (
+                  <p
+                    role="status"
+                    className="mt-2 flex items-center gap-1.5 text-xs font-medium text-good"
+                  >
+                    <BadgeCheck className="size-3.5 flex-none" />
+                    {batchLabel(emporium.location, emporium.batchNo)}:
+                    membership included
+                  </p>
+                )}
+            </div>
             {studentCode && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300 motion-reduce:animate-none">
                 <FileField

@@ -18,7 +18,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^(\+?91[\s-]?)?[6-9]\d{4}\s?\d{5}$/;
 const PINCODE_PATTERN = /^\d{6}$/;
 export const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
-const CODE_PATTERN = /^[A-Z0-9-]{4,24}$/;
+export const CODE_PATTERN = /^[A-Z0-9-]{4,24}$/;
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const UPLOAD_TYPES = ["application/pdf", "image/jpeg", "image/png"];
@@ -75,6 +75,12 @@ export function isFranchiseCode(code: string) {
   return code.trim().toUpperCase().startsWith("JC-FR-");
 }
 
+export const EMPORIUM_CODE_PREFIX = "JC-EM-";
+
+export function isEmporiumCode(code: string) {
+  return code.trim().toUpperCase().startsWith(EMPORIUM_CODE_PREFIX);
+}
+
 export function validateCandidate(formData: FormData): FieldErrors {
   const v = {
     firstName: readText(formData, "firstName"),
@@ -105,7 +111,7 @@ export function validateCandidate(formData: FormData): FieldErrors {
   if (!PINCODE_PATTERN.test(v.pincode)) errors.pincode = "Enter a 6-digit pincode.";
   if (!INDUSTRIES.some((s) => s.slug === v.industry)) errors.industry = "Choose an industry.";
   if (!v.source) errors.source = "Tell us how you heard about JobClubb.";
-  if (v.code && !CODE_PATTERN.test(v.code)) errors.code = "Codes look like JC-STU-7F2A.";
+  if (v.code && !CODE_PATTERN.test(v.code)) errors.code = "Codes use letters, numbers and dashes, like JC-STU-7F2A.";
   if (isStudentCode(v.code) && !studentId) errors.studentId = "Upload your student ID to use a student code.";
   const uploadError = checkUpload(studentId);
   if (uploadError) errors.studentId = uploadError;
