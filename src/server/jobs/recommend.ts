@@ -17,10 +17,16 @@ export type JobPicks = {
 
 const geo: Record<string, number[] | undefined> = PINCODE_GEO;
 
+const PINCODE = /^\d{6}$/;
+const locate = (pincode?: string | null) => {
+  const code = pincode?.trim() ?? "";
+  return PINCODE.test(code) && Object.hasOwn(geo, code) ? geo[code] : undefined;
+};
+
 // A third element marks a pincode placed only at its district centre.
-export function pincodeDistanceKm(a: string, b: string) {
-  const from = geo[a];
-  const to = geo[b];
+export function pincodeDistanceKm(a?: string | null, b?: string | null) {
+  const from = locate(a);
+  const to = locate(b);
   if (!from || !to) return null;
   const rad = Math.PI / 180;
   const h =
@@ -57,25 +63,26 @@ const CITY_ALIASES: Record<string, string> = {
   vizag: "visakhapatnam",
 };
 
-const normaliseCity = (city: string) => {
-  const name = city.trim().toLowerCase().replace(/\s+/g, " ");
+const normaliseCity = (city?: string | null) => {
+  const name = (city ?? "").trim().toLowerCase().replace(/\s+/g, " ");
   return CITY_ALIASES[name] ?? name;
 };
 
 // The first three pincode digits mark the sorting district, which keeps a
 // suburb like Bidhannagar (700091) matched with Kolkata (700001).
-const sameArea = (a: string, b: string) => a.slice(0, 3) === b.slice(0, 3);
+const sameArea = (a?: string | null, b?: string | null) =>
+  !!a && !!b && PINCODE.test(a.trim()) && a.trim().slice(0, 3) === b.trim().slice(0, 3);
 
 function nearness(
   job: JobListing,
-  profile: { city: string; pincode: string },
+  profile: { city?: string | null; pincode?: string | null },
 ): { score: number; reason?: string } {
-  const inCity =
-    !!profile.city && normaliseCity(job.location) === normaliseCity(profile.city);
+  const city = normaliseCity(profile.city);
+  const inCity = !!city && normaliseCity(job.location) === city;
   const distance = pincodeDistanceKm(profile.pincode, job.pincode);
   if (distance === null) {
     if (inCity) return { score: 4, reason: "In your city" };
-    return profile.pincode && sameArea(job.pincode, profile.pincode)
+    return sameArea(job.pincode, profile.pincode)
       ? { score: 4, reason: "Near you" }
       : { score: 0 };
   }
@@ -91,14 +98,19 @@ function nearness(
 
 export function recommendJobs(
   jobs: JobListing[],
-  profile: { sector?: string; city: string; pincode: string; roles: string[] },
+  profile: {
+    sector?: string;
+    city?: string | null;
+    pincode?: string | null;
+    roles?: string[] | null;
+  },
 ): JobPicks {
-  const roles = profile.roles.map((r) => r.toLowerCase());
+  const roles = (profile.roles ?? []).flatMap((r) => r?.trim().toLowerCase() || []);
   const scored = jobs.map((job) => {
     const title = `${job.title} ${job.designation}`.toLowerCase();
     const reasons: string[] = [];
     let score = 0;
-    if (job.industry === profile.sector) {
+    if (!!profile.sector && job.industry === profile.sector) {
       score += 4;
       reasons.push("Your sector");
     }
