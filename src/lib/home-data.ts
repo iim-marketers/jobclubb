@@ -178,6 +178,7 @@ export const MEMBERSHIP_POINTS = [
 export const MEMBERSHIP_FEATURES = [
   "Unlock all live jobs",
   "Unlimited one-click apply",
+  "Jobs picked near your location",
   "Guaranteed employer interviews",
   "Priority support till you're hired",
 ];

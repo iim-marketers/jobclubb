@@ -19,11 +19,7 @@ import {
 import { ApplicationJourney } from "@/components/candidate/application-journey";
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
 import { EmptyState, Panel } from "@/components/candidate/dashboard-ui";
-import {
-  JobPicksList,
-  NoNearbyNote,
-  recommendJobs,
-} from "@/components/candidate/job-picks";
+import { JobPicksList, NoNearbyNote } from "@/components/candidate/job-picks";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +48,7 @@ import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 import { listSavedJobs } from "@/server/candidates/saved-jobs";
 import { listJobs } from "@/server/jobs/listings";
+import { recommendJobs } from "@/server/jobs/recommend";
 import { getSavedResume } from "@/server/resume/ats-resume";
 
 const PREFERENCES_HREF = `${CANDIDATE_HOME}/settings#preferences`;
