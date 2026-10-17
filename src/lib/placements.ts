@@ -98,6 +98,14 @@ export function addDays(date: string, days: number) {
   return d.toISOString().slice(0, 10);
 }
 
+export function addMonths(date: string, months: number) {
+  const [y, m, d] = date.split("-").map(Number);
+  const target = new Date(Date.UTC(y, m - 1 + months, 1));
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(d, lastDay));
+  return target.toISOString().slice(0, 10);
+}
+
 // A deadline is a date in IST and lasts until the following midnight.
 export const deadlineEnd = (date: string) => new Date(`${addDays(date, 1)}T00:00:00+05:30`);
 
@@ -181,7 +189,28 @@ export const LEFT_REASONS = {
 
 export type LeftReason = keyof typeof LEFT_REASONS;
 
-export type Leaving = { leftOn: string; reason: LeftReason; notes: string };
+export type Leaving = {
+  leftOn: string;
+  reason: LeftReason;
+  resignedOn: string | null;
+  notes: string;
+};
+
+export const REPLACEMENT_MONTHS = 3;
+
+export type ReplacementStatus = "owed" | "fulfilled" | "waived";
+
+export const replacementWindowEnd = (joiningDate: string) =>
+  addDays(addMonths(joiningDate, REPLACEMENT_MONTHS), -1);
+
+export const COMPANY_REPLACEMENT_LABELS: Record<ReplacementStatus, string> = {
+  owed: "Replacement on the way",
+  fulfilled: "Replacement referred",
+  waived: "Closed without replacement",
+};
+
+export const qualifiesForReplacement = (joiningDate: string, resignedOn: string) =>
+  resignedOn <= replacementWindowEnd(joiningDate);
 
 export function validateLeaving(
   formData: FormData,
@@ -189,16 +218,27 @@ export function validateLeaving(
   now = new Date(),
 ): { values: Leaving; errors: Partial<Record<keyof Leaving, string>> } {
   const text = (key: string) => String(formData.get(key) ?? "").trim();
-  const values = {
+  const reason = text("reason") as LeftReason;
+  const values: Leaving = {
     leftOn: text("leftOn"),
-    reason: text("reason") as LeftReason,
+    reason,
+    resignedOn: reason === "resigned" ? text("resignedOn") : null,
     notes: text("notes"),
   };
   const errors: Partial<Record<keyof Leaving, string>> = {};
+  const today = todayIst(now);
   if (!DATE.test(values.leftOn)) errors.leftOn = "Choose their last working day.";
   else if (values.leftOn < joiningDate) errors.leftOn = "Choose a date on or after they joined.";
-  else if (values.leftOn > todayIst(now)) errors.leftOn = "Choose a date up to today.";
+  else if (values.leftOn > today) errors.leftOn = "Choose a date up to today.";
   if (!(values.reason in LEFT_REASONS)) errors.reason = "Choose what happened.";
+  if (values.resignedOn !== null) {
+    if (!DATE.test(values.resignedOn)) errors.resignedOn = "Choose the date they resigned.";
+    else if (values.resignedOn < joiningDate)
+      errors.resignedOn = "Choose a date on or after they joined.";
+    else if (values.resignedOn > today) errors.resignedOn = "Choose a date up to today.";
+    else if (!errors.leftOn && values.resignedOn > values.leftOn)
+      errors.resignedOn = "They must have resigned on or before their last working day.";
+  }
   if (values.notes.length > 1000) errors.notes = "Use 1,000 characters or fewer.";
   return { values, errors };
 }

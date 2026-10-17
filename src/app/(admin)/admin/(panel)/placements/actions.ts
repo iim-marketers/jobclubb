@@ -15,11 +15,13 @@ import {
 import {
   declinePlacement,
   extendPlacementDeadline,
+  linkReplacement,
   markOfferReceived,
   recordJoining,
   releasePlacement,
   storeAdminDocuments,
   updatePlacementTerms,
+  waiveReplacement,
   withdrawPlacement,
 } from "@/server/placements/placements";
 
@@ -115,4 +117,25 @@ export async function withdraw(id: string): Promise<Result> {
 export async function markJoining(id: string, joined: boolean): Promise<Result> {
   await requireAdmin();
   return attempt(id, "Recording joining", () => recordJoining(id, joined));
+}
+
+export async function saveReplacement(id: string, _prev: AdminFormState, formData: FormData): Promise<AdminFormState> {
+  await requireAdmin();
+  const ref = String(formData.get("ref") ?? "");
+  if (!ref) return { errors: { ref: "Choose the candidate JobClubb referred." } };
+  const result = await attempt(id, "Linking replacement", () => linkReplacement(id, ref));
+  if (result.error) return result;
+  revalidatePath("/company", "layout");
+  return { ok: true };
+}
+
+export async function closeReplacement(id: string, _prev: AdminFormState, formData: FormData): Promise<AdminFormState> {
+  await requireAdmin();
+  const note = String(formData.get("note") ?? "").trim();
+  if (!note) return { errors: { note: "Say why no replacement is needed." } };
+  if (note.length > 1000) return { errors: { note: "Use 1,000 characters or fewer." } };
+  const result = await attempt(id, "Closing replacement", () => waiveReplacement(id, note));
+  if (result.error) return result;
+  revalidatePath("/company", "layout");
+  return { ok: true };
 }

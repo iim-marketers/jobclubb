@@ -3,13 +3,16 @@ import "server-only";
 import { candidateLabel } from "@/lib/company-activity";
 import {
   isPastDeadline,
+  qualifiesForReplacement,
   releaseDeadline,
   todayIst,
   type LeftReason,
   type Leaving,
   type OfferTerms,
   type PlacementStatus,
+  type ReplacementStatus,
 } from "@/lib/placements";
+import { REFERRED_STAGE, STAGES } from "@/lib/candidate-activity";
 import { createAdminClient } from "@/lib/supabase/server";
 import { revealedNames } from "@/server/applications/company";
 import {
@@ -26,8 +29,21 @@ import {
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
+// A reverse embed on a unique column may come back as an object or an array.
+const one = <T,>(embed: T | T[] | null | undefined) =>
+  (Array.isArray(embed) ? embed[0] : embed) ?? null;
+
+type ReplacesEmbed = { id: string } | { id: string }[] | null;
+
 const BASE_COLUMNS =
-  "id, application_id, company_id, candidate_id, status, monthly_salary, fee_amount, joining_date, offer_deadline, offer_notes, selected_at, offer_received_at, released_at, accepted_at, closed_at, updated_at, left_on, left_reason, left_notes, job_applications (ref, job_id, job_title, company_name, candidate_no, candidate_id, shortlisted_at, city)";
+  "id, application_id, company_id, candidate_id, status, monthly_salary, fee_amount, joining_date, offer_deadline, offer_notes, selected_at, offer_received_at, released_at, accepted_at, closed_at, updated_at, left_on, left_reason, left_notes, resigned_on, replacement_status, replacement_note, replacement_closed_at, job_applications!placements_application_id_fkey (ref, job_id, job_title, company_name, candidate_no, candidate_id, shortlisted_at, city, replaces:placements!placements_replacement_application_id_fkey (id)), replacement:job_applications!placements_replacement_application_id_fkey (ref, candidate_no, candidate_id, shortlisted_at)";
+
+type ApplicationRef = {
+  ref: string;
+  candidate_no: number;
+  candidate_id: string;
+  shortlisted_at: string | null;
+};
 
 type BaseRow = {
   id: string;
@@ -49,16 +65,18 @@ type BaseRow = {
   left_on: string | null;
   left_reason: LeftReason | null;
   left_notes: string | null;
-  job_applications: {
-    ref: string;
+  resigned_on: string | null;
+  replacement_status: ReplacementStatus | null;
+  replacement_note: string | null;
+  replacement_closed_at: string | null;
+  job_applications: ApplicationRef & {
     job_id: string;
     job_title: string;
     company_name: string;
-    candidate_no: number;
-    candidate_id: string;
-    shortlisted_at: string | null;
     city: string;
+    replaces: ReplacesEmbed;
   };
+  replacement: ApplicationRef | null;
 };
 
 const PRE_RELEASE: PlacementStatus[] = ["awaiting_offer", "offer_received"];
@@ -93,9 +111,25 @@ export type PlacementSummary = {
   acceptedAt: string | null;
   closedAt: string | null;
   left: Leaving | null;
+  isReplacement: boolean;
+  replacement: {
+    status: ReplacementStatus;
+    ref: string | null;
+    candidate: string | null;
+    note: string;
+    closedAt: string | null;
+  } | null;
 };
 
-function toSummary(row: BaseRow, candidate: string): PlacementSummary {
+async function rowNames(rows: BaseRow[]) {
+  const names = await revealedNames(
+    rows.flatMap((r) => (r.replacement ? [r.job_applications, r.replacement] : [r.job_applications])),
+  );
+  const nameOf = (a: ApplicationRef) => names.get(a.candidate_id) ?? candidateLabel(a.candidate_no);
+  return { nameOf };
+}
+
+function toSummary(row: BaseRow, candidate: string, replacementName: string | null): PlacementSummary {
   return {
     id: row.id,
     ref: row.job_applications.ref,
@@ -116,54 +150,53 @@ function toSummary(row: BaseRow, candidate: string): PlacementSummary {
     closedAt: row.closed_at,
     left:
       row.left_on && row.left_reason
-        ? { leftOn: row.left_on, reason: row.left_reason, notes: row.left_notes ?? "" }
+        ? {
+            leftOn: row.left_on,
+            reason: row.left_reason,
+            resignedOn: row.resigned_on,
+            notes: row.left_notes ?? "",
+          }
         : null,
+    isReplacement: !!one(row.job_applications.replaces),
+    replacement: row.replacement_status
+      ? {
+          status: row.replacement_status,
+          ref: row.replacement?.ref ?? null,
+          candidate: replacementName,
+          note: row.replacement_note ?? "",
+          closedAt: row.replacement_closed_at,
+        }
+      : null,
   };
 }
 
 export type CompanyPlacement = PlacementSummary & { documents: number };
 
-export async function listCompanyPlacements(companyId: string): Promise<CompanyPlacement[]> {
-  const { data, error } = await createAdminClient()
+async function companyPlacements(companyId: string, applicationRef?: string) {
+  let query = createAdminClient()
     .from("placements")
     .select(`${BASE_COLUMNS}, placement_documents (count)`)
     .eq("company_id", companyId)
     .order("selected_at", { ascending: false });
+  if (applicationRef) query = query.eq("job_applications.ref", applicationRef);
+  const { data, error } = await query;
   if (error) throw error;
-  const rows = data as unknown as (BaseRow & { placement_documents: { count: number }[] })[];
-  const names = await revealedNames(rows.map((r) => r.job_applications));
-  return rows.map((r) => ({
-    ...toSummary(
-      r,
-      names.get(r.job_applications.candidate_id) ?? candidateLabel(r.job_applications.candidate_no),
-    ),
-    documents: r.placement_documents[0]?.count ?? 0,
-  }));
+  const rows = (data as unknown as (BaseRow & { placement_documents: { count: number }[] })[])
+    // Filtering on an embed without !inner nulls the embed instead of dropping the row.
+    .filter((r) => r.job_applications);
+  const { nameOf } = await rowNames(rows);
+  return rows.map(
+    (r): CompanyPlacement => ({
+      ...toSummary(r, nameOf(r.job_applications), r.replacement && nameOf(r.replacement)),
+      documents: r.placement_documents[0]?.count ?? 0,
+    }),
+  );
 }
 
+export const listCompanyPlacements = (companyId: string) => companyPlacements(companyId);
+
 export async function getCompanyPlacementForApplication(companyId: string, applicationRef: string) {
-  const { data, error } = await createAdminClient()
-    .from("placements")
-    .select(
-      "id, status, monthly_salary, joining_date, offer_deadline, offer_notes, left_on, left_reason, job_applications!inner (ref), placement_documents (count)",
-    )
-    .eq("company_id", companyId)
-    .eq("job_applications.ref", applicationRef)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  return {
-    id: data.id as string,
-    status: effectiveStatus(data),
-    monthlySalary: data.monthly_salary as number | null,
-    joiningDate: data.joining_date as string | null,
-    offerDeadline: data.offer_deadline as string | null,
-    notes: (data.offer_notes as string | null) ?? "",
-    documents: (data.placement_documents as { count: number }[])[0]?.count ?? 0,
-    left: data.left_on
-      ? { leftOn: data.left_on as string, reason: data.left_reason as LeftReason }
-      : null,
-  };
+  return (await companyPlacements(companyId, applicationRef))[0] ?? null;
 }
 
 export type OfferResult =
@@ -251,24 +284,158 @@ export async function recordJoining(id: string, joined: boolean, scope: Scope = 
 }
 
 export async function reportLeaving(id: string, leaving: Leaving, scope: Scope = {}) {
-  if (!UUID.test(id)) return false;
-  let query = createAdminClient()
+  if (!UUID.test(id)) return null;
+  const admin = createAdminClient();
+  let lookup = admin
+    .from("placements")
+    .select(
+      "joining_date, job_applications!placements_application_id_fkey (replaces:placements!placements_replacement_application_id_fkey (id))",
+    )
+    .eq("id", id);
+  if (scope.companyId) lookup = lookup.eq("company_id", scope.companyId);
+  const { data: placement, error: lookupError } = await lookup.maybeSingle();
+  if (lookupError) throw lookupError;
+  if (!placement?.joining_date) return null;
+
+  const isReplacement = !!one(
+    (placement.job_applications as unknown as { replaces: ReplacesEmbed }).replaces,
+  );
+  const replacementOwed =
+    !isReplacement &&
+    leaving.resignedOn !== null &&
+    qualifiesForReplacement(placement.joining_date, leaving.resignedOn);
+
+  let query = admin
     .from("placements")
     .update({
       left_on: leaving.leftOn,
       left_reason: leaving.reason,
       left_notes: leaving.notes || null,
       left_reported_at: now(),
+      resigned_on: leaving.resignedOn,
+      replacement_status: replacementOwed ? "owed" : null,
       updated_at: now(),
     })
     .eq("id", id)
     .eq("status", "joined")
     .is("left_on", null)
-    .lte("joining_date", leaving.leftOn);
+    .eq("joining_date", placement.joining_date)
+    .lte("joining_date", leaving.resignedOn ?? leaving.leftOn);
   if (scope.companyId) query = query.eq("company_id", scope.companyId);
   const { data, error } = await query.select("id");
   if (error) throw error;
+  return data.length > 0 ? { replacementOwed } : null;
+}
+
+export async function listReplacementCandidates(id: string) {
+  if (!UUID.test(id)) return [];
+  const admin = createAdminClient();
+  const { data: placement, error } = await admin
+    .from("placements")
+    .select("company_id, application_id, job_applications!placements_application_id_fkey (job_id)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!placement) return [];
+  const jobId = (placement.job_applications as unknown as { job_id: string }).job_id;
+
+  const { data: rows, error: rowsError } = await admin
+    .from("job_applications")
+    .select(
+      "ref, job_id, job_title, stage, shortlisted_at, candidates (first_name, last_name), placements!placements_application_id_fkey (id), replaces:placements!placements_replacement_application_id_fkey (id)",
+    )
+    .eq("company_id", placement.company_id)
+    .gte("stage", REFERRED_STAGE)
+    .eq("status", "active")
+    .neq("id", placement.application_id)
+    .order("shortlisted_at", { ascending: false });
+  if (rowsError) throw rowsError;
+  return (
+    rows as unknown as {
+      ref: string;
+      job_id: string;
+      job_title: string;
+      stage: number;
+      candidates: { first_name: string; last_name: string };
+      placements: ReplacesEmbed;
+      replaces: ReplacesEmbed;
+    }[]
+  )
+    .filter((r) => !one(r.placements) && !one(r.replaces))
+    .map((r) => ({
+      ref: r.ref,
+      name: `${r.candidates.first_name} ${r.candidates.last_name}`,
+      jobTitle: r.job_title,
+      stage: STAGES[r.stage],
+      sameRole: r.job_id === jobId,
+    }));
+}
+
+export async function linkReplacement(id: string, ref: string) {
+  if (!UUID.test(id) || !/^JC-[0-9A-Z]{6}$/.test(ref)) return "This application no longer exists.";
+  const admin = createAdminClient();
+  const { data: placement, error } = await admin
+    .from("placements")
+    .select("company_id, application_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!placement) return false;
+  const { data: application, error: applicationError } = await admin
+    .from("job_applications")
+    .select("id")
+    .eq("ref", ref)
+    .eq("company_id", placement.company_id)
+    .gte("stage", REFERRED_STAGE)
+    .neq("id", placement.application_id)
+    .maybeSingle();
+  if (applicationError) throw applicationError;
+  if (!application) return "Choose a candidate JobClubb has referred to this company.";
+
+  const at = now();
+  const { data, error: updateError } = await admin
+    .from("placements")
+    .update({
+      replacement_status: "fulfilled",
+      replacement_application_id: application.id,
+      replacement_closed_at: at,
+      updated_at: at,
+    })
+    .eq("id", id)
+    .eq("replacement_status", "owed")
+    .select("id");
+  if (updateError) {
+    if (updateError.code === "23505") return "That candidate is already linked as a replacement.";
+    throw updateError;
+  }
   return data.length > 0;
+}
+
+export async function waiveReplacement(id: string, note: string) {
+  if (!UUID.test(id)) return false;
+  const at = now();
+  const { data, error } = await createAdminClient()
+    .from("placements")
+    .update({
+      replacement_status: "waived",
+      replacement_note: note,
+      replacement_closed_at: at,
+      updated_at: at,
+    })
+    .eq("id", id)
+    .eq("replacement_status", "owed")
+    .select("id");
+  if (error) throw error;
+  return data.length > 0;
+}
+
+export async function countReplacementsOwed() {
+  const { count, error } = await createAdminClient()
+    .from("placements")
+    .select("id", { count: "exact", head: true })
+    .eq("replacement_status", "owed");
+  if (error) throw error;
+  return count ?? 0;
 }
 
 export type AdminPlacement = PlacementSummary & {
@@ -294,10 +461,10 @@ type AdminRow = BaseRow & {
   };
 };
 
-function toAdmin(row: AdminRow): AdminPlacement {
+function toAdmin(row: AdminRow, replacementName: string | null): AdminPlacement {
   const name = `${row.candidates.first_name} ${row.candidates.last_name}`;
   return {
-    ...toSummary(row, name),
+    ...toSummary(row, name, replacementName),
     candidateName: name,
     candidateEmail: row.candidates.email,
     candidatePhone: row.candidates.phone,
@@ -319,7 +486,9 @@ export async function listAdminPlacements(): Promise<AdminPlacement[]> {
     .select(ADMIN_COLUMNS)
     .order("selected_at", { ascending: false });
   if (error) throw error;
-  return (data as unknown as AdminRow[]).map(toAdmin);
+  const rows = data as unknown as AdminRow[];
+  const { nameOf } = await rowNames(rows);
+  return rows.map((r) => toAdmin(r, r.replacement && nameOf(r.replacement)));
 }
 
 export type PlacementPayment = {
@@ -346,18 +515,20 @@ export async function getAdminPlacement(id: string): Promise<
   if (error) throw error;
   if (!data) return null;
 
-  const [documents, { data: payments, error: paymentsError }] = await Promise.all([
+  const row = data as unknown as AdminRow;
+  const [documents, { data: payments, error: paymentsError }, { nameOf }] = await Promise.all([
     listOfferDocuments(id, { signed: true }),
     admin
       .from("placement_payments")
       .select("order_id, status, amount, payment_id, invoice_number, created_at, paid_at")
       .eq("placement_id", id)
       .order("created_at", { ascending: false }),
+    rowNames([row]),
   ]);
   if (paymentsError) throw paymentsError;
 
   return {
-    ...toAdmin(data as unknown as AdminRow),
+    ...toAdmin(row, row.replacement && nameOf(row.replacement)),
     documents,
     payments: payments.map((p) => ({
       orderId: p.order_id,

@@ -30,7 +30,9 @@ const REF = /^JC-[0-9A-Z]{6}$/;
 const UUID = /^[0-9a-f-]{36}$/i;
 
 const APPLICANT_COLUMNS =
-  "ref, job_id, candidate_id, candidate_no, city, experience_months, skills, stage, status, shortlisted_at, referral_note";
+  "ref, job_id, candidate_id, candidate_no, city, experience_months, skills, stage, status, shortlisted_at, referral_note, replaces:placements!placements_replacement_application_id_fkey (job_applications!placements_application_id_fkey (candidate_id, candidate_no, shortlisted_at))";
+
+type NameRow = { candidate_id: string; candidate_no: number; shortlisted_at: string | null };
 
 type ApplicantRow = {
   ref: string;
@@ -44,8 +46,21 @@ type ApplicantRow = {
   status: Applicant["status"];
   shortlisted_at: string;
   referral_note: string | null;
+  replaces: ReplacesEmbed | ReplacesEmbed[] | null;
   job_interviews?: { outcome: InterviewOutcome | null }[];
 };
+
+type ReplacesEmbed = { job_applications: NameRow };
+
+// A reverse embed on a unique column may come back as an object or an array.
+const replaced = (row: ApplicantRow) =>
+  (Array.isArray(row.replaces) ? row.replaces[0] : row.replaces)?.job_applications ?? null;
+
+const nameRows = (rows: ApplicantRow[]) =>
+  rows.flatMap((r) => {
+    const original = replaced(r);
+    return original ? [r, original] : [r];
+  });
 
 export async function revealedNames(rows: { candidate_id: string; shortlisted_at: string | null }[]) {
   const ids = rows.filter((r) => r.shortlisted_at).map((r) => r.candidate_id);
@@ -56,6 +71,13 @@ export async function revealedNames(rows: { candidate_id: string; shortlisted_at
     .in("id", ids);
   if (error) throw error;
   return new Map(data.map((c) => [c.id as string, `${c.first_name} ${c.last_name}`]));
+}
+
+function replacedName(row: ApplicantRow, names: Map<string, string>) {
+  const original = replaced(row);
+  return original
+    ? (names.get(original.candidate_id) ?? candidateLabel(original.candidate_no))
+    : null;
 }
 
 function toApplicant(row: ApplicantRow, names: Map<string, string>): Applicant {
@@ -71,6 +93,7 @@ function toApplicant(row: ApplicantRow, names: Map<string, string>): Applicant {
     status: row.status,
     selected: !!row.job_interviews?.some((i) => i.outcome === "selected"),
     referredOn: row.shortlisted_at,
+    replaces: replacedName(row, names),
   };
 }
 
@@ -88,8 +111,8 @@ export async function listCompanyApplicants(companyId: string, jobId?: string) {
   }
   const { data, error } = await query;
   if (error) throw error;
-  const rows = data as ApplicantRow[];
-  const names = await revealedNames(rows);
+  const rows = data as unknown as ApplicantRow[];
+  const names = await revealedNames(nameRows(rows));
   return rows.map((r) => toApplicant(r, names));
 }
 
@@ -123,7 +146,7 @@ export async function getCompanyApplicant(
     company_jobs: { designation: string; status: string; city: string; pincode: string };
   };
   const [names, interviews] = await Promise.all([
-    revealedNames([row]),
+    revealedNames(nameRows([row])),
     listCompanyInterviews(companyId, ref),
   ]);
   const latest = interviews.at(-1);

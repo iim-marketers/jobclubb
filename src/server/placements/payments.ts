@@ -29,7 +29,7 @@ export async function createPlacementOrder(
   const admin = createAdminClient();
   const { data: placement, error } = await admin
     .from("placements")
-    .select("status, offer_deadline, fee_amount, job_applications (job_title, company_name)")
+    .select("status, offer_deadline, fee_amount, job_applications!placements_application_id_fkey (job_title, company_name)")
     .eq("id", placementId)
     .eq("candidate_id", candidate.id)
     .maybeSingle();
@@ -224,7 +224,7 @@ export async function getPlacementInvoice(
   const { data, error } = await createAdminClient()
     .from("placement_payments")
     .select(
-      "invoice_number, payment_id, amount, currency, paid_at, billing_name, billing_city, billing_pincode, place_of_supply, taxable_amount, cgst_amount, sgst_amount, igst_amount, candidates (first_name, email), placements (joining_date, job_applications (ref, job_title, company_name))",
+      "invoice_number, payment_id, amount, currency, paid_at, billing_name, billing_city, billing_pincode, place_of_supply, taxable_amount, cgst_amount, sgst_amount, igst_amount, candidates (first_name, email), placements (joining_date, job_applications!placements_application_id_fkey (ref, job_title, company_name))",
     )
     .eq("candidate_id", candidateId)
     .eq("payment_id", paymentId)

@@ -38,6 +38,7 @@ import {
   TableToolbar,
 } from "@/components/table-toolbar";
 import { applicantHref } from "@/components/company/nav";
+import { ReplacementTag } from "@/components/company/replacement-tag";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -135,6 +136,11 @@ const columns = helper.columns([
             <p className="truncate text-xs whitespace-nowrap text-muted-foreground">
               <span className="font-mono">{a.ref}</span> · {a.city}
             </p>
+            {a.replaces && (
+              <div className="mt-1">
+                <ReplacementTag replaces={a.replaces} />
+              </div>
+            )}
           </div>
         </div>
       );

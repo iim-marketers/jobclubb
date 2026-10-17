@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Handshake, UserRoundCheck } from "lucide-react";
+import { Handshake, RefreshCw, UserRoundCheck } from "lucide-react";
 
 import {
   DashboardHeader,
@@ -24,6 +24,7 @@ import {
 import { formatShortDate } from "@/lib/candidate-activity";
 import {
   COMPANY_PLACEMENT_LABELS,
+  COMPANY_REPLACEMENT_LABELS,
   LEFT_REASONS,
   formatDateOnly,
   isClosed,
@@ -151,6 +152,7 @@ export default async function SelectedPage() {
                         ? `${LEFT_REASONS[p.left.reason]} ${formatDateOnly(p.left.leftOn)}`
                         : COMPANY_PLACEMENT_LABELS[p.status]}
                     </span>
+                    {p.replacement && <ReplacementLine replacement={p.replacement} />}
                   </TableCell>
                   <TableCell
                     className={cn("px-3 py-3.5", cellClass("joining"))}
@@ -188,6 +190,25 @@ export default async function SelectedPage() {
   );
 }
 
+function ReplacementLine({
+  replacement: r,
+}: {
+  replacement: NonNullable<CompanyPlacement["replacement"]>;
+}) {
+  return (
+    <p className="mt-1 flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground">
+      <RefreshCw className="size-3 flex-none" />
+      {r.status === "fulfilled" && r.ref ? (
+        <Link href={applicantHref(r.ref)} className="hover:text-brand hover:underline">
+          Replaced by {r.candidate}
+        </Link>
+      ) : (
+        COMPANY_REPLACEMENT_LABELS[r.status]
+      )}
+    </p>
+  );
+}
+
 function PlacementActions({
   placement: p,
   today,
@@ -204,6 +225,7 @@ function PlacementActions({
         canWithdraw={false}
         candidateKnows
         exitFrom={p.joiningDate}
+        replaceable={!p.isReplacement}
       />
     );
   if (isClosed(p.status)) return null;

@@ -145,7 +145,7 @@ export async function getScreeningApplication(ref: string): Promise<ScreeningDet
   const { data, error } = await createAdminClient()
     .from("job_applications")
     .select(
-      `${BASE_COLUMNS}, resume, referral_note, shortlisted_at, candidates (first_name, last_name, phone, email), company_jobs (status, city, pincode), placements (id)`,
+      `${BASE_COLUMNS}, resume, referral_note, shortlisted_at, candidates (first_name, last_name, phone, email), company_jobs (status, city, pincode), placements!placements_application_id_fkey (id)`,
     )
     .eq("ref", ref)
     .maybeSingle();

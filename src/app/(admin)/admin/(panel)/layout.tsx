@@ -8,6 +8,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/server/admin/session";
 import { countApplicationsToScreen } from "@/server/applications/screening";
 import { countPendingChanges } from "@/server/companies/change-requests";
+import { countReplacementsOwed } from "@/server/placements/placements";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -17,12 +18,19 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
   await requireAdmin();
 
   const admin = createAdminClient();
-  const [cookieStore, { count: offersToRelease }, changesToReview, applicationsToScreen] = await Promise.all([
+  const [
+    cookieStore,
+    { count: offersToRelease },
+    replacementsOwed,
+    changesToReview,
+    applicationsToScreen,
+  ] = await Promise.all([
     cookies(),
     admin
       .from("placements")
       .select("id", { count: "exact", head: true })
       .eq("status", "offer_received"),
+    countReplacementsOwed(),
     countPendingChanges(),
     countApplicationsToScreen(),
   ]);
@@ -32,7 +40,7 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
       <SidebarProvider defaultOpen={cookieStore.get("sidebar_state")?.value !== "false"}>
         <AdminSidebar
           adminEmail={process.env.ADMIN_EMAIL ?? ""}
-          offersToRelease={offersToRelease ?? 0}
+          placementsToAction={(offersToRelease ?? 0) + replacementsOwed}
           changesToReview={changesToReview}
           applicationsToScreen={applicationsToScreen}
         />

@@ -6,6 +6,7 @@ import {
   Loader2,
   LogOut,
   MoreHorizontal,
+  RefreshCw,
   Undo2,
   Upload,
   UserRoundCheck,
@@ -50,8 +51,13 @@ import {
   DEFAULT_OFFER_DAYS,
   LEFT_REASONS,
   MAX_OFFER_FILES,
+  REPLACEMENT_MONTHS,
+  formatDateOnly,
+  qualifiesForReplacement,
+  replacementWindowEnd,
   todayIst,
 } from "@/lib/placements";
+import { cn } from "@/lib/utils";
 
 const brandButton = "bg-brand font-head text-brand-foreground hover:bg-brand-dark";
 
@@ -265,19 +271,60 @@ export function OfferButton({
 
 const REASON_OPTIONS = Object.entries(LEFT_REASONS).map(([value, label]) => ({ value, label }));
 
+function ReplacementNote({
+  joiningDate,
+  resignedOn,
+  replaceable,
+}: {
+  joiningDate: string;
+  resignedOn: string;
+  replaceable: boolean;
+}) {
+  const windowEnd = replacementWindowEnd(joiningDate);
+  const [tone, text] = !replaceable
+    ? ["muted", "They joined as a replacement, so no further replacement applies."]
+    : !resignedOn
+      ? [
+          "muted",
+          `If they resigned by ${formatDateOnly(windowEnd)}, within ${REPLACEMENT_MONTHS} months of joining, JobClubb refers a replacement candidate.`,
+        ]
+      : qualifiesForReplacement(joiningDate, resignedOn)
+        ? [
+            "good",
+            `They resigned within ${REPLACEMENT_MONTHS} months of joining, so JobClubb will refer a replacement candidate.`,
+          ]
+        : [
+            "muted",
+            `They resigned more than ${REPLACEMENT_MONTHS} months after joining, so no replacement applies.`,
+          ];
+  return (
+    <p
+      className={cn(
+        "flex items-start gap-2 rounded-2xl p-3 text-xs leading-5 sm:col-span-2",
+        tone === "good" ? "bg-good/10 text-good" : "bg-muted/50 text-muted-foreground",
+      )}
+    >
+      <RefreshCw className="mt-0.5 size-3.5 flex-none" />
+      {text}
+    </p>
+  );
+}
+
 function ExitForm({
   placementId,
   joiningDate,
+  replaceable,
   onSaved,
 }: {
   placementId: string;
   joiningDate: string;
-  onSaved: () => void;
+  replaceable: boolean;
+  onSaved: (replacementOwed: boolean) => void;
 }) {
   const [state, formAction, pending] = useActionState(
     async (prev: OfferFormState, formData: FormData) => {
       const result = await reportExit(placementId, joiningDate, prev, formData);
-      if (result.ok) onSaved();
+      if (result.ok) onSaved(!!result.replacementOwed);
       return result;
     },
     {},
@@ -287,6 +334,9 @@ function ExitForm({
     state.errors,
     state.error,
   );
+  const [reason, setReason] = useState<string | null>(null);
+  const [resignedOn, setResignedOn] = useState("");
+  const resigned = reason === "resigned";
 
   return (
     <form
@@ -294,10 +344,39 @@ function ExitForm({
         clearAll();
         submitManually(formAction)(e);
       }}
-      onChange={onChange}
+      onChange={(e) => {
+        onChange(e);
+        const target = e.target;
+        if (target instanceof HTMLInputElement && target.name === "resignedOn")
+          setResignedOn(target.value);
+      }}
       noValidate
       className="grid grid-cols-1 gap-4 sm:grid-cols-2"
     >
+      <SelectField
+        id="reason"
+        label="What happened"
+        required
+        options={REASON_OPTIONS}
+        placeholder="Choose one"
+        onValueChange={(value) => {
+          setReason(value);
+          clear("reason");
+        }}
+        error={errors.reason}
+        className="sm:col-span-2"
+      />
+      {resigned && (
+        <Field
+          id="resignedOn"
+          type="date"
+          label="Date they resigned"
+          required
+          min={joiningDate}
+          hint="When they handed in their notice."
+          error={errors.resignedOn}
+        />
+      )}
       <Field
         id="leftOn"
         type="date"
@@ -305,16 +384,15 @@ function ExitForm({
         required
         min={joiningDate}
         error={errors.leftOn}
+        className={resigned ? undefined : "sm:col-span-2"}
       />
-      <SelectField
-        id="reason"
-        label="What happened"
-        required
-        options={REASON_OPTIONS}
-        placeholder="Choose one"
-        onValueChange={() => clear("reason")}
-        error={errors.reason}
-      />
+      {resigned && (
+        <ReplacementNote
+          joiningDate={joiningDate}
+          resignedOn={resignedOn}
+          replaceable={replaceable}
+        />
+      )}
       <div className="space-y-1.5 sm:col-span-2">
         <Label htmlFor="notes">Note for JobClubb (optional)</Label>
         <Textarea id="notes" name="notes" rows={3} maxLength={1000} aria-invalid={!!errors.notes} />
@@ -396,12 +474,14 @@ function ExitDialog({
   placementId,
   candidate,
   joiningDate,
+  replaceable,
   open,
   onOpenChange,
 }: {
   placementId: string;
   candidate: string;
   joiningDate: string;
+  replaceable: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -411,17 +491,22 @@ function ExitDialog({
         <DialogHeader>
           <DialogTitle className="font-head text-lg font-bold">Has {candidate} left?</DialogTitle>
           <DialogDescription>
-            Under our agreement, tell JobClubb when someone placed through us
-            resigns, is terminated or stops working with you for any other
-            reason. This can&apos;t be undone.
+            Under our agreement, tell JobClubb promptly when someone placed
+            through us resigns, is terminated or stops working with you for any
+            other reason. This can&apos;t be undone.
           </DialogDescription>
         </DialogHeader>
         <ExitForm
           placementId={placementId}
           joiningDate={joiningDate}
-          onSaved={() => {
+          replaceable={replaceable}
+          onSaved={(replacementOwed) => {
             onOpenChange(false);
-            toast.success("Reported to JobClubb");
+            toast.success(
+              replacementOwed
+                ? "Reported. JobClubb will refer a replacement."
+                : "Reported to JobClubb",
+            );
           }}
         />
       </DialogContent>
@@ -457,10 +542,12 @@ export function ExitButton({
   placementId,
   candidate,
   joiningDate,
+  replaceable,
 }: {
   placementId: string;
   candidate: string;
   joiningDate: string;
+  replaceable: boolean;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -473,6 +560,7 @@ export function ExitButton({
         placementId={placementId}
         candidate={candidate}
         joiningDate={joiningDate}
+        replaceable={replaceable}
         open={open}
         onOpenChange={setOpen}
       />
@@ -490,6 +578,7 @@ export function PlacementRowActions({
   canWithdraw,
   candidateKnows,
   exitFrom,
+  replaceable = false,
 }: {
   placementId: string;
   candidate: string;
@@ -498,6 +587,7 @@ export function PlacementRowActions({
   canWithdraw: boolean;
   candidateKnows: boolean;
   exitFrom?: string;
+  replaceable?: boolean;
 }) {
   const [dialog, setDialog] = useState<Dialogs>(null);
   const [pending, startTransition] = useTransition();
@@ -578,6 +668,7 @@ export function PlacementRowActions({
           placementId={placementId}
           candidate={candidate}
           joiningDate={exitFrom}
+          replaceable={replaceable}
           open={dialog === "exit"}
           onOpenChange={(open) => setDialog(open ? "exit" : null)}
         />

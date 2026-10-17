@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { ApplicantActions } from "@/components/company/applicant-actions";
+import { ReplacementTag } from "@/components/company/replacement-tag";
 import { AccordionSections } from "@/components/accordion-sections";
 import { InterviewControls } from "@/components/company/interview-actions";
 import {
@@ -24,6 +25,7 @@ import {
 import {
   COMPANY_APPLICANTS,
   COMPANY_SELECTED,
+  applicantHref,
   jobApplicantsHref,
 } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
@@ -131,6 +133,9 @@ export default async function ApplicantPage({
               <span className="font-mono text-xs font-semibold text-muted-foreground">
                 {applicant.ref}
               </span>
+              {applicant.replaces && (
+                <ReplacementTag replaces={applicant.replaces} />
+              )}
             </div>
             <h1 className="mt-2 flex items-center gap-2 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
               {applicant.name ?? (
@@ -173,8 +178,24 @@ export default async function ApplicantPage({
               Offer: {COMPANY_PLACEMENT_LABELS[placement.status]}.
             </span>{" "}
             {placement.left
-              ? `${LEFT_REASONS[placement.left.reason]} ${formatDateOnly(placement.left.leftOn)}.`
+              ? `${LEFT_REASONS[placement.left.reason]}, last working day ${formatDateOnly(placement.left.leftOn)}.`
               : OFFER_NOTES[placement.status]}
+            {placement.replacement?.status === "owed" &&
+              " JobClubb is finding a replacement candidate for you."}
+            {placement.replacement?.status === "fulfilled" &&
+              placement.replacement.ref && (
+                <>
+                  {" "}
+                  JobClubb referred{" "}
+                  <Link
+                    href={applicantHref(placement.replacement.ref)}
+                    className="font-semibold text-brand hover:underline"
+                  >
+                    {placement.replacement.candidate}
+                  </Link>{" "}
+                  as their replacement.
+                </>
+              )}
           </p>
           <div className="flex flex-wrap gap-2">
             {!isReleased(placement.status) && (
@@ -199,6 +220,7 @@ export default async function ApplicantPage({
                   placementId={placement.id}
                   candidate={candidate}
                   joiningDate={placement.joiningDate}
+                  replaceable={!placement.isReplacement}
                 />
               )}
             <Button

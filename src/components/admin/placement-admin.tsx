@@ -5,11 +5,13 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  closeReplacement,
   extendDeadline,
   markDeclined,
   markJoining,
   release,
   removeDocument,
+  saveReplacement,
   saveTerms,
   uploadDocuments,
   withdraw,
@@ -37,6 +39,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { DEFAULT_OFFER_DAYS } from "@/lib/placements";
 
@@ -389,5 +401,148 @@ export function RemoveDocumentButton({
       tone="destructive"
       onConfirm={() => removeDocument(placementId, documentId)}
     />
+  );
+}
+
+type ReplacementOption = {
+  ref: string;
+  name: string;
+  jobTitle: string;
+  stage: string;
+  sameRole: boolean;
+};
+
+export function LinkReplacementForm({
+  placementId,
+  designation,
+  options,
+}: {
+  placementId: string;
+  designation: string;
+  options: ReplacementOption[];
+}) {
+  const { formAction, pending, errors, formError, clear, clearAll, onChange } =
+    useAdminForm(saveReplacement.bind(null, placementId), "Replacement linked");
+  if (options.length === 0)
+    return (
+      <p className="text-sm text-muted-foreground">
+        No one else has been referred to this company yet. Screen and refer a
+        candidate for the role, then link them here.
+      </p>
+    );
+  const groups = [
+    { label: `Same role · ${designation}`, items: options.filter((o) => o.sameRole) },
+    { label: "Other roles", items: options.filter((o) => !o.sameRole) },
+  ].filter((g) => g.items.length > 0);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        clearAll();
+        submitManually(formAction)(e);
+      }}
+      onChange={onChange}
+      noValidate
+      className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"
+    >
+      <div className="space-y-2">
+        <Label htmlFor="ref">
+          Referred candidate <span className="text-destructive">*</span>
+        </Label>
+        <Select
+          name="ref"
+          items={Object.fromEntries(
+            options.map((o) => [o.ref, `${o.name} · ${o.jobTitle}`]),
+          )}
+          onValueChange={() => clear("ref")}
+        >
+          <SelectTrigger
+            id="ref"
+            className="h-11! w-full bg-card"
+            aria-invalid={!!errors.ref}
+          >
+            <SelectValue placeholder="Choose who replaces them" />
+          </SelectTrigger>
+          <SelectContent className="max-h-80 w-(--anchor-width) max-w-[calc(100vw-1.5rem)]">
+            {groups.map((g, i) => (
+              <SelectGroup key={g.label} className="p-0">
+                {i > 0 && <SelectSeparator className="mx-0 my-1.5" />}
+                <SelectLabel className="sticky top-0 z-10 bg-popover px-2.5 py-1.5 font-head font-semibold">
+                  {g.label}
+                </SelectLabel>
+                {g.items.map((o) => (
+                  <SelectItem key={o.ref} value={o.ref} className="py-1.5">
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate font-medium">{o.name}</span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        {o.sameRole ? "" : `${o.jobTitle} · `}
+                        {o.stage} · <span className="font-mono">{o.ref}</span>
+                      </span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
+        <FieldError message={errors.ref} />
+      </div>
+      <Button
+        type="submit"
+        className={`h-11 sm:mt-5.5 ${brandButton}`}
+        disabled={pending}
+      >
+        {pending && <Loader2 className="size-4 animate-spin" />}
+        Link replacement
+      </Button>
+      {formError && (
+        <div className="sm:col-span-2">
+          <FormStatus error={formError} />
+        </div>
+      )}
+    </form>
+  );
+}
+
+export function CloseReplacementForm({ placementId }: { placementId: string }) {
+  const { formAction, pending, errors, formError, clearAll, onChange } =
+    useAdminForm(closeReplacement.bind(null, placementId), "Replacement closed");
+  return (
+    <form
+      onSubmit={(e) => {
+        clearAll();
+        submitManually(formAction)(e);
+      }}
+      onChange={onChange}
+      noValidate
+      className="space-y-3"
+    >
+      <div className="space-y-2">
+        <Label htmlFor="note">Why no replacement is needed</Label>
+        <Textarea
+          id="note"
+          name="note"
+          rows={2}
+          maxLength={1000}
+          placeholder="For example, the company filled the role itself"
+          aria-invalid={!!errors.note}
+          className="bg-card"
+        />
+        <FieldError message={errors.note} />
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <FormStatus error={formError} />
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          className="font-head"
+          disabled={pending}
+        >
+          {pending && <Loader2 className="size-4 animate-spin" />}
+          Close without replacement
+        </Button>
+      </div>
+    </form>
   );
 }

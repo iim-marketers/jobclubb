@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 
 import {
+  CloseReplacementForm,
   ExtendDeadlineForm,
+  LinkReplacementForm,
   PlacementActions,
   RemoveDocumentButton,
   TermsForm,
@@ -23,6 +25,7 @@ import {
   ADMIN_PLACEMENT_LABELS,
   LEFT_REASONS,
   MAX_OFFER_FILES,
+  REPLACEMENT_MONTHS,
   formatDateOnly,
   formatRupees,
   isReleased,
@@ -31,9 +34,18 @@ import {
 } from "@/lib/placements";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/server/admin/session";
-import { getAdminPlacement } from "@/server/placements/placements";
+import {
+  getAdminPlacement,
+  listReplacementCandidates,
+} from "@/server/placements/placements";
 
 export const metadata = { title: "Placement — JobClubb admin" };
+
+const REPLACEMENT_LABELS = {
+  owed: "Owed",
+  fulfilled: "Referred",
+  waived: "Closed",
+} as const;
 
 const formatDate = (value: string | null) =>
   value
@@ -118,6 +130,8 @@ export default async function AdminPlacementPage({
   const { id } = await params;
   const p = await getAdminPlacement(id);
   if (!p) notFound();
+  const replacementOptions =
+    p.replacement?.status === "owed" ? await listReplacementCandidates(p.id) : [];
 
   const released = isReleased(p.status);
   const today = todayIst();
@@ -201,9 +215,69 @@ export default async function AdminPlacementPage({
         </div>
         {p.left && (
           <p className="rounded-2xl bg-orange-500/10 px-4 py-3 text-sm text-orange-800 dark:text-orange-300">
-            The employer reported: {LEFT_REASONS[p.left.reason].toLowerCase()}, last working day{" "}
+            The employer reported: {LEFT_REASONS[p.left.reason].toLowerCase()}
+            {p.left.resignedOn && ` on ${formatDateOnly(p.left.resignedOn)}`}, last working day{" "}
             {formatDateOnly(p.left.leftOn)}.{p.left.notes && ` “${p.left.notes}”`}
           </p>
+        )}
+        {p.replacement && (
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-head text-sm font-bold">Replacement</h2>
+              <Badge
+                className={cn(
+                  "font-head font-bold",
+                  p.replacement.status === "owed"
+                    ? "bg-amber-500/12 text-amber-700 dark:text-amber-300"
+                    : p.replacement.status === "fulfilled"
+                      ? "bg-good/12 text-good"
+                      : "bg-muted text-muted-foreground",
+                )}
+              >
+                {REPLACEMENT_LABELS[p.replacement.status]}
+              </Badge>
+            </div>
+            {p.replacement.status === "owed" ? (
+              <div className="mt-3 space-y-5">
+                <p className="text-sm text-muted-foreground">
+                  They resigned within {REPLACEMENT_MONTHS} months of joining,
+                  so JobClubb owes {p.companyName} one replacement. Screen and
+                  refer a candidate as usual, then link them here. If the job
+                  is closed, ask the company to reopen it.
+                </p>
+                <LinkReplacementForm
+                  placementId={p.id}
+                  designation={p.designation}
+                  options={replacementOptions}
+                />
+                <Disclosure label="Close without a replacement">
+                  <CloseReplacementForm placementId={p.id} />
+                </Disclosure>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                {p.replacement.status === "fulfilled" ? (
+                  <>
+                    {p.replacement.ref ? (
+                      <Link
+                        href={`/admin/applications/${p.replacement.ref}`}
+                        className="font-medium text-brand hover:underline"
+                      >
+                        {p.replacement.candidate}
+                      </Link>
+                    ) : (
+                      "A candidate"
+                    )}{" "}
+                    was referred as the replacement
+                  </>
+                ) : (
+                  <>Closed without a replacement: “{p.replacement.note}”</>
+                )}
+                {p.replacement.closedAt &&
+                  ` (${formatDate(p.replacement.closedAt)}).`}
+              </p>
+            )}
+          </div>
         )}
         {releaseBlocker && (
           <p className="rounded-2xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">

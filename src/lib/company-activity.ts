@@ -19,6 +19,7 @@ export type Applicant = {
   status: "active" | "rejected";
   selected: boolean;
   referredOn: string;
+  replaces: string | null;
 };
 
 export const candidateLabel = (no: number) => `CAND-${String(no).padStart(4, "0")}`;

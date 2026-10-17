@@ -20,7 +20,12 @@ import {
   withdrawPlacement,
 } from "@/server/placements/placements";
 
-export type OfferFormState = { errors?: FieldErrors; error?: string; ok?: boolean };
+export type OfferFormState = {
+  errors?: FieldErrors;
+  error?: string;
+  ok?: boolean;
+  replacementOwed?: boolean;
+};
 
 const STALE = "This placement has already changed. Refresh to see the latest.";
 
@@ -90,14 +95,16 @@ export async function reportExit(
   const company = await requireCompany(COMPANY_SELECTED);
   const { values, errors } = validateLeaving(formData, joiningDate);
   if (Object.keys(errors).length > 0) return { errors };
+  let reported;
   try {
-    if (!(await reportLeaving(placementId, values, { companyId: company.id })))
-      return { error: STALE };
+    reported = await reportLeaving(placementId, values, { companyId: company.id });
   } catch (error) {
     console.error("Reporting exit failed", error);
     return { error: "We couldn't save that. Please try again." };
   }
-  after(() => sendLeavingReported(placementId, values));
+  if (!reported) return { error: STALE };
+  const { replacementOwed } = reported;
+  after(() => sendLeavingReported(placementId, values, replacementOwed));
   revalidatePath("/company", "layout");
-  return { ok: true };
+  return { ok: true, replacementOwed };
 }

@@ -167,7 +167,7 @@ async function getInterview(companyId: string | null, id: string) {
   let query = createAdminClient()
     .from("job_interviews")
     .select(
-      `host, starts_at, duration_mins, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, outcome_at, job_title, company_name, candidates (first_name, last_name, email, phone), job_applications (ref, company_jobs (city), placements (id)), companies (contact_name, designation, email, phone)`,
+      `host, starts_at, duration_mins, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, outcome_at, job_title, company_name, candidates (first_name, last_name, email, phone), job_applications (ref, company_jobs (city), placements!placements_application_id_fkey (id)), companies (contact_name, designation, email, phone)`,
     )
     .eq("id", id);
   if (companyId) query = query.eq("company_id", companyId);

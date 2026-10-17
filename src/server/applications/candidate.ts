@@ -154,7 +154,7 @@ export async function getApplyState(candidateId: string, slug: string): Promise<
 const PLACEMENT_COLUMNS =
   "id, status, fee_amount, offer_deadline, joining_date, monthly_salary, offer_notes, released_at, accepted_at, closed_at";
 
-const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, screening_cleared_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (host, created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at), placements (${PLACEMENT_COLUMNS})`;
+const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, screening_cleared_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (host, created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at), placements!placements_application_id_fkey (${PLACEMENT_COLUMNS})`;
 
 type PlacementEmbed = {
   id: string;
@@ -411,7 +411,7 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
   const { data, error } = await createAdminClient()
     .from("job_interviews")
     .select(
-      `id, host, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path), placements (${PLACEMENT_COLUMNS}))`,
+      `id, host, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path), placements!placements_application_id_fkey (${PLACEMENT_COLUMNS}))`,
     )
     .eq("candidate_id", candidateId)
     .is("cancelled_at", null)
