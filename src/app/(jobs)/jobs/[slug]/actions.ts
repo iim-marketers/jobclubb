@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
 import { applyToJob } from "@/server/applications/candidate";
-import { sendApplicationReceived } from "@/server/applications/emails";
+import { sendApplicationSubmitted } from "@/server/applications/emails";
 import { requireMember } from "@/server/auth/current-candidate";
 import { acceptCurrentTerms, hasAcceptedCurrentTerms } from "@/server/auth/terms";
 import { setJobSaved } from "@/server/candidates/saved-jobs";
@@ -41,7 +41,7 @@ export async function applyToJobAction(
           : "This job is no longer accepting applications.",
     };
 
-  if (result.created) after(() => sendApplicationReceived(result.ref));
+  if (result.created) after(() => sendApplicationSubmitted(result.ref));
 
   revalidatePath(`/jobs/${slug}`);
   revalidatePath("/candidate", "layout");

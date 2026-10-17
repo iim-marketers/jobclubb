@@ -16,19 +16,23 @@ import {
   type InterviewOutcome,
   type InterviewPlaceRow,
 } from "@/lib/interviews";
+import { REFERRED_STAGE } from "@/lib/candidate-activity";
 import type { Resume } from "@/lib/resume";
 import { createAdminClient } from "@/lib/supabase/server";
-import { maskResume } from "@/server/applications/masking";
 
 // Every query here bypasses RLS: each must filter on company_id, and none may
 // return candidate_id, candidate_name, the unmasked resume, email or phone to
-// the caller. Names are revealed only through revealedNames().
+// the caller. Names are revealed only through revealedNames(). Applications
+// JobClubb hasn't referred yet (stage < 2) and JobClubb's own interviews must
+// never reach a company.
 
 const REF = /^JC-[0-9A-Z]{6}$/;
 const UUID = /^[0-9a-f-]{36}$/i;
 
 const APPLICANT_COLUMNS =
-  "ref, job_id, candidate_id, candidate_no, city, experience_months, skills, stage, status, created_at, shortlisted_at";
+  "ref, job_id, candidate_id, candidate_no, city, experience_months, skills, stage, status, shortlisted_at, referral_note, replaces:placements!placements_replacement_application_id_fkey (job_applications!placements_application_id_fkey (candidate_id, candidate_no, shortlisted_at))";
+
+type NameRow = { candidate_id: string; candidate_no: number; shortlisted_at: string | null };
 
 type ApplicantRow = {
   ref: string;
@@ -40,12 +44,25 @@ type ApplicantRow = {
   skills: string[];
   stage: number;
   status: Applicant["status"];
-  created_at: string;
-  shortlisted_at: string | null;
+  shortlisted_at: string;
+  referral_note: string | null;
+  replaces: ReplacesEmbed | ReplacesEmbed[] | null;
   job_interviews?: { outcome: InterviewOutcome | null }[];
 };
 
-export async function revealedNames(rows: Pick<ApplicantRow, "candidate_id" | "shortlisted_at">[]) {
+type ReplacesEmbed = { job_applications: NameRow };
+
+// A reverse embed on a unique column may come back as an object or an array.
+const replaced = (row: ApplicantRow) =>
+  (Array.isArray(row.replaces) ? row.replaces[0] : row.replaces)?.job_applications ?? null;
+
+const nameRows = (rows: ApplicantRow[]) =>
+  rows.flatMap((r) => {
+    const original = replaced(r);
+    return original ? [r, original] : [r];
+  });
+
+export async function revealedNames(rows: { candidate_id: string; shortlisted_at: string | null }[]) {
   const ids = rows.filter((r) => r.shortlisted_at).map((r) => r.candidate_id);
   if (ids.length === 0) return new Map<string, string>();
   const { data, error } = await createAdminClient()
@@ -54,6 +71,13 @@ export async function revealedNames(rows: Pick<ApplicantRow, "candidate_id" | "s
     .in("id", ids);
   if (error) throw error;
   return new Map(data.map((c) => [c.id as string, `${c.first_name} ${c.last_name}`]));
+}
+
+function replacedName(row: ApplicantRow, names: Map<string, string>) {
+  const original = replaced(row);
+  return original
+    ? (names.get(original.candidate_id) ?? candidateLabel(original.candidate_no))
+    : null;
 }
 
 function toApplicant(row: ApplicantRow, names: Map<string, string>): Applicant {
@@ -68,7 +92,8 @@ function toApplicant(row: ApplicantRow, names: Map<string, string>): Applicant {
     stage: row.stage,
     status: row.status,
     selected: !!row.job_interviews?.some((i) => i.outcome === "selected"),
-    appliedOn: row.created_at,
+    referredOn: row.shortlisted_at,
+    replaces: replacedName(row, names),
   };
 }
 
@@ -77,20 +102,22 @@ export async function listCompanyApplicants(companyId: string, jobId?: string) {
     .from("job_applications")
     .select(`${APPLICANT_COLUMNS}, job_interviews (outcome)`)
     .eq("company_id", companyId)
+    .gte("stage", REFERRED_STAGE)
     .eq("job_interviews.outcome", "selected")
-    .order("created_at", { ascending: false });
+    .order("shortlisted_at", { ascending: false });
   if (jobId) {
     if (!UUID.test(jobId)) return [];
     query = query.eq("job_id", jobId);
   }
   const { data, error } = await query;
   if (error) throw error;
-  const rows = data as ApplicantRow[];
-  const names = await revealedNames(rows);
+  const rows = data as unknown as ApplicantRow[];
+  const names = await revealedNames(nameRows(rows));
   return rows.map((r) => toApplicant(r, names));
 }
 
 export type ApplicantDetail = Applicant & {
+  referralNote: string;
   designation: string;
   jobClosed: boolean;
   jobLocation: { city: string; pincode: string };
@@ -109,6 +136,7 @@ export async function getCompanyApplicant(
     .select(`${APPLICANT_COLUMNS}, masked_resume, company_jobs (designation, status, city, pincode)`)
     .eq("company_id", companyId)
     .eq("ref", ref)
+    .gte("stage", REFERRED_STAGE)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
@@ -118,12 +146,13 @@ export async function getCompanyApplicant(
     company_jobs: { designation: string; status: string; city: string; pincode: string };
   };
   const [names, interviews] = await Promise.all([
-    revealedNames([row]),
+    revealedNames(nameRows([row])),
     listCompanyInterviews(companyId, ref),
   ]);
   const latest = interviews.at(-1);
   return {
     ...toApplicant(row, names),
+    referralNote: row.referral_note ?? "",
     designation: row.company_jobs.designation,
     jobClosed: row.company_jobs.status === "closed",
     jobLocation: { city: row.company_jobs.city, pincode: row.company_jobs.pincode },
@@ -168,6 +197,7 @@ export async function listCompanyInterviews(
     .from("job_interviews")
     .select(INTERVIEW_COLUMNS)
     .eq("company_id", companyId)
+    .eq("host", "company")
     .is("cancelled_at", null)
     .order("starts_at");
   if (ref) query = query.eq("job_applications.ref", ref);
@@ -201,6 +231,7 @@ export async function countWalkInsAwayFrom(companyId: string, pincode: string) {
     .from("job_interviews")
     .select("id", { count: "exact", head: true })
     .eq("company_id", companyId)
+    .eq("host", "company")
     .eq("mode", "in_person")
     .neq("pincode", pincode)
     .gt("starts_at", now())
@@ -212,61 +243,6 @@ export async function countWalkInsAwayFrom(companyId: string, pincode: string) {
 
 const now = () => new Date().toISOString();
 
-export async function markApplicantViewed(companyId: string, ref: string) {
-  if (!REF.test(ref)) return false;
-  const at = now();
-  const { data, error } = await createAdminClient()
-    .from("job_applications")
-    .update({ stage: 1, viewed_at: at, updated_at: at })
-    .eq("company_id", companyId)
-    .eq("ref", ref)
-    .eq("stage", 0)
-    .eq("status", "active")
-    .select("ref");
-  if (error) throw error;
-  return data.length > 0;
-}
-
-export type ShortlistResult = "shortlisted" | "unchanged";
-
-export async function shortlistApplicant(companyId: string, ref: string): Promise<ShortlistResult> {
-  if (!REF.test(ref)) return "unchanged";
-  const admin = createAdminClient();
-  const { data: row, error } = await admin
-    .from("job_applications")
-    .select("candidate_id, stage, status, viewed_at, resume, candidates (first_name, last_name)")
-    .eq("company_id", companyId)
-    .eq("ref", ref)
-    .maybeSingle();
-  if (error) throw error;
-  if (!row || row.status !== "active" || row.stage >= 2) return "unchanged";
-
-  const candidate = row.candidates as unknown as { first_name: string; last_name: string };
-  const masked = maskResume(
-    row.resume as Resume,
-    { firstName: candidate.first_name, lastName: candidate.last_name },
-    { revealName: true },
-  );
-
-  const at = now();
-  const { data, error: updateError } = await admin
-    .from("job_applications")
-    .update({
-      stage: 2,
-      viewed_at: row.viewed_at ?? at,
-      shortlisted_at: at,
-      masked_resume: masked,
-      updated_at: at,
-    })
-    .eq("company_id", companyId)
-    .eq("ref", ref)
-    .eq("stage", row.stage)
-    .eq("status", "active")
-    .select("ref");
-  if (updateError) throw updateError;
-  return data.length > 0 ? "shortlisted" : "unchanged";
-}
-
 // Selected applicants and offers (stage 4) are settled through JobClubb, so
 // they can't be rejected here.
 export async function rejectApplicant(companyId: string, ref: string) {
@@ -277,6 +253,7 @@ export async function rejectApplicant(companyId: string, ref: string) {
     .select("id, job_applications!inner (ref)", { count: "exact", head: true })
     .eq("company_id", companyId)
     .eq("job_applications.ref", ref)
+    .eq("host", "company")
     .eq("outcome", "selected");
   if (selectedError) throw selectedError;
   if (count) return false;
@@ -288,13 +265,14 @@ export async function rejectApplicant(companyId: string, ref: string) {
     .eq("company_id", companyId)
     .eq("ref", ref)
     .eq("status", "active")
+    .gte("stage", REFERRED_STAGE)
     .lt("stage", 4)
     .select("ref");
   if (error) throw error;
   return data.length > 0;
 }
 
-const interviewFields = (input: InterviewInput) => ({
+export const interviewFields = (input: InterviewInput) => ({
   starts_at: input.startsAt,
   duration_mins: input.durationMins,
   finished_at: null,
@@ -322,6 +300,7 @@ export async function scheduleInterview(
     .select("id")
     .eq("company_id", companyId)
     .eq("ref", ref)
+    .gte("stage", REFERRED_STAGE)
     .maybeSingle();
   if (error) throw error;
   if (!app) return null;
@@ -341,6 +320,7 @@ function openInterview(companyId: string, id: string, update: Record<string, unk
     .from("job_interviews")
     .update(update)
     .eq("company_id", companyId)
+    .eq("host", "company")
     .eq("id", id)
     .is("cancelled_at", null)
     .is("outcome", null);

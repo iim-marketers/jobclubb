@@ -153,8 +153,8 @@ export const HOW_IT_WORKS = [
   },
   {
     step: "02",
-    title: "Browse jobs & set interviews",
-    body: "Search roles that suit your skills. Members enjoy guaranteed interviews with hiring employers, plus recommendations tuned to your profile.",
+    title: "Apply & get screened",
+    body: "Apply in one click to roles that suit your skills. JobClubb screens and interviews you first, then refers shortlisted candidates to the employer. Members enjoy guaranteed interviews with hiring employers.",
   },
   {
     step: "03",
@@ -164,7 +164,7 @@ export const HOW_IT_WORKS = [
   {
     step: "04",
     title: "Get your dream job",
-    body: "Walk in ready to nail the interview and land the role. We support you every step, from application to onboarding.",
+    body: "Walk in ready for the employer's interview. They make the final selection, your offer letter comes through JobClubb, and we support you all the way to onboarding.",
   },
 ];
 

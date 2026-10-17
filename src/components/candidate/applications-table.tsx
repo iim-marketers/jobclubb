@@ -47,6 +47,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  STAGES,
   applicationStatus,
   formatShortDate,
   type Application,
@@ -74,10 +75,7 @@ const SEARCHABLE = new Set(["role", "company", "location"]);
 const PAGE_SIZE = 8;
 
 const STATUS_ORDER = [
-  "Applied",
-  "Viewed",
-  "Shortlisted",
-  "Interview",
+  ...STAGES,
   "Selected",
   "Offer accepted",
   "Hired",

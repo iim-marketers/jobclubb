@@ -274,7 +274,7 @@ export function ContactForm({ defaults }: { defaults: CompanyDefaults }) {
     <SectionForm
       id="contact"
       title="Contact person"
-      description="Who JobClubb and shortlisted candidates hear from."
+      description="Who JobClubb and referred candidates hear from."
       action={updateCompanyContact}
       successMessage="Contact details saved"
     >

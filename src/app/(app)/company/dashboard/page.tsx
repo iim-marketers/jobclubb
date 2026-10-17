@@ -30,11 +30,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  REFERRED_STAGE,
   formatInterviewDate,
   formatInterviewTime,
 } from "@/lib/candidate-activity";
 import {
-  STAGES,
+  COMPANY_STAGES,
   upcomingCompanyInterviews,
   type CompanyInterview,
 } from "@/lib/company-activity";
@@ -72,7 +73,7 @@ export default async function CompanyDashboard() {
   const checklist = [
     { label: "Get your company verified", done: true },
     { label: "Post your first job", done: jobs.length > 0 },
-    { label: "Receive your first applicant", done: applicants.length > 0 },
+    { label: "Receive your first referral", done: applicants.length > 0 },
     { label: "Schedule an interview", done: interviews.length > 0 },
   ];
 
@@ -85,16 +86,16 @@ export default async function CompanyDashboard() {
       tone: "good" as const,
     },
     {
-      label: "Applicants",
+      label: "Referred",
       value: applicants.length,
-      note: `${active.filter((a) => a.stage === 0).length} not yet reviewed`,
+      note: `${active.filter((a) => a.stage === REFERRED_STAGE).length} awaiting your interview`,
       icon: Users,
       tone: "brand" as const,
     },
     {
-      label: "Shortlisted",
-      value: active.filter((a) => a.stage === 2).length,
-      note: "Ready for interview",
+      label: "Interviewing",
+      value: active.filter((a) => a.stage > REFERRED_STAGE).length,
+      note: "Interview or offer stage",
       icon: ListChecks,
       tone: "brand" as const,
     },
@@ -116,7 +117,7 @@ export default async function CompanyDashboard() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {jobs.length === 0 ? (
-              "Post your first opening to start receiving applicants."
+              "Post your first opening to start receiving referred candidates."
             ) : (
               <>
                 You have{" "}
@@ -125,8 +126,8 @@ export default async function CompanyDashboard() {
                 </span>{" "}
                 and{" "}
                 <span className="font-semibold text-foreground">
-                  {applicants.length}{" "}
-                  {applicants.length === 1 ? "applicant" : "applicants"}
+                  {applicants.length} referred{" "}
+                  {applicants.length === 1 ? "candidate" : "candidates"}
                 </span>{" "}
                 so far.
               </>
@@ -178,7 +179,7 @@ export default async function CompanyDashboard() {
 
         <Panel
           title="Hiring pipeline"
-          description="Active applicants by stage"
+          description="Active referrals by stage"
           action={
             <Link
               href={`${COMPANY_HOME}/applicants`}
@@ -189,7 +190,8 @@ export default async function CompanyDashboard() {
           }
         >
           <ul className="space-y-3.5">
-            {STAGES.map((stage, i) => {
+            {COMPANY_STAGES.map((stage, offset) => {
+              const i = offset + REFERRED_STAGE;
               const count = active.filter((a) => a.stage === i).length;
               const share = active.length ? count / active.length : 0;
               return (
@@ -315,7 +317,8 @@ function CompanySummary({
             </>
           ) : (
             <p className="mt-1.5 text-sm text-white/80">
-              Nothing scheduled. Shortlist applicants to set up interviews.
+              Nothing scheduled. JobClubb refers screened candidates here;
+              schedule their interview from their profile.
             </p>
           )}
         </div>
@@ -434,7 +437,7 @@ function RecentPostings({
                 Status
               </TableHead>
               <TableHead className="h-10 px-3 text-right text-xs font-semibold text-muted-foreground">
-                Applicants
+                Referred
               </TableHead>
               <TableHead className="h-10 w-10 pr-4">
                 <span className="sr-only">Open</span>

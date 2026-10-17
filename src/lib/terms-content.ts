@@ -49,7 +49,7 @@ export const TERMS_SECTIONS = [
 
 // Employers sign up under their own terms. The candidate placement fee is a
 // matter between the candidate and JobClubb, so it must never appear here.
-export const EMPLOYER_TERMS_VERSION = "2026.10.1";
+export const EMPLOYER_TERMS_VERSION = "2026.10.2";
 
 export const EMPLOYER_TERMS_SECTIONS = [
   {
@@ -70,22 +70,26 @@ export const EMPLOYER_TERMS_SECTIONS = [
   },
   {
     heading: "5. Interviews and selection",
-    body: "You schedule interviews and record their outcomes on JobClubb. When you select a candidate, you upload the offer letter and its key terms on JobClubb, and JobClubb shares the offer with the candidate. You record on JobClubb whether the candidate joined.",
+    body: "You schedule interviews and record their outcomes on JobClubb. When you select a candidate, you upload the offer letter and its key terms on JobClubb, and JobClubb shares the offer with the candidate. You record on JobClubb whether the candidate joined, and you promptly report on JobClubb if they later resign, are terminated or stop working with you for any other reason.",
   },
   {
-    heading: "6. Offers through JobClubb",
+    heading: "6. Replacement if a candidate resigns",
+    body: "If a candidate placed through JobClubb voluntarily resigns within three months of their joining date, JobClubb will refer one replacement candidate for the role, screened and interviewed in the usual way. You must promptly notify JobClubb of the resignation, with the date they resigned. This applies once per original placement: it does not apply to a replacement candidate who later resigns, or where the candidate is terminated or their employment ends for another reason.",
+  },
+  {
+    heading: "7. Offers through JobClubb",
     body: "Every offer to a candidate you found on JobClubb is made through JobClubb. You agree not to send the offer to the candidate, or contact the candidate about the role, outside JobClubb. If you hire a candidate introduced through JobClubb within 12 months of their application without going through JobClubb, you owe JobClubb a fee equal to one month's fixed gross salary of that candidate.",
   },
   {
-    heading: "7. Personal data",
+    heading: "8. Personal data",
     body: "You may use candidate information only to assess candidates for the role they applied to, in line with the Digital Personal Data Protection Act. You must not copy it out of JobClubb, share it with third parties or keep it longer than needed for that hiring decision.",
   },
   {
-    heading: "8. Acceptable use",
+    heading: "9. Acceptable use",
     body: "You agree not to submit false information, impersonate another organisation, scrape the platform, or use JobClubb for anything other than hiring for your own property.",
   },
   {
-    heading: "9. Changes and contact",
+    heading: "10. Changes and contact",
     body: "We may update these terms from time to time and will ask you to accept any material change. Questions can be sent to support@jobclubb.com. By ticking the box below you confirm you have read this document in full.",
   },
 ];

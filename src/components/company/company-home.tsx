@@ -4,8 +4,8 @@ import {
   BadgeCheck,
   Briefcase,
   Building2,
+  ClipboardCheck,
   Clock,
-  EyeOff,
   GraduationCap,
   LayoutDashboard,
   MapPin,
@@ -29,7 +29,7 @@ import {
 import { RecruiterBoard } from "@/components/recruiter-board";
 import { SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { formatShortDate } from "@/lib/candidate-activity";
+import { REFERRED_STAGE, formatShortDate } from "@/lib/candidate-activity";
 import {
   STAGES,
   formatExperienceMonths,
@@ -57,12 +57,12 @@ const EMPLOYER_POINTS = [
   {
     icon: BadgeCheck,
     title: "Members only",
-    body: "Every applicant is a verified JobClubb member who has committed to their job search.",
+    body: "Every candidate is a verified JobClubb member who has committed to their job search.",
   },
   {
-    icon: EyeOff,
-    title: "Capability first",
-    body: "Review skills and experience without bias. Names appear once you shortlist.",
+    icon: ClipboardCheck,
+    title: "Pre-screened",
+    body: "JobClubb screens and interviews every candidate before referring them to you.",
   },
   {
     icon: Zap,
@@ -84,7 +84,7 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
   ]);
 
   const active = applicants.filter((a) => a.status === "active");
-  const unreviewed = active.filter((a) => a.stage === 0);
+  const unreviewed = active.filter((a) => a.stage === REFERRED_STAGE);
   const live = jobs.filter((j) => j.status === "live");
   const designations = new Map(jobs.map((j) => [j.id, j.designation]));
   const queue = (unreviewed.length ? unreviewed : applicants).slice(0, SHOWN);
@@ -110,8 +110,8 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
               <span className="text-brand-accent">{name}</span>
             </h1>
             <p className="mt-3 max-w-lg text-base leading-7 text-white/75">
-              Post roles, review verified members on their skills and hire your
-              next team member faster.
+              Post roles, meet candidates JobClubb has screened for you and hire
+              your next team member faster.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -130,7 +130,7 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
                 render={<Link href={COMPANY_APPLICANTS} />}
               >
                 <UserRoundSearch className="size-4" />
-                Review applicants
+                Review referrals
               </Button>
             </div>
 
@@ -157,10 +157,10 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
             city={company.city}
             stats={[
               { label: "Live jobs", value: live.length },
-              { label: "Applicants", value: applicants.length },
+              { label: "Referred", value: applicants.length },
               {
-                label: "Shortlisted",
-                value: active.filter((a) => a.stage >= 2).length,
+                label: "Interviewing",
+                value: active.filter((a) => a.stage > REFERRED_STAGE).length,
               },
             ]}
             unreviewed={unreviewed.length}
@@ -171,21 +171,21 @@ export async function CompanyHome({ company }: { company: CurrentCompany }) {
       <section className="px-4 py-12 sm:px-6 md:py-16">
         <div className="mx-auto max-w-6xl">
           <SectionHeading
-            eyebrow={unreviewed.length ? "Needs your review" : "Applicants"}
+            eyebrow={unreviewed.length ? "Needs an interview" : "Referrals"}
             title={
               unreviewed.length
-                ? "New applicants waiting on you"
-                : "Latest applicants"
+                ? "New referrals waiting on you"
+                : "Latest referrals"
             }
             href={COMPANY_APPLICANTS}
-            linkLabel="All applicants"
+            linkLabel="All referrals"
           />
           {queue.length === 0 ? (
             <div className="mt-6">
-              <EmptyState icon={Users} title="No applicants yet">
+              <EmptyState icon={Users} title="No referrals yet">
                 {live.length
-                  ? "Members matched on sector and city will start applying soon."
-                  : "Post a job to start receiving applicants from verified members."}
+                  ? "JobClubb is screening members for your postings and will refer the best fits here."
+                  : "Post a job and JobClubb will refer screened, verified members to you."}
               </EmptyState>
             </div>
           ) : (
@@ -345,12 +345,12 @@ function CompanyCard({
         {unreviewed > 0 ? (
           <>
             <span className="font-semibold text-foreground">
-              {unreviewed} {unreviewed === 1 ? "applicant" : "applicants"}
+              {unreviewed} new {unreviewed === 1 ? "referral" : "referrals"}
             </span>{" "}
-            waiting for review
+            waiting for an interview
           </>
         ) : (
-          "You're all caught up on applicants"
+          "You're all caught up on referrals"
         )}
       </p>
 
@@ -407,11 +407,9 @@ function ApplicantCard({
         >
           {rejected
             ? "Not selected"
-            : a.stage === 0
-              ? "New"
-              : a.selected
-                ? "Selected"
-                : STAGES[a.stage]}
+            : a.selected
+              ? "Selected"
+              : STAGES[a.stage]}
         </span>
       </div>
 
@@ -447,7 +445,7 @@ function ApplicantCard({
       <div className="mt-auto pt-4">
         <div className="flex -mx-4 px-4 items-center justify-between gap-2 border-t border-border pt-3">
           <span className="text-xs text-muted-foreground">
-            Applied {formatShortDate(a.appliedOn)}
+            Referred {formatShortDate(a.referredOn)}
           </span>
           <span className="inline-flex items-center gap-1 font-head text-xs font-bold text-brand">
             Review
@@ -468,9 +466,15 @@ function PostingCard({
 }) {
   const active = applicants.filter((a) => a.status === "active");
   const counts = [
-    { label: "Applied", value: applicants.length },
-    { label: "New", value: active.filter((a) => a.stage === 0).length },
-    { label: "Shortlisted", value: active.filter((a) => a.stage >= 2).length },
+    { label: "Referred", value: applicants.length },
+    {
+      label: "New referrals",
+      value: active.filter((a) => a.stage === REFERRED_STAGE).length,
+    },
+    {
+      label: "Interviewing",
+      value: active.filter((a) => a.stage > REFERRED_STAGE).length,
+    },
   ];
 
   return (

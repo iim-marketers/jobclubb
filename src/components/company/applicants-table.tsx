@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   EyeOff,
+  ClipboardCheck,
   UserRoundSearch,
 } from "lucide-react";
 import {
@@ -37,6 +38,7 @@ import {
   TableToolbar,
 } from "@/components/table-toolbar";
 import { applicantHref } from "@/components/company/nav";
+import { ReplacementTag } from "@/components/company/replacement-tag";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -46,7 +48,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatShortDate } from "@/lib/candidate-activity";
+import { REFERRED_STAGE, formatShortDate } from "@/lib/candidate-activity";
 import {
   STAGES,
   formatExperienceMonths,
@@ -79,16 +81,16 @@ const MAX_SKILLS = 2;
 
 const TABS = [
   { key: "all", label: "All" },
-  { key: "new", label: "New" },
-  { key: "shortlisted", label: "Shortlisted" },
+  { key: "new", label: "New referrals" },
+  { key: "interviewing", label: "Interviewing" },
   { key: "rejected", label: "Not selected" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
 
 function inTab(a: Applicant, tab: TabKey) {
-  if (tab === "new") return a.status === "active" && a.stage === 0;
-  if (tab === "shortlisted") return a.status === "active" && a.stage >= 2;
+  if (tab === "new") return a.status === "active" && a.stage === REFERRED_STAGE;
+  if (tab === "interviewing") return a.status === "active" && a.stage > REFERRED_STAGE;
   if (tab === "rejected") return a.status === "rejected";
   return true;
 }
@@ -134,6 +136,11 @@ const columns = helper.columns([
             <p className="truncate text-xs whitespace-nowrap text-muted-foreground">
               <span className="font-mono">{a.ref}</span> · {a.city}
             </p>
+            {a.replaces && (
+              <div className="mt-1">
+                <ReplacementTag replaces={a.replaces} />
+              </div>
+            )}
           </div>
         </div>
       );
@@ -141,7 +148,7 @@ const columns = helper.columns([
   }),
   helper.accessor("jobTitle", {
     id: "job",
-    header: "Applied for",
+    header: "Referred for",
     sortFn: "text",
     cell: ({ getValue }) => (
       <span className="block max-w-48 truncate text-muted-foreground">
@@ -208,18 +215,16 @@ const columns = helper.columns([
           >
             {rejected
               ? "Not selected"
-              : a.stage === 0
-                ? "New"
-                : a.selected
-                  ? "Selected"
-                  : STAGES[a.stage]}
+              : a.selected
+                ? "Selected"
+                : STAGES[a.stage]}
           </span>
         </div>
       );
     },
   }),
-  helper.accessor("appliedOn", {
-    header: "Applied",
+  helper.accessor("referredOn", {
+    header: "Referred",
     sortFn: "alphanumeric",
     sortDescFirst: true,
     cell: ({ getValue }) => (
@@ -242,7 +247,7 @@ const COLUMN_CLASS: Record<string, string> = {
   job: "hidden lg:table-cell",
   experience: "hidden md:table-cell",
   skills: "hidden xl:table-cell",
-  appliedOn: "hidden sm:table-cell",
+  referredOn: "hidden sm:table-cell",
   open: "w-10 pr-4 sm:pr-5",
 };
 
@@ -270,7 +275,7 @@ export function ApplicantsTable({
     globalFilterFn: "includesString",
     getColumnCanGlobalFilter: (column) => SEARCHABLE.has(column.id),
     initialState: {
-      sorting: [{ id: "appliedOn", desc: true }],
+      sorting: [{ id: "referredOn", desc: true }],
       pagination: { pageIndex: 0, pageSize: PAGE_SIZE },
     },
   });
@@ -452,9 +457,9 @@ export function IdentityNotice({ className }: { className?: string }) {
         className,
       )}
     >
-      <EyeOff className="mt-0.5 size-3.5 flex-none" />
-      You assess applicants on skills and experience first. Names appear once
-      you shortlist someone.
+      <ClipboardCheck className="mt-0.5 size-3.5 flex-none" />
+      Every candidate here has been screened and interviewed by JobClubb before
+      being referred to you.
     </p>
   );
 }

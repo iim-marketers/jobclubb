@@ -11,7 +11,7 @@ import { ApplicationsTable } from "@/components/candidate/applications-table";
 import { DashboardHeader, StatTile } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
-import { STAGES } from "@/lib/candidate-activity";
+import { REFERRED_STAGE, STAGES } from "@/lib/candidate-activity";
 import { cn } from "@/lib/utils";
 import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
@@ -34,7 +34,7 @@ export default async function ApplicationsPage() {
     <div className="space-y-6">
       <DashboardHeader
         title="Applications"
-        description="Track every role you've applied to, from first view to offer."
+        description="Track every role you've applied to, from screening to offer."
         action={
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
@@ -57,7 +57,7 @@ export default async function ApplicationsPage() {
         <StatTile
           label="In progress"
           value={active.length}
-          note="Awaiting employer action"
+          note="Still being considered"
           icon={Hourglass}
         />
         <StatTile
@@ -68,17 +68,17 @@ export default async function ApplicationsPage() {
           tone="good"
         />
         <StatTile
-          label="Response rate"
+          label="Referral rate"
           value={
             applications.length
               ? `${Math.round(
-                  (applications.filter((a) => a.stage >= 1).length /
+                  (applications.filter((a) => a.stage >= REFERRED_STAGE).length /
                     applications.length) *
                     100,
                 )}%`
               : "—"
           }
-          note="Viewed by employers"
+          note="Referred to employers"
           icon={Briefcase}
           tone="muted"
         />

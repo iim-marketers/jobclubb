@@ -11,7 +11,13 @@ import {
   placementCompanyEmail,
   placementInternalEmail,
 } from "@/lib/email/templates/placement";
-import { PLACEMENT_EMAIL, formatDateOnly, formatRupees } from "@/lib/placements";
+import {
+  LEFT_REASONS,
+  PLACEMENT_EMAIL,
+  formatDateOnly,
+  formatRupees,
+  type Leaving,
+} from "@/lib/placements";
 import { SITE_URL } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/server";
 
@@ -30,7 +36,7 @@ async function load(id: string) {
   const { data, error } = await createAdminClient()
     .from("placements")
     .select(
-      "id, fee_amount, monthly_salary, joining_date, offer_deadline, job_applications (ref, job_title, company_name), candidates (first_name, last_name, email, phone), companies (contact_name, email, phone)",
+      "id, fee_amount, monthly_salary, joining_date, offer_deadline, job_applications!placements_application_id_fkey (ref, job_title, company_name), candidates (first_name, last_name, email, phone), companies (contact_name, email, phone)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -331,6 +337,55 @@ export function sendOfferExpired(id: string) {
           ],
           details: roleDetails(p),
           adminUrl: adminUrl(p),
+        }),
+      },
+    ];
+  });
+}
+
+export function sendLeavingReported(id: string, leaving: Leaving, replacementOwed: boolean) {
+  return send("leaving reported", async () => {
+    const p = await load(id);
+    if (!p) return [];
+    const internal = {
+      to: PLACEMENT_EMAIL,
+      ...placementInternalEmail({
+        subject: `${replacementOwed ? "Replacement owed" : LEFT_REASONS[leaving.reason]}: ${candidateName(p)} at ${p.job_applications.company_name}`,
+        heading: replacementOwed ? "A replacement is owed" : "The employer reported an exit",
+        paragraphs: [
+          `${p.job_applications.company_name} reported that ${candidateName(p)} is no longer employed as ${p.job_applications.job_title}. Last working day: ${formatDateOnly(leaving.leftOn)}.`,
+          ...(replacementOwed
+            ? [
+                `They resigned on ${formatDateOnly(leaving.resignedOn!)}, within three months of joining, so JobClubb owes the company a replacement candidate. Refer one, then link them on the placement page.`,
+              ]
+            : []),
+          ...(leaving.notes ? [`Employer's note: ${leaving.notes}`] : []),
+        ],
+        details: [
+          ...roleDetails(p),
+          { label: "Reason", value: LEFT_REASONS[leaving.reason] },
+          ...(leaving.resignedOn
+            ? [{ label: "Resigned on", value: formatDateOnly(leaving.resignedOn) }]
+            : []),
+        ],
+        adminUrl: adminUrl(p),
+      }),
+    };
+    if (!replacementOwed) return [internal];
+    return [
+      internal,
+      {
+        to: p.companies.email,
+        ...placementCompanyEmail({
+          contactName: p.companies.contact_name,
+          email: p.companies.email,
+          subject: `We'll refer a replacement for ${p.job_applications.job_title}`,
+          heading: "A replacement is on its way",
+          paragraphs: [
+            `Thank you for letting us know that ${candidateName(p)} resigned. Because they resigned within three months of joining, JobClubb will refer a replacement candidate for the ${p.job_applications.job_title} position.`,
+            "We'll screen and interview candidates as usual before referring them. Keep the job open, or reopen it, so candidates can apply.",
+          ],
+          cta: { label: "View selected candidates", url: companyUrl },
         }),
       },
     ];

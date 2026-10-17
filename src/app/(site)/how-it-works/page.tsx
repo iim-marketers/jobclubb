@@ -21,8 +21,8 @@ const STEPS = [
   },
   {
     step: "02",
-    title: "Browse jobs & set interviews",
-    body: "Search roles that suit your skills. Members enjoy guaranteed interviews with hiring employers, plus recommendations tuned to your profile.",
+    title: "Apply & get screened",
+    body: "Apply in one click to roles that suit your skills. JobClubb screens and interviews you first, then refers shortlisted candidates to the employer. Members enjoy guaranteed interviews with hiring employers.",
   },
   {
     step: "03",
@@ -32,7 +32,7 @@ const STEPS = [
   {
     step: "04",
     title: "Get your dream job",
-    body: "When an employer selects you, JobClubb brings you the offer. Pay the one-time placement fee, equal to one month's fixed gross salary, to receive your offer letter, and we support you through to onboarding.",
+    body: "Interview with the employer. When they select you, JobClubb brings you the offer. Pay the one-time placement fee, equal to one month's fixed gross salary, to receive your offer letter, and we support you through to onboarding.",
   },
 ];
 
@@ -44,7 +44,7 @@ export default async function HowItWorksPage() {
       <PageHeader
         eyebrow="For job seekers"
         title="How JobClubb works"
-        description="A direct application model — you apply straight to live, verified openings, with no unnecessary intermediaries."
+        description="Apply to live, verified openings. JobClubb screens and interviews you first, then refers you to the employer for the final selection."
       />
 
       <Section>

@@ -20,14 +20,14 @@ export function applicationSubmittedEmail({
   applicationUrl: string;
 }) {
   return renderEmail({
-    subject: `Application sent: ${jobTitle} at ${companyName}`,
-    preheader: `Your application for ${jobTitle} has been sent to ${companyName}.`,
-    eyebrow: "Application sent",
-    heading: "Your application has been sent",
+    subject: `Application received: ${jobTitle} at ${companyName}`,
+    preheader: `JobClubb has received your application for ${jobTitle} at ${companyName}.`,
+    eyebrow: "Application received",
+    heading: "We've received your application",
     greeting: `Dear ${firstName},`,
     paragraphs: [
-      `Thank you for applying for the ${jobTitle} position at ${companyName}. Your application has been shared with the employer for review.`,
-      "Your name and contact details stay confidential until the employer shortlists you. We will email you as soon as there is an update.",
+      `Thank you for applying for the ${jobTitle} position at ${companyName}. The JobClubb team will review your profile and may invite you to a short screening interview.`,
+      "If you're a good fit, we'll refer you to the employer, who then runs their own interviews. Your phone number and email are never shared with them. We will email you as soon as there is an update.",
     ],
     details: [
       { label: "Company", value: companyName },

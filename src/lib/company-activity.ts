@@ -1,10 +1,12 @@
-import { STAGES, type InterviewMode } from "@/lib/candidate-activity";
+import { REFERRED_STAGE, STAGES, type InterviewMode } from "@/lib/candidate-activity";
 import type { InterviewOutcomeLabel, Venue } from "@/lib/interviews";
 
 export { STAGES };
 
-// SOP §4.2: companies see skills and experience only. The name is filled in
-// once they shortlist; email and phone are never part of this type.
+export const COMPANY_STAGES = STAGES.slice(REFERRED_STAGE);
+
+// Companies only see applications JobClubb has referred, with the candidate's
+// name; email and phone are never part of this type.
 export type Applicant = {
   ref: string;
   jobId: string;
@@ -16,7 +18,8 @@ export type Applicant = {
   stage: number;
   status: "active" | "rejected";
   selected: boolean;
-  appliedOn: string;
+  referredOn: string;
+  replaces: string | null;
 };
 
 export const candidateLabel = (no: number) => `CAND-${String(no).padStart(4, "0")}`;

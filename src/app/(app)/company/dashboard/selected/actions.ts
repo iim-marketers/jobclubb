@@ -4,18 +4,28 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
 import { COMPANY_SELECTED } from "@/components/company/nav";
-import { validateOfferTerms } from "@/lib/placements";
+import { validateLeaving, validateOfferTerms } from "@/lib/placements";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { requireCompany } from "@/server/auth/current-company";
 import { offerFiles } from "@/server/placements/documents";
-import { sendOfferUploaded, sendPlacementWithdrawn } from "@/server/placements/emails";
+import {
+  sendLeavingReported,
+  sendOfferUploaded,
+  sendPlacementWithdrawn,
+} from "@/server/placements/emails";
 import {
   recordJoining,
+  reportLeaving,
   submitCompanyOffer,
   withdrawPlacement,
 } from "@/server/placements/placements";
 
-export type OfferFormState = { errors?: FieldErrors; error?: string; ok?: boolean };
+export type OfferFormState = {
+  errors?: FieldErrors;
+  error?: string;
+  ok?: boolean;
+  replacementOwed?: boolean;
+};
 
 const STALE = "This placement has already changed. Refresh to see the latest.";
 
@@ -74,4 +84,27 @@ export async function confirmJoining(
   }
   revalidatePath("/company", "layout");
   return {};
+}
+
+export async function reportExit(
+  placementId: string,
+  joiningDate: string,
+  _prev: OfferFormState,
+  formData: FormData,
+): Promise<OfferFormState> {
+  const company = await requireCompany(COMPANY_SELECTED);
+  const { values, errors } = validateLeaving(formData, joiningDate);
+  if (Object.keys(errors).length > 0) return { errors };
+  let reported;
+  try {
+    reported = await reportLeaving(placementId, values, { companyId: company.id });
+  } catch (error) {
+    console.error("Reporting exit failed", error);
+    return { error: "We couldn't save that. Please try again." };
+  }
+  if (!reported) return { error: STALE };
+  const { replacementOwed } = reported;
+  after(() => sendLeavingReported(placementId, values, replacementOwed));
+  revalidatePath("/company", "layout");
+  return { ok: true, replacementOwed };
 }

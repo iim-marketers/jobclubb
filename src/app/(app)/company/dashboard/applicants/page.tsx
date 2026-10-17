@@ -1,9 +1,9 @@
 import Link from "next/link";
 import {
   CalendarCheck,
-  ListChecks,
   Send,
   UserRoundSearch,
+  UserX,
   Users,
 } from "lucide-react";
 
@@ -22,6 +22,7 @@ import {
 } from "@/components/company/applicants-table";
 import { COMPANY_APPLICANTS, COMPANY_JOBS } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
+import { REFERRED_STAGE } from "@/lib/candidate-activity";
 import type { Applicant } from "@/lib/company-activity";
 import { cn } from "@/lib/utils";
 import { listCompanyApplicants } from "@/server/applications/company";
@@ -65,14 +66,14 @@ export default async function ApplicantsPage({
       (a, b) =>
         Number(b.fresh > 0) - Number(a.fresh > 0) ||
         Number(b.status === "live") - Number(a.status === "live") ||
-        (b.lastAppliedOn ?? "").localeCompare(a.lastAppliedOn ?? ""),
+        (b.lastReferredOn ?? "").localeCompare(a.lastReferredOn ?? ""),
     );
 
   return (
     <div className="space-y-6">
       <DashboardHeader
         title="Applicants"
-        description="Everyone who has applied to your postings, matched on skills and experience."
+        description="Candidates JobClubb has screened, interviewed and referred to your postings."
         action={
           applicants.length > 0 && (
             <nav
@@ -101,29 +102,29 @@ export default async function ApplicantsPage({
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatTile
-          label="Total applicants"
+          label="Referred"
           value={applicants.length}
           note="Across all postings"
           icon={Users}
         />
         <StatTile
-          label="New"
-          value={active.filter((a) => a.stage === 0).length}
-          note="Not yet reviewed"
+          label="New referrals"
+          value={active.filter((a) => a.stage === REFERRED_STAGE).length}
+          note="Awaiting your interview"
           icon={Send}
         />
         <StatTile
-          label="Shortlisted"
-          value={active.filter((a) => a.stage === 2).length}
-          note="Ready for interview"
-          icon={ListChecks}
+          label="Interviewing"
+          value={active.filter((a) => a.stage > REFERRED_STAGE).length}
+          note="Interview or offer stage"
+          icon={CalendarCheck}
           tone="good"
         />
         <StatTile
-          label="Interviewing"
-          value={active.filter((a) => a.stage >= 3).length}
-          note="Interview or offer stage"
-          icon={CalendarCheck}
+          label="Not selected"
+          value={applicants.length - active.length}
+          note="Closed out"
+          icon={UserX}
           tone="muted"
         />
       </div>
@@ -131,7 +132,7 @@ export default async function ApplicantsPage({
       {applicants.length === 0 ? (
         <EmptyState
           icon={UserRoundSearch}
-          title="No applicants yet"
+          title="No referrals yet"
           action={
             <Button
               className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
@@ -145,8 +146,8 @@ export default async function ApplicantsPage({
           }
         >
           {hasLive
-            ? "Members who apply to your live postings will show up here."
-            : "Once you post a job, members who apply will show up here."}
+            ? "Candidates JobClubb screens and refers to your live postings will show up here."
+            : "Once you post a job, candidates JobClubb refers will show up here."}
         </EmptyState>
       ) : view === "all" ? (
         <ApplicantsTable
@@ -165,10 +166,10 @@ export default async function ApplicantsPage({
 function jobCounts(applicants: Applicant[]) {
   const active = applicants.filter((a) => a.status === "active");
   return {
-    lastAppliedOn: applicants[0]?.appliedOn ?? null,
+    lastReferredOn: applicants[0]?.referredOn ?? null,
     total: applicants.length,
-    fresh: active.filter((a) => a.stage === 0).length,
-    shortlisted: active.filter((a) => a.stage >= 2).length,
+    fresh: active.filter((a) => a.stage === REFERRED_STAGE).length,
+    interviewing: active.filter((a) => a.stage > REFERRED_STAGE).length,
     rejected: applicants.length - active.length,
   };
 }

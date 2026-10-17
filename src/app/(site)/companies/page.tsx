@@ -100,9 +100,10 @@ export default async function CompaniesPage() {
               Hiring for your team?
             </h2>
             <p className="mt-4 leading-7 text-muted-foreground">
-              Post openings and review candidates by skills and experience.
-              Candidate identity stays private until you choose to unlock it —
-              so you assess on capability first.
+              Post openings and JobClubb handles the first round: we screen
+              and interview applicants, then refer a shortlist. You interview
+              the candidates we refer and make the final selection, and we
+              deliver your offer letter to the candidate.
             </p>
             <div className="mt-6 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
               <Button

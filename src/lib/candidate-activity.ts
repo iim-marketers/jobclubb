@@ -6,13 +6,16 @@ import {
   type CandidateOfferStatus,
 } from "@/lib/placements";
 
+// 0–1 happen with JobClubb; the employer only sees an application from 2 on.
 export const STAGES = [
   "Applied",
-  "Viewed",
-  "Shortlisted",
+  "Screening",
+  "Referred",
   "Interview",
   "Offer",
 ] as const;
+
+export const REFERRED_STAGE = 2;
 
 export type ApplicationStatus = "active" | "closed" | "rejected";
 
@@ -62,8 +65,11 @@ export type SavedJob = {
 
 export type InterviewMode = "Video call" | "In-person" | "Phone";
 
+export type InterviewHost = "company" | "jobclubb";
+
 export type Interview = {
   id: string;
+  host: InterviewHost;
   company: string;
   companyLogoUrl: string | null;
   role: string;

@@ -24,15 +24,22 @@ const TABS = [
   { key: "awaiting_offer", label: "Awaiting offer" },
   { key: "released", label: "Awaiting payment" },
   { key: "accepted", label: "Paid" },
+  { key: "replacement", label: "Replacement owed" },
   { key: "closed", label: "Closed" },
   { key: "all", label: "All" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
 
-const inTab = (status: PlacementStatus, tab: TabKey) =>
+const inTab = (p: AdminPlacement, tab: TabKey) =>
   tab === "all" ||
-  (tab === "open" ? !isClosed(status) : tab === "closed" ? isClosed(status) : status === tab);
+  (tab === "replacement"
+    ? p.replacement?.status === "owed"
+    : tab === "open"
+      ? !isClosed(p.status)
+      : tab === "closed"
+        ? isClosed(p.status)
+        : p.status === tab);
 
 const helper = createColumnHelper<typeof adminTableFeatures, AdminPlacement>();
 
@@ -63,10 +70,17 @@ const columns = helper.columns([
   helper.accessor("status", {
     header: "Status",
     sortFn: "text",
-    cell: ({ getValue }) => (
-      <Badge className={cn("font-head font-bold", placementBadge(getValue()))}>
-        {ADMIN_PLACEMENT_LABELS[getValue()]}
-      </Badge>
+    cell: ({ row, getValue }) => (
+      <div className="flex flex-wrap gap-1.5">
+        <Badge className={cn("font-head font-bold", placementBadge(getValue()))}>
+          {ADMIN_PLACEMENT_LABELS[getValue()]}
+        </Badge>
+        {row.original.replacement?.status === "owed" && (
+          <Badge className="bg-amber-500/12 font-head font-bold text-amber-700 dark:text-amber-300">
+            Replacement owed
+          </Badge>
+        )}
+      </div>
     ),
   }),
   helper.accessor((p) => p.fee ?? p.monthlySalary ?? 0, {
@@ -126,7 +140,7 @@ export function PlacementsTable({ placements }: { placements: AdminPlacement[] }
       </div>
       <DataTable
         key={tab}
-        data={placements.filter((p) => inTab(p.status, tab))}
+        data={placements.filter((p) => inTab(p, tab))}
         columns={columns}
         getRowId={(p) => p.id}
         searchable={["candidateName", "role"]}

@@ -55,10 +55,11 @@ import {
 const APPLICATIONS_PATH = `${CANDIDATE_HOME}/applications`;
 
 const NEXT_STEPS = [
-  "Your application has been delivered. Most employers open new applications within 3 days, and you'll be notified the moment they do.",
-  "The recruiter has seen your profile. Keep your resume up to date, since shortlisting usually happens within a week of the first view.",
-  "You're on the shortlist. When the employer schedules an interview, the time and place show up here and on your Interviews page.",
-  "Your interview is set. Use the prep checklist on the Interviews page and join 5 minutes early.",
+  "JobClubb is reviewing your application and may invite you to a short screening interview, at our office or online. Keep your resume up to date.",
+  "You're in JobClubb's screening. Your screening interview shows up on the Interviews page, and candidates we shortlist are referred to the employer.",
+  "JobClubb has referred you to the employer. They can now see your name, never your phone number or email, and the interview they schedule will show up here and on your Interviews page.",
+  "You're interviewing with the employer. Use the prep checklist on the Interviews page and join 5 minutes early. The employer makes the final selection.",
+  "You've been selected. Your offer letter comes to you through JobClubb and will show up here as soon as it's ready.",
 ];
 
 function nextStep(a: Application) {
@@ -241,7 +242,8 @@ export default async function ApplicationDetailPage({
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="font-head text-sm font-bold">
-                        Round {i.roundNo}: {i.round} ·{" "}
+                        {i.host === "jobclubb" ? "JobClubb" : `Round ${i.roundNo}`}:{" "}
+                        {i.round} ·{" "}
                         {formatInterviewDate(i.startsAt)},{" "}
                         {formatInterviewTime(i.startsAt)}
                       </p>

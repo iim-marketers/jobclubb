@@ -1,4 +1,5 @@
 import type { InterviewMode } from "@/lib/candidate-activity";
+import { pincodeState } from "@/lib/gst";
 import { propertyPincodeError, type FieldErrors } from "@/lib/sign-up-validation";
 
 export const INTERVIEW_MODES = [
@@ -148,10 +149,11 @@ function placeError(mode: RemoteMode, place: string) {
 }
 
 // Walk-ins happen in the property's city; the pincode may differ, e.g. for a
-// hiring venue across town, but must stay in the property's state.
+// hiring venue across town, but must stay in the property's state. JobClubb's
+// own interviews pass no property and may be held at any office.
 export function validateInterview(
   formData: FormData,
-  property: { city: string; pincode: string },
+  property: { city: string; pincode: string } | null,
   now = new Date(),
 ): { values: InterviewInput; errors: FieldErrors } {
   const date = text(formData, "date");
@@ -162,7 +164,7 @@ export function validateInterview(
   const venue: Venue = {
     address: text(formData, "address"),
     landmark: text(formData, "landmark") || null,
-    city: property.city,
+    city: property?.city ?? text(formData, "city"),
     pincode: text(formData, "pincode"),
   };
   const values: InterviewInput = {
@@ -194,7 +196,17 @@ export function validateInterview(
       errors.address = "Use 200 characters or fewer.";
     if (venue.landmark && venue.landmark.length > 100)
       errors.landmark = "Use 100 characters or fewer.";
-    const pincode = propertyPincodeError(venue.pincode, property.pincode);
+    if (!property) {
+      if (!venue.city) errors.city = "Enter the city.";
+      else if (venue.city.length > 80) errors.city = "Use 80 characters or fewer.";
+    }
+    const pincode = property
+      ? propertyPincodeError(venue.pincode, property.pincode)
+      : !/^\d{6}$/.test(venue.pincode)
+        ? "Enter a 6-digit pincode."
+        : !pincodeState(venue.pincode)
+          ? "Enter a valid Indian pincode."
+          : undefined;
     if (pincode) errors.pincode = pincode;
   } else {
     const place = placeError(mode, values.place ?? "");
