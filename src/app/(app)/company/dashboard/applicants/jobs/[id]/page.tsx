@@ -5,10 +5,10 @@ import {
   ArrowUpRight,
   CalendarCheck,
   CalendarDays,
-  ListChecks,
   MapPin,
   Send,
   UserRoundSearch,
+  UserX,
   Users,
 } from "lucide-react";
 
@@ -24,6 +24,7 @@ import {
   jobApplicantsHref,
 } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
+import { REFERRED_STAGE } from "@/lib/candidate-activity";
 import { formatPostedDate, industryName } from "@/lib/company-jobs";
 import { listCompanyApplicants } from "@/server/applications/company";
 import { requireCompany } from "@/server/auth/current-company";
@@ -94,38 +95,38 @@ export default async function JobApplicantsPage({
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatTile
-          label="Applicants"
+          label="Referred"
           value={applicants.length}
           note="For this posting"
           icon={Users}
         />
         <StatTile
-          label="New"
-          value={active.filter((a) => a.stage === 0).length}
-          note="Not yet reviewed"
+          label="New referrals"
+          value={active.filter((a) => a.stage === REFERRED_STAGE).length}
+          note="Awaiting your interview"
           icon={Send}
         />
         <StatTile
-          label="Shortlisted"
-          value={active.filter((a) => a.stage === 2).length}
-          note="Ready for interview"
-          icon={ListChecks}
+          label="Interviewing"
+          value={active.filter((a) => a.stage > REFERRED_STAGE).length}
+          note="Interview or offer stage"
+          icon={CalendarCheck}
           tone="good"
         />
         <StatTile
-          label="Interviewing"
-          value={active.filter((a) => a.stage >= 3).length}
-          note="Interview or offer stage"
-          icon={CalendarCheck}
+          label="Not selected"
+          value={applicants.length - active.length}
+          note="Closed out"
+          icon={UserX}
           tone="muted"
         />
       </div>
 
       {applicants.length === 0 ? (
-        <EmptyState icon={UserRoundSearch} title="No applicants yet">
+        <EmptyState icon={UserRoundSearch} title="No referrals yet">
           {closed
             ? "Reopen this posting to accept applications again."
-            : "Members who apply will show up here with their skills and experience."}
+            : "Candidates JobClubb screens and refers for this posting will show up here."}
         </EmptyState>
       ) : (
         <ApplicantsTable applicants={applicants} />

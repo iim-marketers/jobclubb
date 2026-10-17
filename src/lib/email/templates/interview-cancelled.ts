@@ -2,6 +2,7 @@ import "server-only";
 
 import { renderEmail } from "@/lib/email/layout";
 import { formatIst } from "@/lib/interviews";
+import { interviewWith } from "@/lib/email/templates/interview-scheduled";
 
 export function interviewCancelledEmail({
   firstName,
@@ -12,6 +13,7 @@ export function interviewCancelledEmail({
   round,
   startsAt,
   applicationUrl,
+  jobclubb = false,
 }: {
   firstName: string;
   email: string;
@@ -21,6 +23,7 @@ export function interviewCancelledEmail({
   round: string;
   startsAt: string;
   applicationUrl: string;
+  jobclubb?: boolean;
 }) {
   const date = formatIst(startsAt, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const time = formatIst(startsAt, { hour: "numeric", minute: "2-digit" });
@@ -32,12 +35,12 @@ export function interviewCancelledEmail({
     heading: "Your interview has been cancelled",
     greeting: `Dear ${firstName},`,
     paragraphs: [
-      `${companyName} has cancelled your interview for the ${jobTitle} position. The details of the cancelled interview are below.`,
+      `${interviewWith(companyName, jobclubb)} has cancelled your ${jobclubb ? "screening " : ""}interview for the ${jobTitle} position${jobclubb ? ` at ${companyName}` : ""}. The details of the cancelled interview are below.`,
     ],
     details: [
       { label: "Company", value: companyName },
       { label: "Position", value: jobTitle },
-      { label: "Round", value: `Round ${roundNo}: ${round}` },
+      { label: "Round", value: jobclubb ? `JobClubb: ${round}` : `Round ${roundNo}: ${round}` },
       { label: "Was scheduled for", value: `${date}, ${time} IST` },
     ],
     closing: [

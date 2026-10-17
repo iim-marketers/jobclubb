@@ -11,6 +11,11 @@ import {
 
 export type InterviewEmailKind = "scheduled" | "rescheduled" | "reminder";
 
+// "JobClubb's interview" for the first round JobClubb runs itself, otherwise
+// the employer's.
+export const interviewWith = (companyName: string, jobclubb: boolean) =>
+  jobclubb ? "JobClubb" : companyName;
+
 const INSTRUCTIONS: Record<InterviewModeValue, string> = {
   video: "Please join from a quiet place with a stable internet connection a few minutes before the scheduled time.",
   in_person: "Please arrive 10 minutes before the scheduled time and carry a copy of your resume and a valid photo ID.",
@@ -31,6 +36,7 @@ export function interviewScheduledEmail({
   interviewer,
   interviewsUrl,
   kind,
+  jobclubb = false,
 }: {
   firstName: string;
   email: string;
@@ -46,7 +52,10 @@ export function interviewScheduledEmail({
   interviewer: string;
   interviewsUrl: string;
   kind: InterviewEmailKind;
+  jobclubb?: boolean;
 }) {
+  const host = interviewWith(companyName, jobclubb);
+  const what = jobclubb ? "screening interview" : "interview";
   const endsAt = new Date(Date.parse(startsAt) + durationMins * 60_000).toISOString();
   const time = (iso: string) => formatIst(iso, { hour: "numeric", minute: "2-digit" });
   const shortDate = formatIst(startsAt, { weekday: "short", day: "numeric", month: "short" });
@@ -63,34 +72,39 @@ export function interviewScheduledEmail({
     scheduled: {
       subject: `Interview scheduled: ${jobTitle} at ${companyName}`,
       eyebrow: "Interview scheduled",
-      heading: "Your interview has been scheduled",
-      intro: `${companyName} has scheduled an interview with you for the ${jobTitle} position. The details are below.`,
+      heading: `Your ${what} has been scheduled`,
+      intro: `${host} has scheduled a${jobclubb ? " screening" : "n"} interview with you for the ${jobTitle} position${jobclubb ? ` at ${companyName}` : ""}. The details are below.`,
     },
     rescheduled: {
       subject: `Interview rescheduled: ${jobTitle} at ${companyName}`,
       eyebrow: "Interview rescheduled",
-      heading: "Your interview has been rescheduled",
-      intro: `${companyName} has rescheduled your interview for the ${jobTitle} position. The updated details are below.`,
+      heading: `Your ${what} has been rescheduled`,
+      intro: `${host} has rescheduled your ${what} for the ${jobTitle} position${jobclubb ? ` at ${companyName}` : ""}. The updated details are below.`,
     },
     reminder: {
       subject: `Reminder: Interview on ${shortDate}, ${time(startsAt)} IST for ${jobTitle} at ${companyName}`,
       eyebrow: "Interview reminder",
-      heading: "Your interview is coming up",
-      intro: `This is a reminder of your upcoming interview with ${companyName} for the ${jobTitle} position. The details are below.`,
+      heading: `Your ${what} is coming up`,
+      intro: `This is a reminder of your upcoming ${what} with ${host} for the ${jobTitle} position${jobclubb ? ` at ${companyName}` : ""}. The details are below.`,
     },
   }[kind];
 
   return renderEmail({
     subject: copy.subject,
-    preheader: `Round ${roundNo} on ${shortDate} at ${time(startsAt)} IST.`,
+    preheader: `${jobclubb ? "Screening interview" : `Round ${roundNo}`} on ${shortDate} at ${time(startsAt)} IST.`,
     eyebrow: copy.eyebrow,
     heading: copy.heading,
     greeting: `Dear ${firstName},`,
-    paragraphs: [copy.intro],
+    paragraphs: jobclubb
+      ? [
+          copy.intro,
+          "JobClubb interviews every candidate before referring them to the employer. Clear this round and we'll share your profile with them.",
+        ]
+      : [copy.intro],
     details: [
       { label: "Company", value: companyName },
       { label: "Position", value: jobTitle },
-      { label: "Round", value: `Round ${roundNo}: ${round}` },
+      { label: "Round", value: jobclubb ? `JobClubb: ${round}` : `Round ${roundNo}: ${round}` },
       {
         label: "Date",
         value: formatIst(startsAt, { weekday: "long", day: "numeric", month: "long", year: "numeric" }),

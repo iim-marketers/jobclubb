@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ADMIN_PLACEMENT_LABELS,
+  LEFT_REASONS,
   MAX_OFFER_FILES,
   formatDateOnly,
   formatRupees,
@@ -198,6 +199,12 @@ export default async function AdminPlacementPage({
             can={can}
           />
         </div>
+        {p.left && (
+          <p className="rounded-2xl bg-orange-500/10 px-4 py-3 text-sm text-orange-800 dark:text-orange-300">
+            The employer reported: {LEFT_REASONS[p.left.reason].toLowerCase()}, last working day{" "}
+            {formatDateOnly(p.left.leftOn)}.{p.left.notes && ` “${p.left.notes}”`}
+          </p>
+        )}
         {releaseBlocker && (
           <p className="rounded-2xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
             {releaseBlocker}

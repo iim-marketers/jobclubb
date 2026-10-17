@@ -11,7 +11,13 @@ import {
   placementCompanyEmail,
   placementInternalEmail,
 } from "@/lib/email/templates/placement";
-import { PLACEMENT_EMAIL, formatDateOnly, formatRupees } from "@/lib/placements";
+import {
+  LEFT_REASONS,
+  PLACEMENT_EMAIL,
+  formatDateOnly,
+  formatRupees,
+  type Leaving,
+} from "@/lib/placements";
 import { SITE_URL } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/server";
 
@@ -330,6 +336,28 @@ export function sendOfferExpired(id: string) {
             `The deadline for ${candidateName(p)} passed without payment. You can extend it from the placement page if they still want the role.`,
           ],
           details: roleDetails(p),
+          adminUrl: adminUrl(p),
+        }),
+      },
+    ];
+  });
+}
+
+export function sendLeavingReported(id: string, leaving: Leaving) {
+  return send("leaving reported", async () => {
+    const p = await load(id);
+    if (!p) return [];
+    return [
+      {
+        to: PLACEMENT_EMAIL,
+        ...placementInternalEmail({
+          subject: `${LEFT_REASONS[leaving.reason]}: ${candidateName(p)} at ${p.job_applications.company_name}`,
+          heading: "The employer reported an exit",
+          paragraphs: [
+            `${p.job_applications.company_name} reported that ${candidateName(p)} is no longer employed as ${p.job_applications.job_title}. Last working day: ${formatDateOnly(leaving.leftOn)}.`,
+            ...(leaving.notes ? [`Employer's note: ${leaving.notes}`] : []),
+          ],
+          details: [...roleDetails(p), { label: "Reason", value: LEFT_REASONS[leaving.reason] }],
           adminUrl: adminUrl(p),
         }),
       },

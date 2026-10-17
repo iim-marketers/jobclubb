@@ -19,7 +19,7 @@ const STATS = [
 ];
 
 const WHY = [
-  "Direct application model — candidates apply straight to live openings, with no unnecessary intermediaries",
+  "Screened referrals — JobClubb screens and interviews every applicant before referring them to the employer",
   "Built on Emporium's existing, deep employer relationships in Airlines, Hotels and Travel",
   "Sector-focused rather than generalist, ensuring relevant roles and relevant candidates",
   "A growing platform with a clear roadmap to expand into additional sectors over time",

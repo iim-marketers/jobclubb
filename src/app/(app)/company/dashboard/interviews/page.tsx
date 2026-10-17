@@ -38,7 +38,7 @@ export default async function CompanyInterviewsPage() {
     <div className="space-y-6">
       <DashboardHeader
         title="Interviews"
-        description="Interviews with shortlisted applicants, in India Standard Time."
+        description="Interviews with candidates JobClubb has referred, in India Standard Time."
       />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -76,12 +76,12 @@ export default async function CompanyInterviewsPage() {
               nativeButton={false}
               render={<Link href={COMPANY_APPLICANTS} />}
             >
-              Review applicants
+              View referrals
             </Button>
           }
         >
-          Shortlist an applicant, then schedule their interview from their
-          profile. It will be listed here.
+          When JobClubb refers a candidate, schedule their interview from
+          their profile. It will be listed here.
         </EmptyState>
       ) : (
         <AccordionSections
@@ -165,7 +165,7 @@ function SectionList({
       {shown.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
           {view === "upcoming"
-            ? "Schedule an interview from a shortlisted applicant's profile."
+            ? "Schedule an interview from a referred candidate's profile."
             : INTERVIEW_VIEWS[view].empty}
         </p>
       ) : view === "upcoming" ? (

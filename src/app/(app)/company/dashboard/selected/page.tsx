@@ -24,6 +24,7 @@ import {
 import { formatShortDate } from "@/lib/candidate-activity";
 import {
   COMPANY_PLACEMENT_LABELS,
+  LEFT_REASONS,
   formatDateOnly,
   isClosed,
   isReleased,
@@ -146,7 +147,9 @@ export default async function SelectedPage() {
                         placementBadge(p.status),
                       )}
                     >
-                      {COMPANY_PLACEMENT_LABELS[p.status]}
+                      {p.left
+                        ? `${LEFT_REASONS[p.left.reason]} ${formatDateOnly(p.left.leftOn)}`
+                        : COMPANY_PLACEMENT_LABELS[p.status]}
                     </span>
                   </TableCell>
                   <TableCell
@@ -178,8 +181,8 @@ export default async function SelectedPage() {
       <p className="flex items-start gap-2 rounded-2xl bg-muted/50 p-3 text-xs leading-5 text-muted-foreground">
         <Handshake className="mt-0.5 size-3.5 flex-none" />
         JobClubb shares your offer with the selected candidate and handles the
-        placement. Their phone number and email stay private, and under our
-        terms offers to candidates found on JobClubb go through JobClubb.
+        placement. Under our terms, offers to candidates found on JobClubb go
+        through JobClubb.
       </p>
     </div>
   );
@@ -192,6 +195,17 @@ function PlacementActions({
   placement: CompanyPlacement;
   today: string;
 }) {
+  if (p.status === "joined" && !p.left && p.joiningDate)
+    return (
+      <PlacementRowActions
+        placementId={p.id}
+        candidate={p.candidate}
+        joiningDue={false}
+        canWithdraw={false}
+        candidateKnows
+        exitFrom={p.joiningDate}
+      />
+    );
   if (isClosed(p.status)) return null;
   const preRelease = !isReleased(p.status);
   return (

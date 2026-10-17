@@ -1,14 +1,10 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { ListChecks, Loader2, UserX } from "lucide-react";
+import { useState, useTransition } from "react";
+import { UserX } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  markViewed,
-  reject,
-  shortlist,
-} from "@/app/(app)/company/dashboard/applicants/actions";
+import { reject } from "@/app/(app)/company/dashboard/applicants/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,46 +18,32 @@ import {
 } from "@/components/ui/dialog";
 import { InterviewDialog } from "@/components/company/interview-actions";
 
-// Runs on mount rather than during the server render, so a prefetch of this
-// page can never count as the employer viewing the applicant.
-export function MarkViewed({ applicantRef }: { applicantRef: string }) {
-  useEffect(() => {
-    void markViewed(applicantRef);
-  }, [applicantRef]);
-  return null;
-}
-
 export function ApplicantActions({
   applicantRef,
   jobLocation,
-  canShortlist,
   nextRound,
 }: {
   applicantRef: string;
   jobLocation: { city: string; pincode: string };
-  canShortlist: boolean;
   nextRound: number | null;
 }) {
-  const [confirming, setConfirming] = useState<"shortlist" | "reject" | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const run = (action: "shortlist" | "reject") =>
+  const run = () =>
     startTransition(async () => {
-      const { error } = await (action === "shortlist" ? shortlist : reject)(applicantRef);
+      const { error } = await reject(applicantRef);
       if (error) {
         toast.error(error);
         return;
       }
-      setConfirming(null);
-      toast.success(action === "shortlist" ? "Applicant shortlisted" : "Applicant marked as not selected");
+      setConfirming(false);
+      toast.success("Applicant marked as not selected");
     });
 
   return (
     <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-none sm:flex-wrap">
-      <Dialog
-        open={confirming === "reject"}
-        onOpenChange={(next) => !pending && setConfirming(next ? "reject" : null)}
-      >
+      <Dialog open={confirming} onOpenChange={(next) => !pending && setConfirming(next)}>
         <DialogTrigger render={<Button variant="outline-destructive" className="font-head" disabled={pending} />}>
           <UserX className="size-4" /> Not a fit
         </DialogTrigger>
@@ -79,7 +61,7 @@ export function ApplicantActions({
             <DialogClose disabled={pending} render={<Button variant="outline" className="font-head" />}>
               Cancel
             </DialogClose>
-            <Button variant="destructive" className="font-head" disabled={pending} onClick={() => run("reject")}>
+            <Button variant="destructive" className="font-head" disabled={pending} onClick={run}>
               {pending ? "Saving…" : "Not selected"}
             </Button>
           </DialogFooter>
@@ -88,48 +70,6 @@ export function ApplicantActions({
 
       {nextRound && (
         <InterviewDialog applicantRef={applicantRef} jobLocation={jobLocation} roundNo={nextRound} />
-      )}
-
-      {canShortlist && (
-        <Dialog
-          open={confirming === "shortlist"}
-          onOpenChange={(next) => !pending && setConfirming(next ? "shortlist" : null)}
-        >
-          <DialogTrigger
-            render={
-              <Button
-                className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                disabled={pending}
-              />
-            }
-          >
-            <ListChecks className="size-4" /> Shortlist
-          </DialogTrigger>
-          <DialogContent showCloseButton={false}>
-            <DialogHeader>
-              <DialogTitle className="font-head text-lg font-bold">
-                Shortlist this applicant?
-              </DialogTitle>
-              <DialogDescription>
-                You&apos;ll see their name and can then schedule an interview.
-                Their phone number and email stay private.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose disabled={pending} render={<Button variant="outline" className="font-head" />}>
-                Cancel
-              </DialogClose>
-              <Button
-                className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-                disabled={pending}
-                onClick={() => run("shortlist")}
-              >
-                {pending && <Loader2 className="size-4 animate-spin" />}
-                {pending ? "Shortlisting…" : "Shortlist"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       )}
     </div>
   );

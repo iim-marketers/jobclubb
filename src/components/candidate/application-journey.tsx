@@ -49,7 +49,7 @@ export function ApplicationJourney({
             No applications yet
           </p>
           <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-            Apply in one click and track every step, from viewed to offer, right
+            Apply in one click and track every step, from screening to offer, right
             here.
           </p>
           <Button

@@ -23,7 +23,12 @@ import { CompanyAvatar } from "@/components/company-avatar";
 import { RecruiterBoard } from "@/components/recruiter-board";
 import { SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { STAGES, applicationStatus, type Application } from "@/lib/candidate-activity";
+import {
+  REFERRED_STAGE,
+  STAGES,
+  applicationStatus,
+  type Application,
+} from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH, PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
@@ -252,12 +257,12 @@ function ProfileCard({
   const stats = [
     { label: "Applied", value: applications.length },
     {
-      label: "Viewed",
+      label: "Screening",
       value: active.filter((a) => a.stage >= 1).length,
     },
     {
-      label: "Shortlisted",
-      value: active.filter((a) => a.stage >= 2).length,
+      label: "Referred",
+      value: active.filter((a) => a.stage >= REFERRED_STAGE).length,
     },
   ];
 

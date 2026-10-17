@@ -5,6 +5,8 @@ import {
   isPastDeadline,
   releaseDeadline,
   todayIst,
+  type LeftReason,
+  type Leaving,
   type OfferTerms,
   type PlacementStatus,
 } from "@/lib/placements";
@@ -25,7 +27,7 @@ import {
 const UUID = /^[0-9a-f-]{36}$/i;
 
 const BASE_COLUMNS =
-  "id, application_id, company_id, candidate_id, status, monthly_salary, fee_amount, joining_date, offer_deadline, offer_notes, selected_at, offer_received_at, released_at, accepted_at, closed_at, updated_at, job_applications (ref, job_id, job_title, company_name, candidate_no, candidate_id, shortlisted_at, city)";
+  "id, application_id, company_id, candidate_id, status, monthly_salary, fee_amount, joining_date, offer_deadline, offer_notes, selected_at, offer_received_at, released_at, accepted_at, closed_at, updated_at, left_on, left_reason, left_notes, job_applications (ref, job_id, job_title, company_name, candidate_no, candidate_id, shortlisted_at, city)";
 
 type BaseRow = {
   id: string;
@@ -44,6 +46,9 @@ type BaseRow = {
   accepted_at: string | null;
   closed_at: string | null;
   updated_at: string;
+  left_on: string | null;
+  left_reason: LeftReason | null;
+  left_notes: string | null;
   job_applications: {
     ref: string;
     job_id: string;
@@ -87,6 +92,7 @@ export type PlacementSummary = {
   releasedAt: string | null;
   acceptedAt: string | null;
   closedAt: string | null;
+  left: Leaving | null;
 };
 
 function toSummary(row: BaseRow, candidate: string): PlacementSummary {
@@ -108,6 +114,10 @@ function toSummary(row: BaseRow, candidate: string): PlacementSummary {
     releasedAt: row.released_at,
     acceptedAt: row.accepted_at,
     closedAt: row.closed_at,
+    left:
+      row.left_on && row.left_reason
+        ? { leftOn: row.left_on, reason: row.left_reason, notes: row.left_notes ?? "" }
+        : null,
   };
 }
 
@@ -134,12 +144,26 @@ export async function listCompanyPlacements(companyId: string): Promise<CompanyP
 export async function getCompanyPlacementForApplication(companyId: string, applicationRef: string) {
   const { data, error } = await createAdminClient()
     .from("placements")
-    .select("id, status, offer_deadline, job_applications!inner (ref)")
+    .select(
+      "id, status, monthly_salary, joining_date, offer_deadline, offer_notes, left_on, left_reason, job_applications!inner (ref), placement_documents (count)",
+    )
     .eq("company_id", companyId)
     .eq("job_applications.ref", applicationRef)
     .maybeSingle();
   if (error) throw error;
-  return data ? { id: data.id as string, status: effectiveStatus(data) } : null;
+  if (!data) return null;
+  return {
+    id: data.id as string,
+    status: effectiveStatus(data),
+    monthlySalary: data.monthly_salary as number | null,
+    joiningDate: data.joining_date as string | null,
+    offerDeadline: data.offer_deadline as string | null,
+    notes: (data.offer_notes as string | null) ?? "",
+    documents: (data.placement_documents as { count: number }[])[0]?.count ?? 0,
+    left: data.left_on
+      ? { leftOn: data.left_on as string, reason: data.left_reason as LeftReason }
+      : null,
+  };
 }
 
 export type OfferResult =
@@ -220,6 +244,27 @@ export async function recordJoining(id: string, joined: boolean, scope: Scope = 
     .eq("id", id)
     .eq("status", "accepted")
     .lte("joining_date", todayIst());
+  if (scope.companyId) query = query.eq("company_id", scope.companyId);
+  const { data, error } = await query.select("id");
+  if (error) throw error;
+  return data.length > 0;
+}
+
+export async function reportLeaving(id: string, leaving: Leaving, scope: Scope = {}) {
+  if (!UUID.test(id)) return false;
+  let query = createAdminClient()
+    .from("placements")
+    .update({
+      left_on: leaving.leftOn,
+      left_reason: leaving.reason,
+      left_notes: leaving.notes || null,
+      left_reported_at: now(),
+      updated_at: now(),
+    })
+    .eq("id", id)
+    .eq("status", "joined")
+    .is("left_on", null)
+    .lte("joining_date", leaving.leftOn);
   if (scope.companyId) query = query.eq("company_id", scope.companyId);
   const { data, error } = await query.select("id");
   if (error) throw error;

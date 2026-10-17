@@ -23,10 +23,10 @@ export type ApplicantJob = {
   role: string;
   city: string;
   status: JobStatus;
-  lastAppliedOn: string | null;
+  lastReferredOn: string | null;
   total: number;
   fresh: number;
-  shortlisted: number;
+  interviewing: number;
   rejected: number;
 };
 
@@ -34,7 +34,7 @@ const PAGE_SIZE = 10;
 
 const TABS = [
   { key: "all", label: "All" },
-  { key: "new", label: "Has new" },
+  { key: "new", label: "Has new referrals" },
   { key: "live", label: "Live" },
   { key: "closed", label: "Closed" },
 ] as const;
@@ -48,9 +48,9 @@ function inTab(job: ApplicantJob, tab: TabKey) {
 }
 
 const COUNTS = [
-  { key: "total", label: "Applicants" },
+  { key: "total", label: "Referred" },
   { key: "fresh", label: "New" },
-  { key: "shortlisted", label: "Shortlisted" },
+  { key: "interviewing", label: "Interviewing" },
   { key: "rejected", label: "Not selected" },
 ] as const;
 
@@ -155,8 +155,8 @@ export function ApplicantJobsList({ jobs }: { jobs: ApplicantJob[] }) {
                     </div>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {job.city}
-                      {job.lastAppliedOn &&
-                        ` · Last applied ${formatShortDate(job.lastAppliedOn)}`}
+                      {job.lastReferredOn &&
+                        ` · Last referred ${formatShortDate(job.lastReferredOn)}`}
                     </p>
                   </div>
                   {COUNTS.map((c) => {
@@ -173,7 +173,7 @@ export function ApplicantJobsList({ jobs }: { jobs: ApplicantJob[] }) {
                               ? "text-muted-foreground"
                               : c.key === "fresh"
                                 ? "text-brand"
-                                : c.key === "shortlisted" && "text-good",
+                                : c.key === "interviewing" && "text-good",
                           )}
                         >
                           {value}

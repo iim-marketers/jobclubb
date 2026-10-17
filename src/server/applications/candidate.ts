@@ -4,6 +4,7 @@ import { randomInt } from "node:crypto";
 
 import {
   GUARANTEED_INTERVIEWS,
+  REFERRED_STAGE,
   formatInterviewDate,
   formatInterviewTime,
   formatShortDate,
@@ -44,6 +45,7 @@ import { postedAgo, toListing } from "@/server/jobs/listings";
 import { effectiveStatus } from "@/server/placements/placements";
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const JOBCLUBB_LOGO = "/icon.png";
 const REF = /^JC-[0-9A-Z]{6}$/;
 const REF_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
@@ -152,7 +154,7 @@ export async function getApplyState(candidateId: string, slug: string): Promise<
 const PLACEMENT_COLUMNS =
   "id, status, fee_amount, offer_deadline, joining_date, monthly_salary, offer_notes, released_at, accepted_at, closed_at";
 
-const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at), placements (${PLACEMENT_COLUMNS})`;
+const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, screening_cleared_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (host, created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at), placements (${PLACEMENT_COLUMNS})`;
 
 type PlacementEmbed = {
   id: string;
@@ -203,6 +205,7 @@ function toOffer(placement: PlacementEmbed | null): Application["offer"] {
 }
 
 type ApplicationInterviewRow = {
+  host: "company" | "jobclubb";
   created_at: string;
   round_no: number;
   starts_at: string;
@@ -219,6 +222,7 @@ type ApplicationRow = {
   status: "active" | "rejected";
   created_at: string;
   viewed_at: string | null;
+  screening_cleared_at: string | null;
   shortlisted_at: string | null;
   rejected_at: string | null;
   company_jobs: PublicJobRow;
@@ -253,34 +257,47 @@ function offerUpdate(offer: NonNullable<Application["offer"]>) {
   }
 }
 
+const isUpcoming = (i: ApplicationInterviewRow) => Date.parse(i.starts_at) > Date.now();
+const isLive = (i: ApplicationInterviewRow) =>
+  Date.parse(interviewEnd(i.starts_at, i.duration_mins, i.finished_at)) > Date.now();
+
+function screeningUpdate(row: ApplicationRow, interview: ApplicationInterviewRow | undefined) {
+  if (row.screening_cleared_at)
+    return "You've cleared JobClubb's screening. We'll refer you to the employer shortly.";
+  if (interview && isUpcoming(interview))
+    return `Your JobClubb screening interview is on ${formatInterviewDate(interview.starts_at)} at ${formatInterviewTime(interview.starts_at)}. The details are on your Interviews page.`;
+  if (interview && isLive(interview))
+    return "Your JobClubb screening interview is happening now. Join from your Interviews page.";
+  if (interview) return "Your JobClubb screening interview is done. We'll share the result soon.";
+  if (row.job_interviews.some((i) => i.host === "jobclubb"))
+    return "JobClubb cancelled your screening interview. If we set a new time, it'll show up here.";
+  return "JobClubb is reviewing your application. We may invite you to a short screening interview before referring you to the employer.";
+}
+
 function latestUpdate(
   a: Application,
   row: ApplicationRow,
+  screening: ApplicationInterviewRow | undefined,
   interview: ApplicationInterviewRow | undefined,
 ) {
   if (a.status === "rejected")
-    return "The employer has decided not to move forward with this application. New roles are added every day, so keep applying.";
+    return row.stage < REFERRED_STAGE
+      ? "JobClubb won't be taking this application further. New roles are added every day, so keep applying."
+      : "The employer has decided not to move forward with this application. New roles are added every day, so keep applying.";
   if (a.status === "closed")
     return "This posting has closed and the employer is no longer reviewing applications for it.";
   if (a.offer) return offerUpdate(a.offer);
+  if (row.stage < REFERRED_STAGE) return screeningUpdate(row, screening);
   if (interview?.outcome === "next_round")
     return `You cleared round ${interview.round_no}. The employer will schedule your next round, and it'll show up here.`;
   const yours = interview && interview.round_no > 1 ? `Your round ${interview.round_no} interview` : "Your interview";
-  if (interview && Date.parse(interview.starts_at) > Date.now())
+  if (interview && isUpcoming(interview))
     return `${yours} is on ${formatInterviewDate(interview.starts_at)} at ${formatInterviewTime(interview.starts_at)}. The details are on your Interviews page.`;
-  if (
-    interview &&
-    Date.parse(interviewEnd(interview.starts_at, interview.duration_mins, interview.finished_at)) >
-      Date.now()
-  )
-    return `${yours} is happening now. Join from your Interviews page.`;
+  if (interview && isLive(interview)) return `${yours} is happening now. Join from your Interviews page.`;
   if (interview) return `${yours} is done. The employer will share the result soon.`;
-  if (row.job_interviews.length > 0)
+  if (row.job_interviews.some((i) => i.host === "company"))
     return "The employer cancelled your interview. If they set a new time, it'll show up here.";
-  if (row.stage >= 2)
-    return "You've been shortlisted. The employer can now see your name; your phone number and email stay private.";
-  if (row.stage === 1) return "The employer has opened your profile.";
-  return "Your application has been delivered to the employer.";
+  return `JobClubb has referred you to ${a.job.company}. They can now see your name, but not your phone number or email, and will schedule your interview.`;
 }
 
 function toApplication(row: ApplicationRow): Application {
@@ -290,17 +307,25 @@ function toApplication(row: ApplicationRow): Application {
   const interviews = row.job_interviews
     .map((i) => hideSelection(i, placement))
     .sort((a, b) => a.created_at.localeCompare(b.created_at));
-  const rounds = interviews.filter((i) => !i.cancelled_at);
+  const screening = interviews.filter((i) => i.host === "jobclubb" && !i.cancelled_at).at(-1);
+  const rounds = interviews.filter((i) => i.host === "company" && !i.cancelled_at);
   const interview = rounds.at(-1);
+  const referredAt = row.stage >= REFERRED_STAGE ? row.shortlisted_at : null;
+  const roundName = (i: ApplicationInterviewRow) =>
+    i.host === "jobclubb" ? "JobClubb screening interview" : `Round ${i.round_no} interview`;
   const events = [
     { label: "Applied", at: row.created_at },
     row.viewed_at && { label: "Viewed by employer", at: row.viewed_at },
-    row.shortlisted_at && { label: "Shortlisted", at: row.shortlisted_at },
     ...interviews.flatMap((i) => [
-      { label: `Round ${i.round_no} interview scheduled`, at: i.created_at },
-      i.cancelled_at && { label: `Round ${i.round_no} interview cancelled`, at: i.cancelled_at },
-      i.outcome === "next_round" && i.outcome_at && { label: `Cleared round ${i.round_no}`, at: i.outcome_at },
+      { label: `${roundName(i)} scheduled`, at: i.created_at },
+      i.cancelled_at && { label: `${roundName(i)} cancelled`, at: i.cancelled_at },
+      i.host === "company" && i.outcome === "next_round" && i.outcome_at && {
+        label: `Cleared round ${i.round_no}`,
+        at: i.outcome_at,
+      },
     ]),
+    row.screening_cleared_at && { label: "Shortlisted by JobClubb", at: row.screening_cleared_at },
+    referredAt && { label: `Referred to ${job.companyName}`, at: referredAt },
     offer && placement?.released_at && { label: "Selected", at: placement.released_at },
     offer && placement?.accepted_at && { label: "Offer accepted", at: placement.accepted_at },
     offer && offer.status !== "released" && offer.status !== "accepted" && {
@@ -327,8 +352,8 @@ function toApplication(row: ApplicationRow): Application {
     appliedOn: row.created_at,
     stageDates: [
       row.created_at,
-      row.viewed_at,
-      row.shortlisted_at,
+      screening?.created_at ?? row.screening_cleared_at,
+      referredAt,
       rounds[0]?.created_at ?? null,
       offer ? placement!.released_at : null,
     ].map((at) => (at ? formatShortDate(at) : null)),
@@ -336,7 +361,7 @@ function toApplication(row: ApplicationRow): Application {
     update: "",
     history: events.map((e) => ({ label: e.label, date: formatShortDate(e.at) })),
   };
-  application.update = latestUpdate(application, row, interview);
+  application.update = latestUpdate(application, row, screening, interview);
   return application;
 }
 
@@ -364,6 +389,7 @@ export async function getCandidateApplication(candidateId: string, ref: string) 
 
 type CandidateInterviewRow = InterviewPlaceRow & {
   id: string;
+  host: "company" | "jobclubb";
   starts_at: string;
   duration_mins: number;
   finished_at: string | null;
@@ -385,7 +411,7 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
   const { data, error } = await createAdminClient()
     .from("job_interviews")
     .select(
-      `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path), placements (${PLACEMENT_COLUMNS}))`,
+      `id, host, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications (ref, company_name, job_title, companies (logo_path), placements (${PLACEMENT_COLUMNS}))`,
     )
     .eq("candidate_id", candidateId)
     .is("cancelled_at", null)
@@ -396,11 +422,17 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
   return (data as unknown as CandidateInterviewRow[]).map((row) => {
     const r = hideSelection(row, onePlacement(row.job_applications.placements));
     const endsAt = interviewEnd(r.starts_at, r.duration_mins, r.finished_at);
+    const jobclubb = r.host === "jobclubb";
     return {
       id: r.id,
-      company: r.job_applications.company_name,
-      companyLogoUrl: getCompanyLogoUrl(r.job_applications.companies?.logo_path ?? null),
-      role: r.job_applications.job_title,
+      host: r.host,
+      company: jobclubb ? "JobClubb" : r.job_applications.company_name,
+      companyLogoUrl: jobclubb
+        ? JOBCLUBB_LOGO
+        : getCompanyLogoUrl(r.job_applications.companies?.logo_path ?? null),
+      role: jobclubb
+        ? `${r.job_applications.job_title} at ${r.job_applications.company_name}`
+        : r.job_applications.job_title,
       applicationId: r.job_applications.ref,
       startsAt: r.starts_at,
       endsAt,
@@ -411,7 +443,7 @@ export async function listCandidateInterviews(candidateId: string): Promise<Inte
       interviewer: r.interviewer,
       roundNo: r.round_no,
       round: r.round,
-      guaranteed: r.round_no === 1 && firstRounds++ < GUARANTEED_INTERVIEWS,
+      guaranteed: !jobclubb && r.round_no === 1 && firstRounds++ < GUARANTEED_INTERVIEWS,
       outcome: r.outcome
         ? OUTCOME_LABELS[r.outcome]
         : Date.parse(endsAt) <= now

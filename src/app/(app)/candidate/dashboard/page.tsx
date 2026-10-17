@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   GUARANTEED_INTERVIEWS,
+  REFERRED_STAGE,
   formatInterviewDate,
   formatInterviewTime,
   guaranteeSlots,
@@ -92,7 +93,7 @@ export default async function CandidateDashboard() {
   const strength = Math.round((completed / checklist.length) * 100);
 
   const inReview = applications.filter((a) => a.status === "active").length;
-  const viewed = applications.filter((a) => a.stage >= 1).length;
+  const referred = applications.filter((a) => a.stage >= REFERRED_STAGE).length;
   const upcoming = upcomingInterviews(interviews, now);
   const weekAhead = upcoming.filter(
     (i) => +new Date(i.startsAt) - +now < 7 * 86_400_000,
@@ -119,17 +120,17 @@ export default async function CandidateDashboard() {
       icon: Send,
     },
     {
-      label: "Profile views",
-      value: viewed || "—",
-      note: viewed
-        ? "Employers who opened your profile"
-        : "Shows once employers view you",
+      label: "Referred",
+      value: referred || "—",
+      note: referred
+        ? "Sent to employers by JobClubb"
+        : "Shows once JobClubb refers you",
       icon: Eye,
     },
     {
       label: "In review",
       value: inReview,
-      note: "Awaiting employer reply",
+      note: "With JobClubb or the employer",
       icon: Briefcase,
     },
     {
@@ -486,8 +487,8 @@ function ProfileSummary({
           <div>
             <p className="text-xs font-medium text-white/70">Next interview</p>
             <p className="mt-1.5 text-sm text-white/80">
-              Nothing scheduled yet. Keep applying — shortlisted roles lead to
-              interviews.
+              Nothing scheduled yet. Keep applying — JobClubb may invite you to
+              a short screening interview.
             </p>
           </div>
         )}

@@ -26,7 +26,7 @@ export default async function JobPostingsPage() {
     <div className="space-y-6">
       <DashboardHeader
         title="Job postings"
-        description="Every opening you've posted, whether it's live and who has applied."
+        description="Every opening you've posted, whether it's live and who JobClubb has referred."
         action={
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"

@@ -16,6 +16,7 @@ import { JobOpenToggle } from "@/components/company/job-open-toggle";
 import { JobStatusPill } from "@/components/company/job-status";
 import { COMPANY_JOBS, jobApplicantsHref } from "@/components/company/nav";
 import { Button } from "@/components/ui/button";
+import { REFERRED_STAGE } from "@/lib/candidate-activity";
 import {
   formatExperience,
   formatPostedDate,
@@ -152,7 +153,7 @@ export default async function JobDetailPage({
 
       <Panel
         title="Applicants"
-        description={`${applicants.length} ${applicants.length === 1 ? "person has" : "people have"} applied`}
+        description={`${applicants.length} ${applicants.length === 1 ? "candidate" : "candidates"} referred by JobClubb`}
         action={
           applicants.length > 0 && (
             <Link
@@ -170,11 +171,11 @@ export default async function JobDetailPage({
               <UserRoundSearch className="size-5" />
             </span>
             <div>
-              <p className="font-head font-bold">No applicants yet</p>
+              <p className="font-head font-bold">No referrals yet</p>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {closed
                   ? "Reopen this posting to accept applications again."
-                  : "Members who apply will show up here with their skills and experience."}
+                  : "Candidates JobClubb screens and refers for this posting will show up here."}
               </p>
             </div>
           </div>
@@ -182,9 +183,9 @@ export default async function JobDetailPage({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <dl className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                ["New", active.filter((a) => a.stage === 0).length],
-                ["Shortlisted", active.filter((a) => a.stage === 2).length],
-                ["Interviewing", active.filter((a) => a.stage >= 3).length],
+                ["Referred", applicants.length],
+                ["New referrals", active.filter((a) => a.stage === REFERRED_STAGE).length],
+                ["Interviewing", active.filter((a) => a.stage > REFERRED_STAGE).length],
                 ["Not selected", applicants.length - active.length],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-2xl bg-muted/50 px-4 py-3">

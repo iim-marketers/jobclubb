@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowUpRight,
   CalendarDays,
+  ClipboardCheck,
   EyeOff,
   Handshake,
   MapPin,
@@ -12,12 +13,14 @@ import {
   Video,
 } from "lucide-react";
 
-import {
-  ApplicantActions,
-  MarkViewed,
-} from "@/components/company/applicant-actions";
+import { ApplicantActions } from "@/components/company/applicant-actions";
 import { AccordionSections } from "@/components/accordion-sections";
 import { InterviewControls } from "@/components/company/interview-actions";
+import {
+  ExitButton,
+  JoiningButton,
+  OfferButton,
+} from "@/components/company/placement-actions";
 import {
   COMPANY_APPLICANTS,
   COMPANY_SELECTED,
@@ -37,7 +40,14 @@ import {
   type CompanyInterview,
 } from "@/lib/company-activity";
 import { formatIst, interviewPhase, relativeDay } from "@/lib/interviews";
-import { COMPANY_PLACEMENT_LABELS, type PlacementStatus } from "@/lib/placements";
+import {
+  COMPANY_PLACEMENT_LABELS,
+  LEFT_REASONS,
+  formatDateOnly,
+  isReleased,
+  todayIst,
+  type PlacementStatus,
+} from "@/lib/placements";
 import { cn } from "@/lib/utils";
 import {
   NOT_SELECTED_BADGE,
@@ -49,10 +59,13 @@ import { getCompanyApplicant } from "@/server/applications/company";
 import { getCompanyPlacementForApplication } from "@/server/placements/placements";
 
 const OFFER_NOTES: Record<PlacementStatus, string> = {
-  awaiting_offer: "Upload their offer letter so JobClubb can share it with them.",
-  offer_received: "JobClubb is reviewing the offer before sharing it with them.",
+  awaiting_offer:
+    "Upload their offer letter so JobClubb can share it with them.",
+  offer_received:
+    "JobClubb is reviewing the offer before sharing it with them.",
   released: "JobClubb has shared the offer and is waiting for them to confirm.",
-  accepted: "They've confirmed the offer. Mark whether they joined after the joining date.",
+  accepted:
+    "They've confirmed the offer. Mark whether they joined after the joining date.",
   joined: "They've joined.",
   not_joined: "They didn't join.",
   expired: "They didn't confirm the offer in time, so it lapsed.",
@@ -91,13 +104,10 @@ export default async function ApplicantPage({
       ? "Selected"
       : STAGES[applicant.stage];
   const now = new Date();
+  const candidate = applicant.name ?? applicant.label;
 
   return (
     <div className="space-y-6">
-      {applicant.stage === 0 && !rejected && (
-        <MarkViewed applicantRef={applicant.ref} />
-      )}
-
       <Link
         href={jobApplicantsHref(applicant.jobId)}
         className="inline-flex max-w-full items-center gap-1.5 font-head text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
@@ -138,8 +148,8 @@ export default async function ApplicantPage({
                 <MapPin className="size-3.5" /> {applicant.city}
               </span>
               <span className="flex items-center gap-1">
-                <CalendarDays className="size-3.5" /> Applied{" "}
-                {formatShortDate(applicant.appliedOn)}
+                <CalendarDays className="size-3.5" /> Referred{" "}
+                {formatShortDate(applicant.referredOn)}
               </span>
             </p>
           </div>
@@ -147,7 +157,6 @@ export default async function ApplicantPage({
             <ApplicantActions
               applicantRef={applicant.ref}
               jobLocation={applicant.jobLocation}
-              canShortlist={applicant.stage < 2}
               nextRound={applicant.nextRound}
             />
           )}
@@ -163,17 +172,45 @@ export default async function ApplicantPage({
             <span className="font-semibold text-foreground">
               Offer: {COMPANY_PLACEMENT_LABELS[placement.status]}.
             </span>{" "}
-            {OFFER_NOTES[placement.status]}
+            {placement.left
+              ? `${LEFT_REASONS[placement.left.reason]} ${formatDateOnly(placement.left.leftOn)}.`
+              : OFFER_NOTES[placement.status]}
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="font-head"
-            nativeButton={false}
-            render={<Link href={COMPANY_SELECTED} />}
-          >
-            Manage offer
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {!isReleased(placement.status) && (
+              <OfferButton
+                placementId={placement.id}
+                candidate={candidate}
+                defaults={placement}
+              />
+            )}
+            {placement.status === "accepted" &&
+              placement.joiningDate &&
+              placement.joiningDate <= todayIst() && (
+                <JoiningButton
+                  placementId={placement.id}
+                  candidate={candidate}
+                />
+              )}
+            {placement.status === "joined" &&
+              !placement.left &&
+              placement.joiningDate && (
+                <ExitButton
+                  placementId={placement.id}
+                  candidate={candidate}
+                  joiningDate={placement.joiningDate}
+                />
+              )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-head"
+              nativeButton={false}
+              render={<Link href={COMPANY_SELECTED} />}
+            >
+              Manage offer
+            </Button>
+          </div>
         </div>
       )}
 
@@ -206,12 +243,22 @@ export default async function ApplicantPage({
                     </dd>
                   </div>
                 </dl>
+                {applicant.referralNote && (
+                  <div className="mt-5 rounded-2xl bg-muted/50 p-4 text-sm">
+                    <p className="flex items-center gap-1.5 font-head font-bold">
+                      <ClipboardCheck className="size-4 flex-none text-brand" />
+                      JobClubb&apos;s assessment
+                    </p>
+                    <p className="mt-1.5 leading-6 whitespace-pre-line text-muted-foreground">
+                      {applicant.referralNote}
+                    </p>
+                  </div>
+                )}
                 <div className="mt-5 flex items-start gap-1.5 rounded-2xl bg-muted/50 p-4 text-sm">
                   <ShieldCheck className="mt-1 size-4 flex-none text-brand" />
                   <p className="leading-6 text-muted-foreground">
-                    {applicant.name
-                      ? "You shortlisted this applicant."
-                      : "Shortlist this applicant to see their name."}
+                    JobClubb screened and interviewed this candidate before
+                    referring them.
                     {applicant.jobClosed &&
                       " This posting is closed, but you can still review its applicants."}
                   </p>

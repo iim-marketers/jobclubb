@@ -2,7 +2,7 @@ import "server-only";
 
 import { renderEmail } from "@/lib/email/layout";
 
-export function candidateShortlistedEmail({
+export function candidateReferredEmail({
   firstName,
   email,
   companyName,
@@ -18,14 +18,14 @@ export function candidateShortlistedEmail({
   applicationUrl: string;
 }) {
   return renderEmail({
-    subject: `Shortlisted for ${jobTitle} at ${companyName}`,
-    preheader: `${companyName} has shortlisted your application. Your interview will be scheduled shortly.`,
-    eyebrow: "Application shortlisted",
-    heading: "You have been shortlisted",
+    subject: `Referred to ${companyName} for ${jobTitle}`,
+    preheader: `JobClubb has referred you to ${companyName}. They'll schedule your interview next.`,
+    eyebrow: "Referred to employer",
+    heading: "You've been referred to the employer",
     greeting: `Dear ${firstName},`,
     paragraphs: [
-      `We are pleased to inform you that ${companyName} has shortlisted your application for the ${jobTitle} position.`,
-      "The next step is an interview. It will be scheduled shortly, and you will receive a separate email with the date, time and other details.",
+      `Congratulations on clearing JobClubb's screening. We have referred you to ${companyName} for the ${jobTitle} position.`,
+      "The employer can now see your name and profile, but not your phone number or email. Their interview will be scheduled shortly, and you will receive a separate email with the date, time and other details.",
     ],
     details: [
       { label: "Company", value: companyName },

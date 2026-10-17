@@ -4,13 +4,9 @@ import { useActionState, useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  cancelInterview,
-  finishInterview,
-  recordOutcome,
-  saveInterview,
-  type InterviewFormState,
-} from "@/app/(app)/company/dashboard/applicants/actions";
+import * as jobclubbActions from "@/app/(admin)/admin/(panel)/applications/actions";
+import * as companyActions from "@/app/(app)/company/dashboard/applicants/actions";
+import type { InterviewFormState } from "@/app/(app)/company/dashboard/applicants/actions";
 import {
   FormStatus,
   submitManually,
@@ -32,6 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { InterviewHost } from "@/lib/candidate-activity";
 import type { CompanyInterview } from "@/lib/company-activity";
 import {
   DURATIONS,
@@ -47,6 +44,8 @@ import {
 
 type JobLocation = Pick<Venue, "city" | "pincode">;
 
+const ACTIONS = { company: companyActions, jobclubb: jobclubbActions };
+
 const DURATION_OPTIONS = DURATIONS.map((d) => ({
   value: String(d),
   label: d < 60 ? `${d} min` : `${d / 60} ${d === 60 ? "hour" : "hours"}`,
@@ -59,16 +58,19 @@ const MODE_OPTIONS = INTERVIEW_MODES.map((m) => ({
 const brandButton =
   "bg-brand font-head text-brand-foreground hover:bg-brand-dark";
 
+// JobClubb's own interviews pass no job location: they can be held at any office.
 export function InterviewDialog({
   applicantRef,
   jobLocation,
   interview,
   roundNo = interview?.roundNo ?? 1,
+  host = "company",
 }: {
   applicantRef: string;
-  jobLocation: JobLocation;
+  jobLocation: JobLocation | null;
   interview?: CompanyInterview;
   roundNo?: number;
+  host?: InterviewHost;
 }) {
   const [open, setOpen] = useState(false);
   const what = roundNo > 1 ? `round ${roundNo} interview` : "interview";
@@ -104,6 +106,7 @@ export function InterviewDialog({
           applicantRef={applicantRef}
           jobLocation={jobLocation}
           interview={interview}
+          host={host}
           onSaved={() => {
             setOpen(false);
             toast.success(
@@ -120,16 +123,18 @@ function InterviewForm({
   applicantRef,
   jobLocation,
   interview,
+  host,
   onSaved,
 }: {
   applicantRef: string;
-  jobLocation: JobLocation;
+  jobLocation: JobLocation | null;
   interview?: CompanyInterview;
+  host: InterviewHost;
   onSaved: () => void;
 }) {
   const [state, formAction, pending] = useActionState(
     async (_prev: InterviewFormState, formData: FormData) => {
-      const result = await saveInterview(
+      const result = await ACTIONS[host].saveInterview(
         applicantRef,
         interview?.id ?? null,
         formData,
@@ -211,7 +216,19 @@ function InterviewForm({
             defaultValue={interview?.venue?.address}
             error={errors.address}
           />
-          <ReadOnlyField label="City" value={jobLocation.city} />
+          {jobLocation ? (
+            <ReadOnlyField label="City" value={jobLocation.city} />
+          ) : (
+            <Field
+              id="city"
+              label="City"
+              required
+              autoComplete="address-level2"
+              maxLength={80}
+              defaultValue={venue?.city}
+              error={errors.city}
+            />
+          )}
           <Field
             id="pincode"
             label="Pincode"
@@ -219,7 +236,7 @@ function InterviewForm({
             inputMode="numeric"
             autoComplete="postal-code"
             maxLength={6}
-            defaultValue={venue.pincode}
+            defaultValue={venue?.pincode}
             error={errors.pincode}
           />
           <Field
@@ -295,13 +312,16 @@ export function InterviewControls({
   jobLocation,
   interview,
   phase,
+  host = "company",
 }: {
   applicantRef: string;
-  jobLocation: JobLocation;
+  jobLocation: JobLocation | null;
   interview: CompanyInterview;
   phase: InterviewPhase;
+  host?: InterviewHost;
 }) {
   if (interview.outcome) return null;
+  const { cancelInterview, finishInterview, recordOutcome } = ACTIONS[host];
   const run =
     (action: () => Promise<{ error?: string }>, success: string) =>
     async () => {
@@ -317,6 +337,7 @@ export function InterviewControls({
         applicantRef={applicantRef}
         jobLocation={jobLocation}
         interview={interview}
+        host={host}
       />
       {phase === "live" ? (
         <ConfirmAction
@@ -342,37 +363,52 @@ export function InterviewControls({
               "Applicant marked as not selected",
             )}
           />
-          {interview.roundNo < MAX_ROUNDS && (
+          {host === "jobclubb" ? (
             <ConfirmAction
-              label="Next round"
-              title={`Move them to round ${interview.roundNo + 1}?`}
-              description="The applicant sees that they cleared this round, and you can then schedule their next one. This can't be undone."
-              confirmLabel="Move to next round"
+              label="Shortlist"
+              title="Shortlist this candidate?"
+              description="They cleared JobClubb's interview. You can then refer them to the employer. This can't be undone."
+              confirmLabel="Shortlist"
               onConfirm={run(
                 () => recordOutcome(applicantRef, interview.id, "next_round"),
-                `Moved to round ${interview.roundNo + 1}`,
+                "Candidate shortlisted",
               )}
             />
+          ) : (
+            <>
+              {interview.roundNo < MAX_ROUNDS && (
+                <ConfirmAction
+                  label="Next round"
+                  title={`Move them to round ${interview.roundNo + 1}?`}
+                  description="The applicant sees that they cleared this round, and you can then schedule their next one. This can't be undone."
+                  confirmLabel="Move to next round"
+                  onConfirm={run(
+                    () => recordOutcome(applicantRef, interview.id, "next_round"),
+                    `Moved to round ${interview.roundNo + 1}`,
+                  )}
+                />
+              )}
+              <ConfirmAction
+                label="Selected"
+                title="Select this applicant?"
+                description="Use this when they've cleared their final round. Then upload their offer letter from your Selected page: JobClubb shares it with the candidate and handles the placement. This can't be undone."
+                confirmLabel="Selected"
+                onConfirm={run(
+                  () => recordOutcome(applicantRef, interview.id, "selected"),
+                  "Applicant selected",
+                )}
+              />
+            </>
           )}
-          <ConfirmAction
-            label="Selected"
-            title="Select this applicant?"
-            description="Use this when they've cleared their final round. Then upload their offer letter from your Selected page: JobClubb shares it with the candidate and handles the placement. This can't be undone."
-            confirmLabel="Selected"
-            onConfirm={run(
-              () => recordOutcome(applicantRef, interview.id, "selected"),
-              "Applicant selected",
-            )}
-          />
         </>
       ) : (
         <ConfirmAction
           label="Cancel"
           title="Cancel this interview?"
           description={
-            interview.roundNo > 1
-              ? "It's removed from the applicant's calendar. You can schedule this round again any time."
-              : "It's removed from the applicant's calendar and they go back to your shortlist. You can schedule a new one any time."
+            interview.roundNo !== 1
+              ? "It's removed from the candidate's calendar. You can schedule this round again any time."
+              : "It's removed from the applicant's calendar and they go back to your new referrals. You can schedule a new one any time."
           }
           confirmLabel="Cancel interview"
           destructive

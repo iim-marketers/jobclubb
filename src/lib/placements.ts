@@ -172,6 +172,37 @@ export function validateOfferTerms(
   return { values, errors };
 }
 
+// What the employer must report after joining, under the employer agreement.
+export const LEFT_REASONS = {
+  resigned: "Resigned",
+  terminated: "Terminated",
+  ended: "Employment ended",
+} as const;
+
+export type LeftReason = keyof typeof LEFT_REASONS;
+
+export type Leaving = { leftOn: string; reason: LeftReason; notes: string };
+
+export function validateLeaving(
+  formData: FormData,
+  joiningDate: string,
+  now = new Date(),
+): { values: Leaving; errors: Partial<Record<keyof Leaving, string>> } {
+  const text = (key: string) => String(formData.get(key) ?? "").trim();
+  const values = {
+    leftOn: text("leftOn"),
+    reason: text("reason") as LeftReason,
+    notes: text("notes"),
+  };
+  const errors: Partial<Record<keyof Leaving, string>> = {};
+  if (!DATE.test(values.leftOn)) errors.leftOn = "Choose their last working day.";
+  else if (values.leftOn < joiningDate) errors.leftOn = "Choose a date on or after they joined.";
+  else if (values.leftOn > todayIst(now)) errors.leftOn = "Choose a date up to today.";
+  if (!(values.reason in LEFT_REASONS)) errors.reason = "Choose what happened.";
+  if (values.notes.length > 1000) errors.notes = "Use 1,000 characters or fewer.";
+  return { values, errors };
+}
+
 export function releaseDeadline(terms: { joiningDate: string; offerDeadline: string | null }, now = new Date()) {
   if (terms.offerDeadline) return terms.offerDeadline;
   const standard = addDays(todayIst(now), DEFAULT_OFFER_DAYS);

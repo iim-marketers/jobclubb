@@ -1,4 +1,4 @@
-import { EyeOff, ListChecks, Zap } from "lucide-react";
+import { ClipboardCheck, ListChecks, Zap } from "lucide-react";
 
 const STEPS = [
   {
@@ -12,9 +12,9 @@ const STEPS = [
     body: "Your posting reaches members as soon as you publish, and edits show up right away.",
   },
   {
-    icon: EyeOff,
-    title: "Capability first",
-    body: "You see applicants' skills and experience; names and contact details stay hidden until you unlock a profile.",
+    icon: ClipboardCheck,
+    title: "Pre-screened",
+    body: "JobClubb screens and interviews applicants, then refers the best fits to you with their profile.",
   },
 ];
 
