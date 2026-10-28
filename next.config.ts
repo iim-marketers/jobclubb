@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
     "/*": ["./node_modules/pdfkit/js/standard-fonts/**/*.cjs"],
   },
   experimental: {
+    // Next defaults to (host cores - 1) build workers; Hostinger reports 64 cores
+    // but caps threads per container, so 63 workers crash with os error 11.
+    cpus: 2,
     serverActions: {
       // Company sign-up accepts a verification document of up to 5 MB,
       // plus headroom for the rest of the multipart body.
