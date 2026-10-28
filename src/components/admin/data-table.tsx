@@ -37,7 +37,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 
 export const adminTableFeatures = tableFeatures({
@@ -271,5 +270,4 @@ export function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
-export const industryName = (slug: string) =>
-  INDUSTRIES.find((v) => v.slug === slug)?.name ?? slug;
+export { industryName } from "@/lib/company-jobs";

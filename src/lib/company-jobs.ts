@@ -1,6 +1,11 @@
 import { richTextToPlain, toRichTextHtml } from "@/lib/rich-text";
 import type { FieldErrors } from "@/lib/sign-up-validation";
-import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
+import {
+  ALL_INDUSTRIES,
+  JOB_TYPES,
+  INDUSTRIES,
+  WORK_MODES,
+} from "@/lib/taxonomy";
 
 export const JOB_STATUSES = ["live", "closed"] as const;
 export type JobStatus = (typeof JOB_STATUSES)[number];
@@ -182,13 +187,18 @@ export function jobSlug(designation: string) {
 }
 
 export function industryName(slug: string) {
+  if (slug === ALL_INDUSTRIES.slug) return ALL_INDUSTRIES.name;
   return INDUSTRIES.find((v) => v.slug === slug)?.name ?? slug;
 }
 
 export type JobFormDefaults = Record<
-  Exclude<keyof JobInput, "role">,
+  Exclude<keyof JobInput, "industry" | "role">,
   string
-> & { role: string | null; salaryUndisclosed: boolean };
+> & {
+  industry: string | null;
+  role: string | null;
+  salaryUndisclosed: boolean;
+};
 
 export function jobFormDefaults(
   job: CompanyJob | null,
@@ -196,7 +206,8 @@ export function jobFormDefaults(
 ): JobFormDefaults {
   if (!job)
     return {
-      industry: company.industry,
+      industry:
+        company.industry === ALL_INDUSTRIES.slug ? null : company.industry,
       role: null,
       designation: "",
       openings: "1",

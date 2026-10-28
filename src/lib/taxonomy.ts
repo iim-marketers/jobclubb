@@ -118,6 +118,18 @@ export const INDUSTRIES: Industry[] = [
   },
 ];
 
+// Companies hiring across every industry; jobs always pick a concrete one.
+export const ALL_INDUSTRIES = { slug: "all", name: "All industries" } as const;
+
+export const COMPANY_INDUSTRY_OPTIONS = [
+  { value: ALL_INDUSTRIES.slug, label: ALL_INDUSTRIES.name },
+  ...INDUSTRIES.map((v) => ({ value: v.slug, label: v.name })),
+];
+
+export function isCompanyIndustry(slug: string) {
+  return COMPANY_INDUSTRY_OPTIONS.some((o) => o.value === slug);
+}
+
 export const JOB_TYPES = ["Full time", "Internship"] as const;
 export const WORK_MODES = ["WFO", "WFH", "Hybrid", "Field", "Onsite"] as const;
 
