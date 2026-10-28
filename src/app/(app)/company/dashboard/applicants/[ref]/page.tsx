@@ -64,13 +64,13 @@ const OFFER_NOTES: Record<PlacementStatus, string> = {
   awaiting_offer:
     "Upload their offer letter so JobClubb can share it with them.",
   offer_received:
-    "JobClubb is reviewing the offer before sharing it with them.",
-  released: "JobClubb has shared the offer and is waiting for them to confirm.",
+    "JobClubb is reviewing the offer and confirming it with them.",
+  released: "JobClubb is confirming the offer with them.",
   accepted:
-    "They've confirmed the offer. Mark whether they joined after the joining date.",
+    "They've confirmed the offer and JobClubb has sent them your offer letter. Mark whether they joined after the joining date.",
   joined: "They've joined.",
   not_joined: "They didn't join.",
-  expired: "They didn't confirm the offer in time, so it lapsed.",
+  expired: "The offer lapsed.",
   declined: "They declined the offer.",
   withdrawn: "The offer was withdrawn.",
 };

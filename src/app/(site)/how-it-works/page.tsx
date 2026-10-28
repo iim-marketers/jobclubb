@@ -32,7 +32,7 @@ const STEPS = [
   {
     step: "04",
     title: "Get your dream job",
-    body: "Interview with the employer. When they select you, JobClubb brings you the offer. Pay the one-time placement fee, equal to one month's fixed gross salary, to receive your offer letter, and we support you through to onboarding.",
+    body: "Interview with the employer. When they select you, JobClubb's placement team confirms the offer with you and sends your offer letter, and we support you through to onboarding. Members pay no placement fee.",
   },
 ];
 

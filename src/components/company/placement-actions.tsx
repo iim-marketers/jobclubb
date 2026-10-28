@@ -48,7 +48,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  DEFAULT_OFFER_DAYS,
   LEFT_REASONS,
   MAX_OFFER_FILES,
   REPLACEMENT_MONTHS,
@@ -191,7 +190,7 @@ function OfferForm({
         optional
         min={todayIst()}
         defaultValue={defaults.offerDeadline ?? undefined}
-        hint={`Leave blank for ${DEFAULT_OFFER_DAYS} days.`}
+        hint="When you need the candidate's answer."
         error={errors.offerDeadline}
       />
       <div className="space-y-2 sm:col-span-2">

@@ -9,10 +9,8 @@ import {
   Clock,
   Download,
   FileText,
-  Lock,
   MapPin,
   PartyPopper,
-  Receipt,
   Video,
   X,
 } from "lucide-react";
@@ -20,10 +18,6 @@ import {
 import { Salary } from "@/components/salary";
 import { Panel } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
-import {
-  DeclineOfferButton,
-  PayOfferButton,
-} from "@/components/candidate/offer-actions";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,7 +40,6 @@ import {
 } from "@/server/applications/candidate";
 import { sanitizeRichText } from "@/server/rich-text";
 import { listOfferDocuments } from "@/server/placements/documents";
-import { getPlacementPaymentForCandidate } from "@/server/placements/payments";
 import {
   getCurrentCandidate,
   requireMember,
@@ -65,7 +58,7 @@ const NEXT_STEPS = [
 function nextStep(a: Application) {
   if (!a.offer) return NEXT_STEPS[Math.min(a.stage, NEXT_STEPS.length - 1)];
   if (a.offer.status === "released")
-    return `Pay the placement fee by ${formatDateOnly(a.offer.deadline)} to unlock your offer letter. If you'd rather not take the role, decline it at no cost so the employer can move on.`;
+    return "Our placement team will call or email you about the offer. If you'd rather not take the role, tell them so the employer can move on.";
   if (a.offer.status === "accepted")
     return `Read your offer letter and keep the joining date, ${formatDateOnly(a.offer.joiningDate)}, free. Contact our placement team if anything in it looks wrong.`;
   return null;
@@ -203,12 +196,6 @@ export default async function ApplicationDetailPage({
           offer={offer}
           designation={job.designation}
           companyName={job.company}
-          candidateId={candidate.id}
-          prefill={{
-            name: `${candidate.first_name} ${candidate.last_name}`,
-            email: candidate.email,
-            contact: candidate.phone,
-          }}
         />
       )}
 
@@ -379,109 +366,27 @@ async function OfferSection({
   offer,
   designation,
   companyName,
-  candidateId,
-  prefill,
 }: {
   offer: CandidateOffer;
   designation: string;
   companyName: string;
-  candidateId: string;
-  prefill: { name: string; email: string; contact: string };
 }) {
   if (offer.status === "released")
     return (
       <section className="rounded-3xl border-2 border-good/40 bg-good/5 p-5 sm:p-7">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
-          <div className="min-w-0">
-            <p className="flex items-center gap-2 font-head text-xs font-bold tracking-[0.16em] text-good uppercase">
-              <PartyPopper className="size-4" /> You&apos;ve been selected
-            </p>
-            <h2 className="mt-2 font-head text-xl font-extrabold tracking-tight sm:text-2xl">
-              {companyName} has selected you for {designation}
-            </h2>
-            <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {[
-                [
-                  "Placement fee",
-                  formatRupees(offer.fee),
-                  "One month's fixed gross salary, GST included",
-                ],
-                [
-                  "Pay by",
-                  formatDateOnly(offer.deadline),
-                  "The offer lapses after this date",
-                ],
-                [
-                  "Expected joining",
-                  formatDateOnly(offer.joiningDate),
-                  "Confirmed in your offer letter",
-                ],
-              ].map(([label, value, hint]) => (
-                <div
-                  key={label}
-                  className="rounded-2xl border border-border bg-card p-4"
-                >
-                  <dt className="text-xs text-muted-foreground">{label}</dt>
-                  <dd className="mt-1 font-head text-lg font-extrabold">
-                    {value}
-                  </dd>
-                  <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
-                    {hint}
-                  </p>
-                </div>
-              ))}
-            </dl>
-            <p className="mt-4 flex items-start gap-2 text-sm leading-6 text-muted-foreground">
-              <Lock className="mt-1 size-3.5 flex-none" />
-              <span>
-                Your offer letter, salary details and joining instructions
-                unlock as soon as you pay. The fee is non-refundable once paid,
-                as set out in our{" "}
-                <Link
-                  href="/terms"
-                  className="font-medium text-foreground underline underline-offset-2"
-                >
-                  terms
-                </Link>
-                .
-              </span>
-            </p>
-          </div>
-          <div className="space-y-2">
-            <PayOfferButton
-              placementId={offer.placementId}
-              label={`Pay ${formatRupees(offer.fee)} & unlock offer`}
-              jobTitle={`${designation} at ${companyName}`}
-              prefill={prefill}
-            />
-            <DeclineOfferButton
-              placementId={offer.placementId}
-              companyName={companyName}
-            />
-          </div>
-        </div>
+        <p className="flex items-center gap-2 font-head text-xs font-bold tracking-[0.16em] text-good uppercase">
+          <PartyPopper className="size-4" /> You&apos;ve been selected
+        </p>
+        <h2 className="mt-2 font-head text-xl font-extrabold tracking-tight sm:text-2xl">
+          {companyName} has selected you for {designation}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Our placement team will contact you about the offer. Once it&apos;s
+          confirmed, your offer letter and joining details will show up here.
+          Expected joining: {formatDateOnly(offer.joiningDate)}.
+        </p>
       </section>
     );
-
-  if (offer.status === "withdrawn" && offer.paid) {
-    const payment = await getPlacementPaymentForCandidate(
-      candidateId,
-      offer.placementId,
-    );
-    return payment ? (
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
-        <Receipt className="size-4 flex-none" />
-        Your placement fee invoice:
-        <a
-          href={`/api/invoices/${payment.paymentId}`}
-          target="_blank"
-          className="font-medium text-brand hover:text-brand-dark"
-        >
-          {payment.invoiceNumber}
-        </a>
-      </p>
-    ) : null;
-  }
 
   if (
     offer.status !== "accepted" &&
@@ -490,10 +395,7 @@ async function OfferSection({
   )
     return null;
 
-  const [documents, payment] = await Promise.all([
-    listOfferDocuments(offer.placementId, { signed: true }),
-    getPlacementPaymentForCandidate(candidateId, offer.placementId),
-  ]);
+  const documents = await listOfferDocuments(offer.placementId, { signed: true });
 
   return (
     <section className="rounded-3xl border border-border bg-card p-5 sm:p-7">
@@ -541,7 +443,6 @@ async function OfferSection({
             offer.monthlySalary
               ? ["Monthly gross salary", formatRupees(offer.monthlySalary)]
               : null,
-            ["Placement fee paid", formatRupees(payment?.amount ?? offer.fee)],
           ]
             .filter((row): row is string[] => !!row)
             .map(([label, value]) => (
@@ -553,20 +454,6 @@ async function OfferSection({
                 <dd className="text-right font-medium">{value}</dd>
               </div>
             ))}
-          {payment && (
-            <div className="flex items-baseline justify-between gap-4 py-2.5">
-              <dt className="text-muted-foreground">Invoice</dt>
-              <dd>
-                <a
-                  href={`/api/invoices/${payment.paymentId}`}
-                  target="_blank"
-                  className="inline-flex items-center gap-1 font-medium text-brand hover:text-brand-dark"
-                >
-                  <Receipt className="size-3.5" /> {payment.invoiceNumber}
-                </a>
-              </dd>
-            </div>
-          )}
         </dl>
       </div>
       {offer.notes && (

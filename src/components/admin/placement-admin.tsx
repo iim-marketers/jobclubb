@@ -6,13 +6,12 @@ import { toast } from "sonner";
 
 import {
   closeReplacement,
-  extendDeadline,
   markDeclined,
   markJoining,
-  release,
   removeDocument,
   saveReplacement,
   saveTerms,
+  sendOffer,
   uploadDocuments,
   withdraw,
   type AdminFormState,
@@ -50,7 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { DEFAULT_OFFER_DAYS } from "@/lib/placements";
+import { formatRupees } from "@/lib/placements";
 
 const brandButton =
   "bg-brand font-head text-brand-foreground hover:bg-brand-dark";
@@ -102,7 +101,7 @@ export function TermsForm({
             : undefined
         }
         maxLength={12}
-        hint="The fee is set to this on release."
+        hint="As stated in the offer letter. One month's fee is based on it."
         error={errors.monthlySalary}
       />
       <Field
@@ -116,10 +115,10 @@ export function TermsForm({
       <Field
         id="offerDeadline"
         type="date"
-        label="Pay by"
+        label="Reply by"
         optional
         defaultValue={defaults.offerDeadline ?? undefined}
-        hint={`Blank means ${DEFAULT_OFFER_DAYS} days from release.`}
+        hint="When the company needs the candidate's answer."
         error={errors.offerDeadline}
       />
       <div className="space-y-2 sm:col-span-3">
@@ -146,59 +145,6 @@ export function TermsForm({
           Save terms
         </Button>
       </div>
-    </form>
-  );
-}
-
-export function ExtendDeadlineForm({
-  placementId,
-  defaults,
-}: {
-  placementId: string;
-  defaults: { offerDeadline: string; joiningDate: string };
-}) {
-  const { formAction, pending, errors, formError, clearAll, onChange } =
-    useAdminForm(extendDeadline.bind(null, placementId), "Deadline updated");
-  return (
-    <form
-      onSubmit={(e) => {
-        clearAll();
-        submitManually(formAction)(e);
-      }}
-      onChange={onChange}
-      noValidate
-      className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-start"
-    >
-      <Field
-        id="offerDeadline"
-        type="date"
-        label="Pay by"
-        required
-        defaultValue={defaults.offerDeadline}
-        error={errors.offerDeadline}
-      />
-      <Field
-        id="joiningDate"
-        type="date"
-        label="Joining date"
-        required
-        defaultValue={defaults.joiningDate}
-        error={errors.joiningDate}
-      />
-      <Button
-        type="submit"
-        variant="outline"
-        className="h-11 font-head sm:mt-5.5"
-        disabled={pending}
-      >
-        {pending && <Loader2 className="size-4 animate-spin" />}
-        Update
-      </Button>
-      {formError && (
-        <div className="sm:col-span-3">
-          <FormStatus error={formError} />
-        </div>
-      )}
     </form>
   );
 }
@@ -311,12 +257,16 @@ function ConfirmButton({
 export function PlacementActions({
   placementId,
   candidate,
+  fresher,
+  monthlySalary,
   can,
 }: {
   placementId: string;
   candidate: string;
+  fresher: boolean;
+  monthlySalary: number | null;
   can: {
-    release: boolean;
+    send: boolean;
     decline: boolean;
     joining: boolean;
     withdraw: boolean;
@@ -324,15 +274,19 @@ export function PlacementActions({
 }) {
   return (
     <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-      {can.release && (
+      {can.send && (
         <ConfirmButton
-          label="Release to candidate"
+          label="Send offer letter"
           tone="brand"
-          title={`Release the offer to ${candidate}?`}
-          description="They'll be told they were selected and asked to pay the placement fee by the deadline. The fee is fixed at the monthly gross. This can't be undone."
-          confirmLabel="Release offer"
-          success="Offer released"
-          onConfirm={() => release(placementId)}
+          title={`Send the offer letter to ${candidate}?`}
+          description={`Only send it once you've confirmed the offer with them${
+            fresher
+              ? ` and their placement fee${monthlySalary ? ` of ${formatRupees(monthlySalary)}` : ""} is settled outside JobClubb`
+              : ""
+          }. They get the offer letter and joining details, and the company is told they've confirmed. This can't be undone.`}
+          confirmLabel="Send offer letter"
+          success="Offer letter sent"
+          onConfirm={() => sendOffer(placementId)}
         />
       )}
       {can.joining && (
@@ -371,7 +325,7 @@ export function PlacementActions({
         <ConfirmButton
           label="Withdraw offer"
           title="Withdraw this offer?"
-          description="Use this when the company has pulled the offer. If the candidate was told they were selected, they're notified. No refund is issued. This can't be undone."
+          description="Use this when the company has pulled the offer. If the candidate was told they were selected, they're notified. This can't be undone."
           confirmLabel="Withdraw offer"
           success="Offer withdrawn"
           tone="destructive"

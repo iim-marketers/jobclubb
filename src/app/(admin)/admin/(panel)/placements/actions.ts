@@ -9,16 +9,15 @@ import { requireAdmin } from "@/server/admin/session";
 import { deleteOfferDocument, offerFiles } from "@/server/placements/documents";
 import {
   sendOfferDeclined,
-  sendOfferReleased,
+  sendOfferSent,
   sendPlacementWithdrawn,
 } from "@/server/placements/emails";
 import {
   declinePlacement,
-  extendPlacementDeadline,
   linkReplacement,
   markOfferReceived,
   recordJoining,
-  releasePlacement,
+  sendOfferLetter,
   storeAdminDocuments,
   updatePlacementTerms,
   waiveReplacement,
@@ -72,27 +71,14 @@ export async function removeDocument(id: string, documentId: string): Promise<Re
   return attempt(id, "Removing offer document", () => deleteOfferDocument(id, documentId));
 }
 
-export async function release(id: string): Promise<Result> {
+export async function sendOffer(id: string): Promise<Result> {
   await requireAdmin();
-  const result = await attempt(id, "Releasing offer", async () => {
-    const released = await releasePlacement(id);
-    if (!released.ok) return released.error;
+  const result = await attempt(id, "Sending offer letter", async () => {
+    const sent = await sendOfferLetter(id);
+    if (!sent.ok) return sent.error;
   });
-  if (!result.error) after(() => sendOfferReleased(id));
+  if (!result.error) after(() => sendOfferSent(id));
   return result;
-}
-
-export async function extendDeadline(id: string, _prev: AdminFormState, formData: FormData): Promise<AdminFormState> {
-  await requireAdmin();
-  const offerDeadline = String(formData.get("offerDeadline") ?? "");
-  const joiningDate = String(formData.get("joiningDate") ?? "");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(offerDeadline)) return { errors: { offerDeadline: "Choose a date." } };
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(joiningDate)) return { errors: { joiningDate: "Choose a date." } };
-  const result = await attempt(id, "Extending offer deadline", async () => {
-    const extended = await extendPlacementDeadline(id, { offerDeadline, joiningDate });
-    if (!extended.ok) return extended.error;
-  });
-  return result.error ? result : { ok: true };
 }
 
 export async function markDeclined(id: string): Promise<Result> {

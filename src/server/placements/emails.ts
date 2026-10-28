@@ -6,8 +6,7 @@ import { sendEmail } from "@/lib/email/mailer";
 import { applicationDeclinedEmail } from "@/lib/email/templates/application-declined";
 import {
   offerClosedForCandidateEmail,
-  offerPaymentReminderEmail,
-  offerReleasedEmail,
+  offerSentEmail,
   placementCompanyEmail,
   placementInternalEmail,
 } from "@/lib/email/templates/placement";
@@ -23,7 +22,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 type PlacementEmailRow = {
   id: string;
-  fee_amount: number | null;
   monthly_salary: number | null;
   joining_date: string | null;
   offer_deadline: string | null;
@@ -36,7 +34,7 @@ async function load(id: string) {
   const { data, error } = await createAdminClient()
     .from("placements")
     .select(
-      "id, fee_amount, monthly_salary, joining_date, offer_deadline, job_applications!placements_application_id_fkey (ref, job_title, company_name), candidates (first_name, last_name, email, phone), companies (contact_name, email, phone)",
+      "id, monthly_salary, joining_date, offer_deadline, job_applications!placements_application_id_fkey (ref, job_title, company_name), candidates (first_name, last_name, email, phone), companies (contact_name, email, phone)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -79,7 +77,7 @@ export function sendOfferUploaded(id: string, firstSubmission: boolean) {
           subject: `${firstSubmission ? "Offer uploaded" : "Offer updated"}: ${candidateName(p)} for ${p.job_applications.job_title}`,
           heading: firstSubmission ? "An offer is ready to review" : "An offer was updated",
           paragraphs: [
-            `${p.job_applications.company_name} has ${firstSubmission ? "uploaded" : "updated"} the offer for ${candidateName(p)}. Review the documents and release it to the candidate.`,
+            `${p.job_applications.company_name} has ${firstSubmission ? "uploaded" : "updated"} the offer for ${candidateName(p)}. Review the documents, contact the candidate, then send them the offer letter.`,
           ],
           details: [
             ...roleDetails(p),
@@ -95,34 +93,23 @@ export function sendOfferUploaded(id: string, firstSubmission: boolean) {
   });
 }
 
-export function sendOfferReleased(id: string) {
-  return send("offer released", async () => {
+export function sendOfferSent(id: string) {
+  return send("offer sent", async () => {
     const p = await load(id);
-    if (!p?.fee_amount || !p.offer_deadline || !p.joining_date) return [];
+    if (!p?.joining_date) return [];
+    const joining = formatDateOnly(p.joining_date);
     return [
       {
         to: p.candidates.email,
-        ...offerReleasedEmail({
+        ...offerSentEmail({
           firstName: p.candidates.first_name,
           email: p.candidates.email,
           jobTitle: p.job_applications.job_title,
           companyName: p.job_applications.company_name,
-          fee: p.fee_amount,
-          deadline: p.offer_deadline,
           joiningDate: p.joining_date,
           applicationUrl: applicationUrl(p),
         }),
       },
-    ];
-  });
-}
-
-export function sendPlacementPaid(id: string) {
-  return send("placement paid", async () => {
-    const p = await load(id);
-    if (!p) return [];
-    const joining = p.joining_date ? formatDateOnly(p.joining_date) : "the agreed date";
-    return [
       {
         to: p.companies.email,
         ...placementCompanyEmail({
@@ -131,45 +118,10 @@ export function sendPlacementPaid(id: string) {
           subject: `${candidateName(p)} has confirmed the offer for ${p.job_applications.job_title}`,
           heading: "Candidate confirmed",
           paragraphs: [
-            `${candidateName(p)} has confirmed your offer for the ${p.job_applications.job_title} position and is expected to join on ${joining}.`,
+            `${candidateName(p)} has confirmed your offer for the ${p.job_applications.job_title} position, and JobClubb has sent them your offer letter. They're expected to join on ${joining}.`,
             "After the joining date, mark whether they joined from your Selected page.",
           ],
           cta: { label: "View selected candidates", url: companyUrl },
-        }),
-      },
-      {
-        to: PLACEMENT_EMAIL,
-        ...placementInternalEmail({
-          subject: `Placement fee received: ${candidateName(p)} for ${p.job_applications.job_title}`,
-          heading: "Placement fee received",
-          paragraphs: [`${candidateName(p)} has paid the placement fee and the offer is unlocked.`],
-          details: [
-            ...roleDetails(p),
-            ...(p.fee_amount ? [{ label: "Fee paid", value: formatRupees(p.fee_amount) }] : []),
-            { label: "Joining date", value: joining },
-          ],
-          adminUrl: adminUrl(p),
-        }),
-      },
-    ];
-  });
-}
-
-export function sendLatePaymentAlert(id: string, paymentId: string) {
-  return send("late placement payment", async () => {
-    const p = await load(id);
-    if (!p) return [];
-    return [
-      {
-        to: PLACEMENT_EMAIL,
-        ...placementInternalEmail({
-          subject: `Action needed: unexpected placement fee from ${candidateName(p)}`,
-          heading: "A fee was paid for an offer that wasn't open",
-          paragraphs: [
-            `${candidateName(p)} paid the placement fee, but the offer had already been paid, declined, withdrawn or had expired, so nothing was unlocked. Contact them and refund any duplicate payment.`,
-          ],
-          details: [...roleDetails(p), { label: "Payment ID", value: paymentId }],
-          adminUrl: adminUrl(p),
         }),
       },
     ];
@@ -195,16 +147,6 @@ export function sendOfferDeclined(id: string) {
           cta: { label: "View selected candidates", url: companyUrl },
         }),
       },
-      {
-        to: PLACEMENT_EMAIL,
-        ...placementInternalEmail({
-          subject: `Offer declined: ${candidateName(p)} for ${p.job_applications.job_title}`,
-          heading: "The candidate declined",
-          paragraphs: [`${candidateName(p)} declined the offer before paying the placement fee.`],
-          details: roleDetails(p),
-          adminUrl: adminUrl(p),
-        }),
-      },
     ];
   });
 }
@@ -224,7 +166,7 @@ export function sendPlacementWithdrawn(id: string, candidateWasTold: boolean, by
       {
         to: p.candidates.email,
         ...(candidateWasTold
-          ? offerClosedForCandidateEmail({ ...role, reason: "withdrawn" })
+          ? offerClosedForCandidateEmail(role)
           : applicationDeclinedEmail({ ...role, afterInterview: true })),
       },
     ];
@@ -260,26 +202,7 @@ export function sendPlacementWithdrawn(id: string, candidateWasTold: boolean, by
   });
 }
 
-// The two reminders below throw, so the reminder job can release its claim and retry.
-
-export async function sendPaymentReminder(id: string, final: boolean) {
-  const p = await load(id);
-  if (!p?.fee_amount || !p.offer_deadline) return;
-  await sendEmail({
-    to: p.candidates.email,
-    ...offerPaymentReminderEmail({
-      firstName: p.candidates.first_name,
-      email: p.candidates.email,
-      jobTitle: p.job_applications.job_title,
-      companyName: p.job_applications.company_name,
-      fee: p.fee_amount,
-      deadline: p.offer_deadline,
-      final,
-      applicationUrl: applicationUrl(p),
-    }),
-  });
-}
-
+// Throws, so the reminder job can release its claim and retry.
 export async function sendOfferUploadReminder(id: string) {
   const p = await load(id);
   if (!p) return;
@@ -295,51 +218,6 @@ export async function sendOfferUploadReminder(id: string) {
       ],
       cta: { label: "Upload offer letter", url: companyUrl },
     }),
-  });
-}
-
-export function sendOfferExpired(id: string) {
-  return send("offer expired", async () => {
-    const p = await load(id);
-    if (!p) return [];
-    return [
-      {
-        to: p.candidates.email,
-        ...offerClosedForCandidateEmail({
-          firstName: p.candidates.first_name,
-          email: p.candidates.email,
-          jobTitle: p.job_applications.job_title,
-          companyName: p.job_applications.company_name,
-          reason: "expired",
-        }),
-      },
-      {
-        to: p.companies.email,
-        ...placementCompanyEmail({
-          contactName: p.companies.contact_name,
-          email: p.companies.email,
-          subject: `Offer lapsed: ${candidateName(p)} for ${p.job_applications.job_title}`,
-          heading: "The offer lapsed",
-          paragraphs: [
-            `${candidateName(p)} didn't confirm your offer for the ${p.job_applications.job_title} position by the deadline, so it has lapsed.`,
-            "You can keep reviewing other applicants for this role from your dashboard.",
-          ],
-          cta: { label: "View selected candidates", url: companyUrl },
-        }),
-      },
-      {
-        to: PLACEMENT_EMAIL,
-        ...placementInternalEmail({
-          subject: `Offer expired: ${candidateName(p)} for ${p.job_applications.job_title}`,
-          heading: "An offer expired unpaid",
-          paragraphs: [
-            `The deadline for ${candidateName(p)} passed without payment. You can extend it from the placement page if they still want the role.`,
-          ],
-          details: roleDetails(p),
-          adminUrl: adminUrl(p),
-        }),
-      },
-    ];
   });
 }
 

@@ -17,15 +17,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PLACEMENT_FEE_NOTE } from "@/lib/placements";
+import { placementFeeNote } from "@/lib/placements";
 
 export function ApplyNowButton({
   slug,
   needsTerms = false,
+  fresher,
   className,
 }: {
   slug: string;
   needsTerms?: boolean;
+  fresher: boolean;
   className?: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -64,15 +66,17 @@ export function ApplyNowButton({
           <DialogHeader>
             <DialogTitle className="font-head text-lg font-bold">We&apos;ve updated our terms</DialogTitle>
             <DialogDescription>
-              Before you apply, please read how the placement fee works.
+              Before you apply, please read and accept them. Here&apos;s what
+              they mean for fees:
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm leading-6">
-            <p className="rounded-2xl bg-muted/60 p-4">{PLACEMENT_FEE_NOTE}</p>
-            <p className="text-muted-foreground">
-              You can decline an offer at no cost before paying. Once paid, the
-              fee is non-refundable.
-            </p>
+            <p className="rounded-2xl bg-muted/60 p-4">{placementFeeNote(fresher)}</p>
+            {fresher && (
+              <p className="text-muted-foreground">
+                Once paid, the placement fee is non-refundable.
+              </p>
+            )}
             <label className="flex cursor-pointer items-start gap-2.5">
               <Checkbox
                 checked={agreed}

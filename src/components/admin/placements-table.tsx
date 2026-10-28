@@ -20,10 +20,9 @@ import type { AdminPlacement } from "@/server/placements/placements";
 
 const TABS = [
   { key: "open", label: "Open" },
-  { key: "offer_received", label: "Ready to release" },
+  { key: "offer_received", label: "Ready to send" },
   { key: "awaiting_offer", label: "Awaiting offer" },
-  { key: "released", label: "Awaiting payment" },
-  { key: "accepted", label: "Paid" },
+  { key: "accepted", label: "Offer sent" },
   { key: "replacement", label: "Replacement owed" },
   { key: "closed", label: "Closed" },
   { key: "all", label: "All" },
@@ -83,28 +82,28 @@ const columns = helper.columns([
       </div>
     ),
   }),
-  helper.accessor((p) => p.fee ?? p.monthlySalary ?? 0, {
-    id: "fee",
-    header: "Fee",
+  helper.accessor((p) => p.monthlySalary ?? 0, {
+    id: "salary",
+    header: "Monthly gross",
     sortFn: "basic",
-    cell: ({ row }) => {
-      const amount = row.original.fee ?? row.original.monthlySalary;
-      return (
-        <span className="whitespace-nowrap text-muted-foreground">
-          {amount ? formatRupees(amount) : "—"}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="whitespace-nowrap">
+        <p className="text-muted-foreground">
+          {row.original.monthlySalary ? formatRupees(row.original.monthlySalary) : "—"}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {row.original.fresher ? "Fresher · candidate pays" : "Experienced · company pays"}
+        </p>
+      </div>
+    ),
   }),
-  helper.accessor((p) => p.offerDeadline ?? "", {
-    id: "deadline",
-    header: "Pay by",
+  helper.accessor((p) => p.joiningDate ?? "", {
+    id: "joining",
+    header: "Joining",
     sortFn: "text",
     cell: ({ row }) => (
       <span className="whitespace-nowrap text-muted-foreground">
-        {row.original.releasedAt && row.original.offerDeadline
-          ? formatDateOnly(row.original.offerDeadline)
-          : "—"}
+        {row.original.joiningDate ? formatDateOnly(row.original.joiningDate) : "—"}
       </span>
     ),
   }),
@@ -120,8 +119,8 @@ const columns = helper.columns([
 
 const COLUMN_CLASS: Record<string, string> = {
   role: "hidden md:table-cell",
-  fee: "hidden lg:table-cell",
-  deadline: "hidden xl:table-cell",
+  salary: "hidden lg:table-cell",
+  joining: "hidden xl:table-cell",
   selectedAt: "hidden sm:table-cell",
 };
 
@@ -133,10 +132,13 @@ export function PlacementsTable({ placements }: { placements: AdminPlacement[] }
   return (
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Ready to release" value={count("offer_received")} highlight={count("offer_received") > 0} />
+        <StatTile label="Ready to send" value={count("offer_received")} highlight={count("offer_received") > 0} />
         <StatTile label="Awaiting offer" value={count("awaiting_offer")} />
-        <StatTile label="Awaiting payment" value={count("released")} />
-        <StatTile label="Paid, not yet joined" value={count("accepted")} />
+        <StatTile label="Offer sent, not yet joined" value={count("accepted")} />
+        <StatTile
+          label="Replacements owed"
+          value={placements.filter((p) => p.replacement?.status === "owed").length}
+        />
       </div>
       <DataTable
         key={tab}
