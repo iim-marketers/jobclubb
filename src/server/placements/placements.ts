@@ -23,8 +23,7 @@ import {
   type PlacementDocument,
 } from "@/server/placements/documents";
 
-// Company-facing reads never select candidate contact details: offers run
-// through JobClubb, which is what its fees pay for.
+// Company-facing reads never select candidate contact details.
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -81,8 +80,7 @@ type BaseRow = {
 const PRE_RELEASE: PlacementStatus[] = ["awaiting_offer", "offer_received"];
 const COMPANY_WITHDRAWABLE: PlacementStatus[] = ["awaiting_offer", "offer_received", "released"];
 const ADMIN_WITHDRAWABLE: PlacementStatus[] = [...COMPANY_WITHDRAWABLE, "accepted"];
-// "released" and "expired" only exist from before offers stopped being paid for
-// on JobClubb; the team can still send those candidates their offer letter.
+// "released" and "expired" are legacy states from when offers were paid for in-app.
 const SENDABLE: PlacementStatus[] = [...PRE_RELEASE, "released", "expired"];
 const DECLINABLE: PlacementStatus[] = ["offer_received", "released"];
 
@@ -543,8 +541,7 @@ export async function markOfferReceived(id: string) {
 
 export type SendResult = { ok: true } | { ok: false; error: string };
 
-// Sent once the team has confirmed the offer with the candidate and settled any
-// fee outside JobClubb, so the candidate has accepted by the time it lands.
+// The team confirms with the candidate before sending, so sending also accepts.
 export async function sendOfferLetter(id: string): Promise<SendResult> {
   if (!UUID.test(id)) return { ok: false, error: "This placement no longer exists." };
   const admin = createAdminClient();
@@ -583,8 +580,7 @@ export async function sendOfferLetter(id: string): Promise<SendResult> {
   return { ok: true };
 }
 
-// The candidate turned the offer down when the team contacted them, so they
-// already know they were selected.
+// They declined when the team contacted them, so they already know they were selected.
 export async function declinePlacement(id: string) {
   if (!UUID.test(id)) return false;
   const admin = createAdminClient();

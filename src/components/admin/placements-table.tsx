@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { adminTableFeatures, DataTable, formatDate } from "@/components/admin/data-table";
+import {
+  adminTableFeatures,
+  DataTable,
+  formatDate,
+} from "@/components/admin/data-table";
 import { FilterSelect } from "@/components/table-toolbar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -50,7 +54,8 @@ const columns = helper.columns([
       <div className="min-w-44">
         <p className="font-head font-bold">{row.original.candidateName}</p>
         <p className="text-xs text-muted-foreground">
-          <span className="font-mono">{row.original.ref}</span> · {row.original.candidatePhone}
+          <span className="font-mono">{row.original.ref}</span> ·{" "}
+          {row.original.candidatePhone}
         </p>
       </div>
     ),
@@ -62,7 +67,9 @@ const columns = helper.columns([
     cell: ({ row }) => (
       <div className="min-w-40">
         <p className="font-medium">{row.original.designation}</p>
-        <p className="text-xs text-muted-foreground">{row.original.companyName}</p>
+        <p className="text-xs text-muted-foreground">
+          {row.original.companyName}
+        </p>
       </div>
     ),
   }),
@@ -71,7 +78,9 @@ const columns = helper.columns([
     sortFn: "text",
     cell: ({ row, getValue }) => (
       <div className="flex flex-wrap gap-1.5">
-        <Badge className={cn("font-head font-bold", placementBadge(getValue()))}>
+        <Badge
+          className={cn("font-head font-bold", placementBadge(getValue()))}
+        >
           {ADMIN_PLACEMENT_LABELS[getValue()]}
         </Badge>
         {row.original.replacement?.status === "owed" && (
@@ -89,11 +98,13 @@ const columns = helper.columns([
     cell: ({ row }) => (
       <div className="whitespace-nowrap">
         <p className="text-muted-foreground">
-          {row.original.monthlySalary ? formatRupees(row.original.monthlySalary) : "—"}
+          {row.original.monthlySalary
+            ? formatRupees(row.original.monthlySalary)
+            : "—"}
         </p>
-        <p className="text-xs text-muted-foreground">
+        {/* <p className="text-xs text-muted-foreground">
           {row.original.fresher ? "Fresher · candidate pays" : "Experienced · company pays"}
-        </p>
+        </p> */}
       </div>
     ),
   }),
@@ -103,7 +114,9 @@ const columns = helper.columns([
     sortFn: "text",
     cell: ({ row }) => (
       <span className="whitespace-nowrap text-muted-foreground">
-        {row.original.joiningDate ? formatDateOnly(row.original.joiningDate) : "—"}
+        {row.original.joiningDate
+          ? formatDateOnly(row.original.joiningDate)
+          : "—"}
       </span>
     ),
   }),
@@ -112,7 +125,9 @@ const columns = helper.columns([
     sortFn: "basic",
     sortDescFirst: true,
     cell: ({ getValue }) => (
-      <span className="whitespace-nowrap text-muted-foreground">{formatDate(getValue())}</span>
+      <span className="whitespace-nowrap text-muted-foreground">
+        {formatDate(getValue())}
+      </span>
     ),
   }),
 ]);
@@ -124,20 +139,34 @@ const COLUMN_CLASS: Record<string, string> = {
   selectedAt: "hidden sm:table-cell",
 };
 
-export function PlacementsTable({ placements }: { placements: AdminPlacement[] }) {
+export function PlacementsTable({
+  placements,
+}: {
+  placements: AdminPlacement[];
+}) {
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>("open");
-  const count = (status: PlacementStatus) => placements.filter((p) => p.status === status).length;
+  const count = (status: PlacementStatus) =>
+    placements.filter((p) => p.status === status).length;
 
   return (
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Ready to send" value={count("offer_received")} highlight={count("offer_received") > 0} />
+        <StatTile
+          label="Ready to send"
+          value={count("offer_received")}
+          highlight={count("offer_received") > 0}
+        />
         <StatTile label="Awaiting offer" value={count("awaiting_offer")} />
-        <StatTile label="Offer sent, not yet joined" value={count("accepted")} />
+        <StatTile
+          label="Offer sent, not yet joined"
+          value={count("accepted")}
+        />
         <StatTile
           label="Replacements owed"
-          value={placements.filter((p) => p.replacement?.status === "owed").length}
+          value={
+            placements.filter((p) => p.replacement?.status === "owed").length
+          }
         />
       </div>
       <DataTable
@@ -164,7 +193,15 @@ export function PlacementsTable({ placements }: { placements: AdminPlacement[] }
   );
 }
 
-function StatTile({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function StatTile({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
   return (
     <div
       className={cn(
@@ -173,7 +210,9 @@ function StatTile({ label, value, highlight }: { label: string; value: number; h
       )}
     >
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-head text-2xl font-extrabold tracking-tight">{value}</p>
+      <p className="mt-1 font-head text-2xl font-extrabold tracking-tight">
+        {value}
+      </p>
     </div>
   );
 }

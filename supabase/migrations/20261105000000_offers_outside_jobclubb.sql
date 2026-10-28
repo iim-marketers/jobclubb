@@ -1,7 +1,3 @@
--- Only membership is paid on JobClubb. Any placement fee is settled outside it,
--- and the placement team sends the offer letter once the candidate has agreed,
--- so an offer no longer waits on a payment deadline. Paid placement_payments
--- rows stay for their invoices.
 alter table public.placements
   drop constraint placements_release_terms,
   add constraint placements_release_terms check (

@@ -14,10 +14,6 @@ export type PlacementStatus = (typeof PLACEMENT_STATUSES)[number];
 
 export const PLACEMENT_EMAIL = "placement@jobclubb.com";
 
-// Fresher Candidates joined with an Emporium batch code; everyone else is
-// Experienced. Freshers pay JobClubb a placement fee; for Experienced
-// Candidates the employer pays the recruitment fee instead. Both are settled
-// outside JobClubb.com.
 export const isFresher = (candidate: { emporium_batch_id: string | null }) =>
   candidate.emporium_batch_id !== null;
 

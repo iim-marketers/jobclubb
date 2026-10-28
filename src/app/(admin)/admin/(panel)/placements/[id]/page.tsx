@@ -41,8 +41,12 @@ import {
 
 export const metadata = { title: "Placement — JobClubb admin" };
 
-// "released" and "expired" are left over from paying for offers on JobClubb.
-const SENDABLE: PlacementStatus[] = ["awaiting_offer", "offer_received", "released", "expired"];
+const SENDABLE: PlacementStatus[] = [
+  "awaiting_offer",
+  "offer_received",
+  "released",
+  "expired",
+];
 
 const REPLACEMENT_LABELS = {
   owed: "Owed",
@@ -134,7 +138,9 @@ export default async function AdminPlacementPage({
   const p = await getAdminPlacement(id);
   if (!p) notFound();
   const replacementOptions =
-    p.replacement?.status === "owed" ? await listReplacementCandidates(p.id) : [];
+    p.replacement?.status === "owed"
+      ? await listReplacementCandidates(p.id)
+      : [];
 
   const sendable = SENDABLE.includes(p.status);
   const today = todayIst();
@@ -161,7 +167,9 @@ export default async function AdminPlacementPage({
       : !p.monthlySalary || !p.joiningDate
         ? "Add the monthly gross and joining date before sending the offer letter."
         : null;
-  const fee = p.monthlySalary ? formatRupees(p.monthlySalary) : "one month's salary";
+  const fee = p.monthlySalary
+    ? formatRupees(p.monthlySalary)
+    : "one month's salary";
   const feeNote = p.fresher
     ? `Fresher Candidate (joined with an Emporium code). Contact them and collect their placement fee of ${fee} outside JobClubb before sending the offer letter. The company pays no recruitment fee.`
     : `Experienced Candidate. The candidate pays no fee. Once they join, invoice the company a recruitment fee of ${fee} plus GST, due within 15 days of receipt.`;
@@ -178,14 +186,17 @@ export default async function AdminPlacementPage({
     [
       ["Selected", p.selectedAt],
       ["Offer uploaded", p.offerReceivedAt],
-      ["Shown to candidate", p.releasedAt === p.acceptedAt ? null : p.releasedAt],
+      [
+        "Shown to candidate",
+        p.releasedAt === p.acceptedAt ? null : p.releasedAt,
+      ],
       ["Offer letter sent", p.acceptedAt],
       ["Closed", p.closedAt],
     ] as const
   ).filter(([, at]) => at);
 
   return (
-    <div className="flex-1 space-y-8 px-4 py-6">
+    <div className="flex-1 space-y-6 px-4 py-6">
       <Link
         href="/admin/placements"
         className="inline-flex items-center mb-6 gap-1.5 font-head text-sm font-semibold text-muted-foreground hover:text-foreground"
@@ -206,9 +217,21 @@ export default async function AdminPlacementPage({
                 {p.ref}
               </span>
             </div>
-            <h1 className="mt-2 font-head text-2xl font-extrabold tracking-tight">
-              {p.candidateName}
-            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-2.5">
+              <h1 className="font-head text-2xl font-extrabold tracking-tight">
+                {p.candidateName}
+              </h1>
+              <Badge
+                className={cn(
+                  "font-head font-bold",
+                  p.fresher
+                    ? "bg-violet-500/12 text-violet-700 dark:text-violet-300"
+                    : "bg-brand/10 text-brand",
+                )}
+              >
+                {candidateCategory(p.fresher)}
+              </Badge>
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {p.designation} at {p.companyName}
               {p.propertyName ? ` (${p.propertyName})` : ""}
@@ -225,8 +248,9 @@ export default async function AdminPlacementPage({
         {p.left && (
           <p className="rounded-2xl bg-orange-500/10 px-4 py-3 text-sm text-orange-800 dark:text-orange-300">
             The employer reported: {LEFT_REASONS[p.left.reason].toLowerCase()}
-            {p.left.resignedOn && ` on ${formatDateOnly(p.left.resignedOn)}`}, last working day{" "}
-            {formatDateOnly(p.left.leftOn)}.{p.left.notes && ` “${p.left.notes}”`}
+            {p.left.resignedOn && ` on ${formatDateOnly(p.left.resignedOn)}`},
+            last working day {formatDateOnly(p.left.leftOn)}.
+            {p.left.notes && ` “${p.left.notes}”`}
           </p>
         )}
         {p.replacement && (
@@ -251,8 +275,8 @@ export default async function AdminPlacementPage({
                 <p className="text-sm text-muted-foreground">
                   They resigned within {REPLACEMENT_MONTHS} months of joining,
                   so JobClubb owes {p.companyName} one replacement. Screen and
-                  refer a candidate as usual, then link them here. If the job
-                  is closed, ask the company to reopen it.
+                  refer a candidate as usual, then link them here. If the job is
+                  closed, ask the company to reopen it.
                 </p>
                 <LinkReplacementForm
                   placementId={p.id}
@@ -293,9 +317,9 @@ export default async function AdminPlacementPage({
             {sendBlocker}
           </p>
         )}
-        {!["withdrawn", "declined", "not_joined"].includes(p.status) && (
+        {/* {!["withdrawn", "declined", "not_joined"].includes(p.status) && (
           <p className="rounded-2xl bg-brand/6 px-4 py-3 text-sm">{feeNote}</p>
-        )}
+        )} */}
       </div>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">

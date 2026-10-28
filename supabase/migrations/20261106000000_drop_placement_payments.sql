@@ -1,5 +1,3 @@
--- No placement fee was ever paid on JobClubb before fees moved outside it, so
--- there are no invoices to keep.
 drop trigger on_placement_deleted_delete_unpaid_payments on public.placements;
 drop function public.delete_unpaid_placement_payments();
 
