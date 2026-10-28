@@ -119,7 +119,7 @@ export const INDUSTRIES: Industry[] = [
 ];
 
 // Companies hiring across every industry; jobs always pick a concrete one.
-export const ALL_INDUSTRIES = { slug: "all", name: "All industries" } as const;
+export const ALL_INDUSTRIES = { slug: "all", name: "All" } as const;
 
 export const COMPANY_INDUSTRY_OPTIONS = [
   { value: ALL_INDUSTRIES.slug, label: ALL_INDUSTRIES.name },

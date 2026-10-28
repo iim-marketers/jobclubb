@@ -60,7 +60,7 @@ export function CompanySignUp() {
     validate: validateCompany,
     action: registerCompany,
   });
-  const [industry, setIndustry] = useState<string | null>("hotels");
+  const [industry, setIndustry] = useState<string | null>("all");
   const [size, setSize] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
@@ -186,7 +186,7 @@ export function CompanySignUp() {
               placeholder="E.g., Kolkata"
               autoComplete="address-level2"
               required
-              hint="All jobs are posted here, and it can't be changed later."
+              // hint="All jobs are posted here, and it can't be changed later."
               error={errors.city}
             />
             <Field
