@@ -20,13 +20,7 @@ import {
   type InterviewOutcome,
   type InterviewPlaceRow,
 } from "@/lib/interviews";
-import {
-  deadlineEnd,
-  formatDateOnly,
-  formatRupees,
-  isReleased,
-  type PlacementStatus,
-} from "@/lib/placements";
+import { formatDateOnly, isReleased, type PlacementStatus } from "@/lib/placements";
 import type { Resume } from "@/lib/resume";
 import { createAdminClient } from "@/lib/supabase/server";
 import {
@@ -42,7 +36,6 @@ import {
 import { hasAcceptedCurrentTerms } from "@/server/auth/terms";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
 import { postedAgo, toListing } from "@/server/jobs/listings";
-import { effectiveStatus } from "@/server/placements/placements";
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const JOBCLUBB_LOGO = "/icon.png";
@@ -152,15 +145,13 @@ export async function getApplyState(candidateId: string, slug: string): Promise<
 }
 
 const PLACEMENT_COLUMNS =
-  "id, status, fee_amount, offer_deadline, joining_date, monthly_salary, offer_notes, released_at, accepted_at, closed_at";
+  "id, status, joining_date, monthly_salary, offer_notes, released_at, accepted_at, closed_at";
 
 const APPLICATION_COLUMNS = `ref, stage, status, created_at, viewed_at, screening_cleared_at, shortlisted_at, rejected_at, company_jobs (${PUBLIC_JOB_COLUMNS}), job_interviews (host, created_at, round_no, starts_at, duration_mins, finished_at, cancelled_at, outcome, outcome_at), placements!placements_application_id_fkey (${PLACEMENT_COLUMNS})`;
 
 type PlacementEmbed = {
   id: string;
   status: PlacementStatus;
-  fee_amount: number | null;
-  offer_deadline: string | null;
   joining_date: string | null;
   monthly_salary: number | null;
   offer_notes: string | null;
@@ -188,16 +179,12 @@ function hideSelection<T extends { outcome: InterviewOutcome | null; outcome_at?
 
 function toOffer(placement: PlacementEmbed | null): Application["offer"] {
   if (!placement?.released_at || !isReleased(placement.status)) return null;
-  if (!placement.fee_amount || !placement.offer_deadline || !placement.joining_date) return null;
-  const status = effectiveStatus(placement);
-  if (status === "awaiting_offer" || status === "offer_received") return null;
+  const { status } = placement;
+  if (!placement.joining_date) return null;
   const unlocked = status === "accepted" || status === "joined" || status === "not_joined";
   return {
     placementId: placement.id,
     status,
-    fee: placement.fee_amount,
-    paid: placement.accepted_at !== null,
-    deadline: placement.offer_deadline,
     joiningDate: placement.joining_date,
     monthlySalary: unlocked ? placement.monthly_salary : null,
     notes: unlocked ? (placement.offer_notes ?? "") : "",
@@ -241,15 +228,15 @@ const CLOSED_OFFER_EVENTS = {
 function offerUpdate(offer: NonNullable<Application["offer"]>) {
   switch (offer.status) {
     case "released":
-      return `Congratulations, you've been selected! Pay the placement fee of ${formatRupees(offer.fee)} by ${formatDateOnly(offer.deadline)} to unlock your offer letter.`;
+      return "Congratulations, you've been selected! Our placement team will contact you about the offer, then send your offer letter here.";
     case "accepted":
-      return `Your offer letter is unlocked. You're expected to join on ${formatDateOnly(offer.joiningDate)}.`;
+      return `Your offer letter is here. You're expected to join on ${formatDateOnly(offer.joiningDate)}.`;
     case "joined":
       return "Congratulations on your new role! The employer has confirmed you joined.";
     case "not_joined":
       return "The employer recorded that you didn't join on the agreed date. Contact our placement team if that's wrong.";
     case "expired":
-      return "The deadline to claim this offer passed, so it lapsed. Contact our placement team if you still want the role.";
+      return "This offer lapsed. Contact our placement team if you still want the role.";
     case "declined":
       return "You declined this offer. New roles are added every day, so keep applying.";
     case "withdrawn":
@@ -327,10 +314,10 @@ function toApplication(row: ApplicationRow): Application {
     row.screening_cleared_at && { label: "Shortlisted by JobClubb", at: row.screening_cleared_at },
     referredAt && { label: `Referred to ${job.companyName}`, at: referredAt },
     offer && placement?.released_at && { label: "Selected", at: placement.released_at },
-    offer && placement?.accepted_at && { label: "Offer accepted", at: placement.accepted_at },
-    offer && offer.status !== "released" && offer.status !== "accepted" && {
+    offer && placement?.accepted_at && { label: "Offer letter received", at: placement.accepted_at },
+    offer && placement?.closed_at && offer.status !== "released" && offer.status !== "accepted" && {
       label: CLOSED_OFFER_EVENTS[offer.status],
-      at: placement?.closed_at ?? deadlineEnd(offer.deadline).toISOString(),
+      at: placement.closed_at,
     },
     row.rejected_at && { label: "Not selected", at: row.rejected_at },
   ]

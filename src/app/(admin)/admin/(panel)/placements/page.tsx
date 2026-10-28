@@ -16,8 +16,9 @@ export default async function AdminPlacementsPage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Every candidate a company has selected. Check the offer the company
-          uploads, release it, and the candidate pays the placement fee to
-          unlock it.
+          uploads, confirm it with the candidate, collect a fresher&apos;s
+          placement fee outside JobClubb, then send them the offer letter.
+          Invoice the company for experienced candidates once they join.
         </p>
       </div>
       <PlacementsTable placements={placements} />

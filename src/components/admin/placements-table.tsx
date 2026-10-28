@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { adminTableFeatures, DataTable, formatDate } from "@/components/admin/data-table";
+import {
+  adminTableFeatures,
+  DataTable,
+  formatDate,
+} from "@/components/admin/data-table";
 import { FilterSelect } from "@/components/table-toolbar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,10 +24,9 @@ import type { AdminPlacement } from "@/server/placements/placements";
 
 const TABS = [
   { key: "open", label: "Open" },
-  { key: "offer_received", label: "Ready to release" },
+  { key: "offer_received", label: "Ready to send" },
   { key: "awaiting_offer", label: "Awaiting offer" },
-  { key: "released", label: "Awaiting payment" },
-  { key: "accepted", label: "Paid" },
+  { key: "accepted", label: "Offer sent" },
   { key: "replacement", label: "Replacement owed" },
   { key: "closed", label: "Closed" },
   { key: "all", label: "All" },
@@ -51,7 +54,8 @@ const columns = helper.columns([
       <div className="min-w-44">
         <p className="font-head font-bold">{row.original.candidateName}</p>
         <p className="text-xs text-muted-foreground">
-          <span className="font-mono">{row.original.ref}</span> · {row.original.candidatePhone}
+          <span className="font-mono">{row.original.ref}</span> ·{" "}
+          {row.original.candidatePhone}
         </p>
       </div>
     ),
@@ -63,7 +67,9 @@ const columns = helper.columns([
     cell: ({ row }) => (
       <div className="min-w-40">
         <p className="font-medium">{row.original.designation}</p>
-        <p className="text-xs text-muted-foreground">{row.original.companyName}</p>
+        <p className="text-xs text-muted-foreground">
+          {row.original.companyName}
+        </p>
       </div>
     ),
   }),
@@ -72,7 +78,9 @@ const columns = helper.columns([
     sortFn: "text",
     cell: ({ row, getValue }) => (
       <div className="flex flex-wrap gap-1.5">
-        <Badge className={cn("font-head font-bold", placementBadge(getValue()))}>
+        <Badge
+          className={cn("font-head font-bold", placementBadge(getValue()))}
+        >
           {ADMIN_PLACEMENT_LABELS[getValue()]}
         </Badge>
         {row.original.replacement?.status === "owed" && (
@@ -83,27 +91,31 @@ const columns = helper.columns([
       </div>
     ),
   }),
-  helper.accessor((p) => p.fee ?? p.monthlySalary ?? 0, {
-    id: "fee",
-    header: "Fee",
+  helper.accessor((p) => p.monthlySalary ?? 0, {
+    id: "salary",
+    header: "Monthly gross",
     sortFn: "basic",
-    cell: ({ row }) => {
-      const amount = row.original.fee ?? row.original.monthlySalary;
-      return (
-        <span className="whitespace-nowrap text-muted-foreground">
-          {amount ? formatRupees(amount) : "—"}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="whitespace-nowrap">
+        <p className="text-muted-foreground">
+          {row.original.monthlySalary
+            ? formatRupees(row.original.monthlySalary)
+            : "—"}
+        </p>
+        {/* <p className="text-xs text-muted-foreground">
+          {row.original.fresher ? "Fresher · candidate pays" : "Experienced · company pays"}
+        </p> */}
+      </div>
+    ),
   }),
-  helper.accessor((p) => p.offerDeadline ?? "", {
-    id: "deadline",
-    header: "Pay by",
+  helper.accessor((p) => p.joiningDate ?? "", {
+    id: "joining",
+    header: "Joining",
     sortFn: "text",
     cell: ({ row }) => (
       <span className="whitespace-nowrap text-muted-foreground">
-        {row.original.releasedAt && row.original.offerDeadline
-          ? formatDateOnly(row.original.offerDeadline)
+        {row.original.joiningDate
+          ? formatDateOnly(row.original.joiningDate)
           : "—"}
       </span>
     ),
@@ -113,30 +125,49 @@ const columns = helper.columns([
     sortFn: "basic",
     sortDescFirst: true,
     cell: ({ getValue }) => (
-      <span className="whitespace-nowrap text-muted-foreground">{formatDate(getValue())}</span>
+      <span className="whitespace-nowrap text-muted-foreground">
+        {formatDate(getValue())}
+      </span>
     ),
   }),
 ]);
 
 const COLUMN_CLASS: Record<string, string> = {
   role: "hidden md:table-cell",
-  fee: "hidden lg:table-cell",
-  deadline: "hidden xl:table-cell",
+  salary: "hidden lg:table-cell",
+  joining: "hidden xl:table-cell",
   selectedAt: "hidden sm:table-cell",
 };
 
-export function PlacementsTable({ placements }: { placements: AdminPlacement[] }) {
+export function PlacementsTable({
+  placements,
+}: {
+  placements: AdminPlacement[];
+}) {
   const router = useRouter();
   const [tab, setTab] = useState<TabKey>("open");
-  const count = (status: PlacementStatus) => placements.filter((p) => p.status === status).length;
+  const count = (status: PlacementStatus) =>
+    placements.filter((p) => p.status === status).length;
 
   return (
     <>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Ready to release" value={count("offer_received")} highlight={count("offer_received") > 0} />
+        <StatTile
+          label="Ready to send"
+          value={count("offer_received")}
+          highlight={count("offer_received") > 0}
+        />
         <StatTile label="Awaiting offer" value={count("awaiting_offer")} />
-        <StatTile label="Awaiting payment" value={count("released")} />
-        <StatTile label="Paid, not yet joined" value={count("accepted")} />
+        <StatTile
+          label="Offer sent, not yet joined"
+          value={count("accepted")}
+        />
+        <StatTile
+          label="Replacements owed"
+          value={
+            placements.filter((p) => p.replacement?.status === "owed").length
+          }
+        />
       </div>
       <DataTable
         key={tab}
@@ -162,7 +193,15 @@ export function PlacementsTable({ placements }: { placements: AdminPlacement[] }
   );
 }
 
-function StatTile({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function StatTile({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
   return (
     <div
       className={cn(
@@ -171,7 +210,9 @@ function StatTile({ label, value, highlight }: { label: string; value: number; h
       )}
     >
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-head text-2xl font-extrabold tracking-tight">{value}</p>
+      <p className="mt-1 font-head text-2xl font-extrabold tracking-tight">
+        {value}
+      </p>
     </div>
   );
 }

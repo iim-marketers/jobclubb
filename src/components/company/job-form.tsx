@@ -92,6 +92,7 @@ export function JobForm({
             id="industry"
             label="Industry"
             required
+            placeholder="Choose an industry"
             options={INDUSTRY_OPTIONS}
             value={industry}
             onValueChange={(v) => {

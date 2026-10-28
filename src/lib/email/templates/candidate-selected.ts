@@ -29,7 +29,7 @@ export function candidateSelectedEmail({
     greeting: "Dear Placement Team,",
     paragraphs: [
       `${company.name} has selected ${candidate.name} for the ${jobTitle} position after ${rounds} interview ${rounds === 1 ? "round" : "rounds"}.`,
-      "The candidate hasn't been told yet. The company has been asked to upload the offer letter; once it's in, review it and release it to the candidate from the admin panel.",
+      "The candidate hasn't been told yet. The company has been asked to upload the offer letter; once it's in, review it, confirm the offer with the candidate and send them the offer letter from the admin panel.",
     ],
     details: [
       { label: "Application ID", value: applicationRef },

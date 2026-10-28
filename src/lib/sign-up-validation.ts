@@ -4,7 +4,7 @@ import {
   getWebsiteDomain,
 } from "@/lib/company-verification";
 import { GST_STATES, pincodeState } from "@/lib/gst";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import { INDUSTRIES, isCompanyIndustry } from "@/lib/taxonomy";
 
 export type FieldErrors = Partial<Record<string, string>>;
 
@@ -203,7 +203,7 @@ export function validateCompany(formData: FormData): FieldErrors {
   if (!v.companyName) errors.companyName = "Enter your company's registered name.";
   else if (v.companyName.length > 120) errors.companyName = "Use 120 characters or fewer.";
   if (v.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
-  if (!INDUSTRIES.some((s) => s.slug === v.industry)) errors.industry = "Choose an industry.";
+  if (!isCompanyIndustry(v.industry)) errors.industry = "Choose an industry.";
   if (!COMPANY_SIZES.some((s) => s.value === v.size)) errors.size = "Choose your company size.";
   if (v.website.length > 255 || (v.website && !getWebsiteDomain(v.website))) errors.website = "Enter a valid website, like taj.com.";
   if (v.gstin && !GSTIN_PATTERN.test(v.gstin)) errors.gstin = "GSTIN should be 15 characters, like 19AABCT1234F1Z5.";
@@ -253,7 +253,7 @@ export function validateCompanyDetails(formData: FormData, propertyPincode: stri
   const errors: FieldErrors = {};
 
   if (values.propertyName.length > 120) errors.propertyName = "Use 120 characters or fewer.";
-  if (!INDUSTRIES.some((s) => s.slug === values.industry)) errors.industry = "Choose an industry.";
+  if (!isCompanyIndustry(values.industry)) errors.industry = "Choose an industry.";
   if (!COMPANY_SIZES.some((s) => s.value === values.size)) errors.size = "Choose your company size.";
   if (values.website.length > 255 || (values.website && !getWebsiteDomain(values.website)))
     errors.website = "Enter a valid website, like taj.com.";

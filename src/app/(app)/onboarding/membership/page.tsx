@@ -13,6 +13,7 @@ import {
   isMembershipActive,
   planFor,
 } from "@/lib/membership";
+import { isFresher } from "@/lib/placements";
 import {
   getCurrentCandidate,
   getLapsedAccessUntil,
@@ -229,9 +230,10 @@ export default async function CheckoutPage() {
 
         <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
           Pay securely via Razorpay. We&apos;ll remind you 15 days before it
-          ends, and you can renew once it does. If an employer selects you later, a separate placement fee
-          equal to one month&apos;s fixed gross salary applies to receive your
-          offer letter.
+          ends, and you can renew once it does.{" "}
+          {isFresher(candidate)
+            ? "As an Emporium candidate, a placement fee equal to one month's salary still applies when you're placed, arranged with you directly by our placement team."
+            : "Membership is the only fee you pay JobClubb: there's no placement fee when you're hired."}
         </p>
       </main>
     </div>

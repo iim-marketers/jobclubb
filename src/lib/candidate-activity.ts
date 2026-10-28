@@ -24,9 +24,6 @@ export type ApplicationStatus = "active" | "closed" | "rejected";
 export type CandidateOffer = {
   placementId: string;
   status: CandidateOfferStatus;
-  fee: number;
-  paid: boolean;
-  deadline: string;
   joiningDate: string;
   monthlySalary: number | null;
   notes: string;

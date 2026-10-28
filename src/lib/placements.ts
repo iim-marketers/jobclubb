@@ -14,10 +14,15 @@ export type PlacementStatus = (typeof PLACEMENT_STATUSES)[number];
 
 export const PLACEMENT_EMAIL = "placement@jobclubb.com";
 
-export const DEFAULT_OFFER_DAYS = 7;
+export const isFresher = (candidate: { emporium_batch_id: string | null }) =>
+  candidate.emporium_batch_id !== null;
 
-export const PLACEMENT_FEE_NOTE =
-  "If you're selected, a placement fee equal to one month's fixed gross salary (GST included) applies. You pay it to JobClubb to receive your offer letter.";
+export const candidateCategory = (fresher: boolean) => (fresher ? "Fresher" : "Experienced");
+
+export const placementFeeNote = (fresher: boolean) =>
+  fresher
+    ? "As an Emporium candidate, you pay JobClubb a placement fee equal to one month's salary if you're placed. It isn't paid on JobClubb.com: our placement team arranges it with you before sending your offer letter."
+    : "No placement fee: as a paid member, you never pay JobClubb any part of your salary.";
 
 // Before the release the candidate must not learn they were selected.
 export const isReleased = (status: PlacementStatus) =>
@@ -44,9 +49,9 @@ export const COMPANY_PLACEMENT_LABELS: Record<PlacementStatus, string> = {
 
 export const ADMIN_PLACEMENT_LABELS: Record<PlacementStatus, string> = {
   awaiting_offer: "Awaiting offer",
-  offer_received: "Ready to release",
-  released: "Awaiting payment",
-  accepted: "Paid",
+  offer_received: "Ready to send",
+  released: "With candidate",
+  accepted: "Offer sent",
   joined: "Joined",
   not_joined: "Did not join",
   expired: "Expired",
@@ -106,10 +111,8 @@ export function addMonths(date: string, months: number) {
   return target.toISOString().slice(0, 10);
 }
 
-// A deadline is a date in IST and lasts until the following midnight.
+// A date in IST lasts until the following midnight.
 export const deadlineEnd = (date: string) => new Date(`${addDays(date, 1)}T00:00:00+05:30`);
-
-export const isPastDeadline = (date: string, now = new Date()) => +deadlineEnd(date) <= +now;
 
 export function formatDateOnly(date: string) {
   return new Intl.DateTimeFormat("en-IN", {
@@ -241,10 +244,4 @@ export function validateLeaving(
   }
   if (values.notes.length > 1000) errors.notes = "Use 1,000 characters or fewer.";
   return { values, errors };
-}
-
-export function releaseDeadline(terms: { joiningDate: string; offerDeadline: string | null }, now = new Date()) {
-  if (terms.offerDeadline) return terms.offerDeadline;
-  const standard = addDays(todayIst(now), DEFAULT_OFFER_DAYS);
-  return standard < terms.joiningDate ? standard : terms.joiningDate;
 }

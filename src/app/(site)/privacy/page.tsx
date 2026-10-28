@@ -17,19 +17,19 @@ const SECTIONS: PolicySection[] = [
   },
   {
     heading: "3. Payments",
-    body: "Membership payments are processed by Razorpay. Your card, UPI or bank details are entered directly with Razorpay and are never stored on our servers. We receive only a confirmation of the payment, its amount and a transaction reference.",
+    body: "The only payment made on JobClubb.com is for membership, processed by Razorpay. Your card, UPI or bank details are entered directly with Razorpay and are never stored on our servers. We receive only a confirmation of the payment, its amount and a transaction reference. Any other fee JobClubb charges is paid directly to JobClubb outside the website, and we keep records of those payments for accounting and tax purposes.",
   },
   {
     heading: "4. How we use your data",
-    body: "We use your data to run your account, match you with relevant jobs, share your profile with employers in the way described below, process payments, send service emails such as renewal reminders, and respond to support requests. We do not sell your personal data.",
+    body: "We use your data to run your account, match you with relevant jobs, screen and interview you, share your profile with employers in the way described below, contact you by phone or email about your applications and offers, process payments, send service emails such as renewal reminders, and respond to support requests. We do not sell your personal data.",
   },
   {
     heading: "5. What employers can see",
-    body: "Employers see only your skills and experience. Your name, contact details, photograph and other identifying information stay hidden until you expressly agree to reveal them to a specific employer. Every reveal is logged.",
+    body: "Employers see a candidate only once JobClubb refers them for a role. They then see the candidate's name, skills, experience and resume, but not their email address, phone number or profile links. JobClubb handles communication between candidates and employers about interviews and offers, and passes the employer's offer letter to the candidate.",
   },
   {
     heading: "6. Who we share data with",
-    body: "We share data only with service providers that help us run JobClubb, such as our hosting, database, email and payment providers, and only to the extent they need it to provide their service. We may also disclose data where required by law.",
+    body: "Apart from employers, we share data only with service providers that help us run JobClubb, such as our hosting, database, email and payment providers, and only to the extent they need it to provide their service. We may also disclose data where required by law.",
   },
   {
     heading: "7. Cookies",
@@ -54,9 +54,9 @@ export default function PrivacyPage() {
     <PolicyPage
       title="Privacy Policy"
       description="How we collect, use and protect your personal data."
-      eyebrow="Last updated 9 October 2026"
+      eyebrow="Last updated 28 October 2026"
       sections={SECTIONS}
-      footnote="Last updated 9 October 2026"
+      footnote="Last updated 28 October 2026"
     />
   );
 }

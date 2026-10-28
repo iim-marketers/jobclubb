@@ -26,6 +26,7 @@ import {
   COMPANY_PLACEMENT_LABELS,
   COMPANY_REPLACEMENT_LABELS,
   LEFT_REASONS,
+  candidateCategory,
   formatDateOnly,
   isClosed,
   isReleased,
@@ -127,7 +128,8 @@ export default async function SelectedPage() {
                           {p.candidate}
                         </Link>
                         <p className="truncate text-xs whitespace-nowrap text-muted-foreground">
-                          <span className="font-mono">{p.ref}</span>
+                          <span className="font-mono">{p.ref}</span> ·{" "}
+                          {candidateCategory(p.fresher)}
                           <span className="lg:hidden"> · {p.designation}</span>
                         </p>
                       </div>
@@ -182,9 +184,15 @@ export default async function SelectedPage() {
 
       <p className="flex items-start gap-2 rounded-2xl bg-muted/50 p-3 text-xs leading-5 text-muted-foreground">
         <Handshake className="mt-0.5 size-3.5 flex-none" />
-        JobClubb shares your offer with the selected candidate and handles the
-        placement. Under our terms, offers to candidates found on JobClubb go
-        through JobClubb.
+        JobClubb confirms your offer with the selected candidate and sends them
+        your offer letter. There&apos;s no recruitment fee for Fresher
+        Candidates. For each Experienced Candidate who joins, JobClubb invoices
+        a recruitment fee of one month&apos;s salary plus GST, payable within 15
+        days. Under our{" "}
+        <Link href="/employer-terms" className="underline underline-offset-2 hover:text-foreground">
+          terms
+        </Link>
+        , offers to candidates found on JobClubb go through JobClubb.
       </p>
     </div>
   );

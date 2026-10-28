@@ -2,9 +2,8 @@ import "server-only";
 
 import { candidateLabel } from "@/lib/company-activity";
 import {
-  isPastDeadline,
+  isFresher,
   qualifiesForReplacement,
-  releaseDeadline,
   todayIst,
   type LeftReason,
   type Leaving,
@@ -24,8 +23,7 @@ import {
   type PlacementDocument,
 } from "@/server/placements/documents";
 
-// Company-facing reads never select candidate contact details: selection runs
-// through JobClubb, which is what the placement fee pays for.
+// Company-facing reads never select candidate contact details.
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -36,7 +34,7 @@ const one = <T,>(embed: T | T[] | null | undefined) =>
 type ReplacesEmbed = { id: string } | { id: string }[] | null;
 
 const BASE_COLUMNS =
-  "id, application_id, company_id, candidate_id, status, monthly_salary, fee_amount, joining_date, offer_deadline, offer_notes, selected_at, offer_received_at, released_at, accepted_at, closed_at, updated_at, left_on, left_reason, left_notes, resigned_on, replacement_status, replacement_note, replacement_closed_at, job_applications!placements_application_id_fkey (ref, job_id, job_title, company_name, candidate_no, candidate_id, shortlisted_at, city, replaces:placements!placements_replacement_application_id_fkey (id)), replacement:job_applications!placements_replacement_application_id_fkey (ref, candidate_no, candidate_id, shortlisted_at)";
+  "id, application_id, company_id, candidate_id, status, monthly_salary, joining_date, offer_deadline, offer_notes, selected_at, offer_received_at, released_at, accepted_at, closed_at, updated_at, left_on, left_reason, left_notes, resigned_on, replacement_status, replacement_note, replacement_closed_at, job_applications!placements_application_id_fkey (ref, job_id, job_title, company_name, candidate_no, candidate_id, shortlisted_at, city, replaces:placements!placements_replacement_application_id_fkey (id)), replacement:job_applications!placements_replacement_application_id_fkey (ref, candidate_no, candidate_id, shortlisted_at), category:candidates (emporium_batch_id)";
 
 type ApplicationRef = {
   ref: string;
@@ -52,7 +50,6 @@ type BaseRow = {
   candidate_id: string;
   status: PlacementStatus;
   monthly_salary: number | null;
-  fee_amount: number | null;
   joining_date: string | null;
   offer_deadline: string | null;
   offer_notes: string | null;
@@ -77,18 +74,15 @@ type BaseRow = {
     replaces: ReplacesEmbed;
   };
   replacement: ApplicationRef | null;
+  category: { emporium_batch_id: string | null };
 };
 
 const PRE_RELEASE: PlacementStatus[] = ["awaiting_offer", "offer_received"];
 const COMPANY_WITHDRAWABLE: PlacementStatus[] = ["awaiting_offer", "offer_received", "released"];
 const ADMIN_WITHDRAWABLE: PlacementStatus[] = [...COMPANY_WITHDRAWABLE, "accepted"];
-
-// The expiry job runs hourly; reads treat a passed deadline as expired straight away.
-export function effectiveStatus(row: { status: PlacementStatus; offer_deadline: string | null }) {
-  return row.status === "released" && row.offer_deadline && isPastDeadline(row.offer_deadline)
-    ? "expired"
-    : row.status;
-}
+// "released" and "expired" are legacy states from when offers were paid for in-app.
+const SENDABLE: PlacementStatus[] = [...PRE_RELEASE, "released", "expired"];
+const DECLINABLE: PlacementStatus[] = ["offer_received", "released"];
 
 const now = () => new Date().toISOString();
 
@@ -101,8 +95,8 @@ export type PlacementSummary = {
   candidate: string;
   city: string;
   status: PlacementStatus;
+  fresher: boolean;
   monthlySalary: number | null;
-  fee: number | null;
   joiningDate: string | null;
   offerDeadline: string | null;
   notes: string;
@@ -138,9 +132,9 @@ function toSummary(row: BaseRow, candidate: string, replacementName: string | nu
     companyName: row.job_applications.company_name,
     candidate,
     city: row.job_applications.city,
-    status: effectiveStatus(row),
+    status: row.status,
+    fresher: isFresher(row.category),
     monthlySalary: row.monthly_salary,
-    fee: row.fee_amount,
     joiningDate: row.joining_date,
     offerDeadline: row.offer_deadline,
     notes: row.offer_notes ?? "",
@@ -491,18 +485,8 @@ export async function listAdminPlacements(): Promise<AdminPlacement[]> {
   return rows.map((r) => toAdmin(r, r.replacement && nameOf(r.replacement)));
 }
 
-export type PlacementPayment = {
-  orderId: string;
-  status: "created" | "paid";
-  amount: number;
-  paymentId: string | null;
-  invoiceNumber: string | null;
-  createdAt: string;
-  paidAt: string | null;
-};
-
 export async function getAdminPlacement(id: string): Promise<
-  | (AdminPlacement & { documents: PlacementDocument[]; payments: PlacementPayment[] })
+  | (AdminPlacement & { documents: PlacementDocument[] })
   | null
 > {
   if (!UUID.test(id)) return null;
@@ -516,29 +500,14 @@ export async function getAdminPlacement(id: string): Promise<
   if (!data) return null;
 
   const row = data as unknown as AdminRow;
-  const [documents, { data: payments, error: paymentsError }, { nameOf }] = await Promise.all([
+  const [documents, { nameOf }] = await Promise.all([
     listOfferDocuments(id, { signed: true }),
-    admin
-      .from("placement_payments")
-      .select("order_id, status, amount, payment_id, invoice_number, created_at, paid_at")
-      .eq("placement_id", id)
-      .order("created_at", { ascending: false }),
     rowNames([row]),
   ]);
-  if (paymentsError) throw paymentsError;
 
   return {
     ...toAdmin(row, row.replacement && nameOf(row.replacement)),
     documents,
-    payments: payments.map((p) => ({
-      orderId: p.order_id,
-      status: p.status,
-      amount: p.amount,
-      paymentId: p.payment_id,
-      invoiceNumber: p.invoice_number,
-      createdAt: p.created_at,
-      paidAt: p.paid_at,
-    })),
   };
 }
 
@@ -554,7 +523,7 @@ export async function updatePlacementTerms(id: string, terms: OfferTerms) {
       updated_at: now(),
     })
     .eq("id", id)
-    .in("status", PRE_RELEASE)
+    .in("status", SENDABLE)
     .select("id");
   if (error) throw error;
   return data.length > 0;
@@ -570,90 +539,71 @@ export async function markOfferReceived(id: string) {
   if (error) throw error;
 }
 
-export type ReleaseResult = { ok: true } | { ok: false; error: string };
+export type SendResult = { ok: true } | { ok: false; error: string };
 
-export async function releasePlacement(id: string): Promise<ReleaseResult> {
+// The team confirms with the candidate before sending, so sending also accepts.
+export async function sendOfferLetter(id: string): Promise<SendResult> {
   if (!UUID.test(id)) return { ok: false, error: "This placement no longer exists." };
   const admin = createAdminClient();
   const { data: p, error } = await admin
     .from("placements")
-    .select("status, monthly_salary, joining_date, offer_deadline, updated_at")
+    .select("status, monthly_salary, joining_date, released_at, updated_at")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
   if (!p) return { ok: false, error: "This placement no longer exists." };
-  if (!PRE_RELEASE.includes(p.status)) return { ok: false, error: "This offer has already been released." };
+  if (!SENDABLE.includes(p.status)) return { ok: false, error: "This offer letter has already been sent." };
   if (!p.monthly_salary || !p.joining_date)
     return { ok: false, error: "Add the monthly salary and joining date first." };
   if ((await countOfferDocuments(id)) === 0)
     return { ok: false, error: "Upload the offer letter first." };
-
-  const today = todayIst();
-  if (p.joining_date < today)
-    return { ok: false, error: "The joining date has passed. Update it before releasing." };
-  const deadline = releaseDeadline({ joiningDate: p.joining_date, offerDeadline: p.offer_deadline });
-  if (deadline < today)
-    return { ok: false, error: "The offer deadline has passed. Update it before releasing." };
+  if (p.joining_date < todayIst())
+    return { ok: false, error: "The joining date has passed. Update it before sending." };
 
   const at = now();
   const { data: updated, error: updateError } = await admin
     .from("placements")
     .update({
-      status: "released",
-      released_at: at,
-      fee_amount: p.monthly_salary,
-      offer_deadline: deadline,
+      status: "accepted",
+      released_at: p.released_at ?? at,
+      accepted_at: at,
+      closed_at: null,
       updated_at: at,
     })
     .eq("id", id)
-    .in("status", PRE_RELEASE)
+    .in("status", SENDABLE)
     .eq("updated_at", p.updated_at)
     .select("id");
   if (updateError) throw updateError;
   if (updated.length === 0)
-    return { ok: false, error: "The offer changed while you were releasing it. Refresh and check it again." };
+    return { ok: false, error: "The offer changed while you were sending it. Refresh and check it again." };
   return { ok: true };
 }
 
-export async function extendPlacementDeadline(
-  id: string,
-  { offerDeadline, joiningDate }: { offerDeadline: string; joiningDate: string },
-): Promise<ReleaseResult> {
-  if (!UUID.test(id)) return { ok: false, error: "This placement no longer exists." };
-  const today = todayIst();
-  if (offerDeadline < today) return { ok: false, error: "Choose a deadline from today onwards." };
-  if (joiningDate < offerDeadline)
-    return { ok: false, error: "The joining date can't be before the deadline." };
-
-  const { data, error } = await createAdminClient()
+// They declined when the team contacted them, so they already know they were selected.
+export async function declinePlacement(id: string) {
+  if (!UUID.test(id)) return false;
+  const admin = createAdminClient();
+  const { data: p, error } = await admin
+    .from("placements")
+    .select("status, released_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!p || !DECLINABLE.includes(p.status)) return false;
+  const at = now();
+  const { data, error: updateError } = await admin
     .from("placements")
     .update({
-      status: "released",
-      offer_deadline: offerDeadline,
-      joining_date: joiningDate,
-      closed_at: null,
-      updated_at: now(),
+      status: "declined",
+      released_at: p.released_at ?? at,
+      closed_at: at,
+      updated_at: at,
     })
     .eq("id", id)
-    .in("status", ["released", "expired"])
+    .eq("status", p.status)
     .select("id");
-  if (error) throw error;
-  return data.length > 0
-    ? { ok: true }
-    : { ok: false, error: "Only offers waiting for payment or expired can be extended." };
-}
-
-export async function declinePlacement(id: string, scope: { candidateId?: string } = {}) {
-  if (!UUID.test(id)) return false;
-  let query = createAdminClient()
-    .from("placements")
-    .update({ status: "declined", closed_at: now(), updated_at: now() })
-    .eq("id", id)
-    .eq("status", "released");
-  if (scope.candidateId)
-    query = query.eq("candidate_id", scope.candidateId).gte("offer_deadline", todayIst());
-  const { data, error } = await query.select("id");
-  if (error) throw error;
+  if (updateError) throw updateError;
   return data.length > 0;
 }
 

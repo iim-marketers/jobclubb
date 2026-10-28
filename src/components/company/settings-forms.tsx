@@ -73,9 +73,8 @@ import {
 } from "@/lib/company-change-requests";
 import { COMPANY_SIZES } from "@/lib/company-verification";
 import { toSquarePhoto } from "@/lib/square-photo";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import { COMPANY_INDUSTRY_OPTIONS } from "@/lib/taxonomy";
 
-const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
 
 const SECTIONS: SettingsSection[] = [
   { id: "logo", label: "Company logo", icon: ImageIcon },
@@ -205,7 +204,7 @@ export function CompanyDetailsForm({
             id="industry"
             label="Industry"
             className="sm:col-span-2"
-            options={INDUSTRY_OPTIONS}
+            options={COMPANY_INDUSTRY_OPTIONS}
             defaultValue={initial.industry}
             onValueChange={() => markDirty("industry")}
             error={errors.industry}

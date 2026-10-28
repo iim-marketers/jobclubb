@@ -7,8 +7,6 @@ export const SUPPLIER = {
   sac: "998511",
 } as const;
 
-export const PLACEMENT_SAC = "998512";
-
 export const GST_RATE = 18;
 
 export const GST_STATES: Record<string, string> = {

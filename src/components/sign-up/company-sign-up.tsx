@@ -27,9 +27,7 @@ import {
 } from "@/components/sign-up/step-form";
 import { COMPANY_SIZES, checkCompanyEmail } from "@/lib/company-verification";
 import { COMPANY_STEPS, validateCompany } from "@/lib/sign-up-validation";
-import { INDUSTRIES } from "@/lib/taxonomy";
-
-const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({ value: v.slug, label: v.name }));
+import { COMPANY_INDUSTRY_OPTIONS } from "@/lib/taxonomy";
 
 const EMAIL_STYLES = {
   ok: {
@@ -62,7 +60,7 @@ export function CompanySignUp() {
     validate: validateCompany,
     action: registerCompany,
   });
-  const [industry, setIndustry] = useState<string | null>("hotels");
+  const [industry, setIndustry] = useState<string | null>("all");
   const [size, setSize] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
@@ -145,7 +143,7 @@ export function CompanySignUp() {
             <SelectField
               id="industry"
               label="Industry"
-              options={INDUSTRY_OPTIONS}
+              options={COMPANY_INDUSTRY_OPTIONS}
               value={industry}
               onValueChange={(v) => {
                 setIndustry(v);
@@ -188,7 +186,7 @@ export function CompanySignUp() {
               placeholder="E.g., Kolkata"
               autoComplete="address-level2"
               required
-              hint="All jobs are posted here, and it can't be changed later."
+              // hint="All jobs are posted here, and it can't be changed later."
               error={errors.city}
             />
             <Field
@@ -356,7 +354,9 @@ function EmployerBadge({
   emailOk?: boolean;
 }) {
   const companyName = name?.trim() || "Your company";
-  const industryLabel = INDUSTRIES.find((v) => v.slug === industry)?.name;
+  const industryLabel = COMPANY_INDUSTRY_OPTIONS.find(
+    (o) => o.value === industry,
+  )?.label;
   const sizeLabel = COMPANY_SIZES.find((s) => s.value === size)?.label;
   const status =
     emailOk === undefined ? null : EMAIL_STYLES[emailOk ? "ok" : "blocked"];

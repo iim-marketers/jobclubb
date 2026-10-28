@@ -145,21 +145,41 @@ export default async function MembershipPage() {
             </span>
             <div className="min-w-0 flex-1">
               <SectionEyebrow>When you&apos;re selected</SectionEyebrow>
-              <h2 className="mt-1.5 font-head text-xl font-bold tracking-tight">
-                A placement fee applies only when you land the job
-              </h2>
-              <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
-                Membership covers your job search. When an employer selects
-                you, JobClubb shares the offer with you, and you pay a one-time
-                placement fee equal to one month&apos;s fixed gross salary (GST
-                included) to receive your offer letter. You can decline an offer
-                at no cost before paying; once paid, the fee is non-refundable.
-                See our{" "}
-                <Link href="/terms" className="font-medium text-foreground underline underline-offset-2">
-                  terms
-                </Link>{" "}
-                for details.
-              </p>
+              {viewer.kind !== "guest" && viewer.fresher ? (
+                <>
+                  <h2 className="mt-1.5 font-head text-xl font-bold tracking-tight">
+                    A placement fee applies only when you land the job
+                  </h2>
+                  <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
+                    Your membership is included with your Emporium batch. When
+                    an employer selects you, our placement team contacts you
+                    about the offer and a one-time placement fee equal to one
+                    month&apos;s salary. It isn&apos;t paid on JobClubb: the team
+                    arranges it with you directly, then sends your offer letter.
+                    Once paid, the fee is non-refundable. See our{" "}
+                    <Link href="/terms" className="font-medium text-foreground underline underline-offset-2">
+                      terms
+                    </Link>{" "}
+                    for details.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="mt-1.5 font-head text-xl font-bold tracking-tight">
+                    No placement fee for members
+                  </h2>
+                  <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
+                    Membership is all you pay. When an employer selects you,
+                    our placement team confirms the offer with you and sends
+                    your offer letter, and you never pay JobClubb any part of
+                    your salary. See our{" "}
+                    <Link href="/terms" className="font-medium text-foreground underline underline-offset-2">
+                      terms
+                    </Link>{" "}
+                    for details.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

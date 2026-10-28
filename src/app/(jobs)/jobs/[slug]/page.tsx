@@ -23,7 +23,7 @@ import { SaveJobButton } from "@/components/save-job-button";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH } from "@/lib/membership";
-import { PLACEMENT_FEE_NOTE } from "@/lib/placements";
+import { isFresher, placementFeeNote } from "@/lib/placements";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import {
@@ -77,6 +77,7 @@ export default async function JobDetailPage({
         isJobSaved(candidate.id, slug),
       ])
     : [null, false];
+  const fresher = !!candidate && isFresher(candidate);
 
   return (
     <section className="px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
@@ -93,7 +94,7 @@ export default async function JobDetailPage({
           <div className="min-w-0 space-y-6">
             <JobHeader job={job} member={access.member} />
             {access.member ? (
-              <JobBody job={job} />
+              <JobBody job={job} fresher={fresher} />
             ) : (
               <LockedDetails unlock={unlock} />
             )}
@@ -109,7 +110,7 @@ export default async function JobDetailPage({
                   </p>
                 </div>
               )}
-              <ApplyButton slug={slug} state={applyState} unlock={unlock} />
+              <ApplyButton slug={slug} state={applyState} unlock={unlock} fresher={fresher} />
               {candidate && (
                 <SaveJobButton
                   slug={slug}
@@ -124,7 +125,7 @@ export default async function JobDetailPage({
               </p>
               {access.member && (
                 <p className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
-                  {PLACEMENT_FEE_NOTE}{" "}
+                  {placementFeeNote(fresher)}{" "}
                   <Link href="/terms" className="underline underline-offset-2">
                     Terms
                   </Link>
@@ -158,6 +159,7 @@ export default async function JobDetailPage({
             slug={slug}
             state={applyState}
             unlock={unlock}
+            fresher={fresher}
             className={access.member ? "w-auto" : "w-full"}
           />
         </div>
@@ -229,7 +231,7 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
   );
 }
 
-function JobBody({ job }: { job: JobListing }) {
+function JobBody({ job, fresher }: { job: JobListing; fresher: boolean }) {
   return (
     <div className="divide-y divide-border rounded-2xl border border-border bg-card">
       <Section title="About the role">
@@ -260,7 +262,7 @@ function JobBody({ job }: { job: JobListing }) {
       </Section>
       <div className="space-y-3 p-5 sm:p-6 lg:hidden">
         <p className="text-xs leading-5 text-muted-foreground">
-          {PLACEMENT_FEE_NOTE}{" "}
+          {placementFeeNote(fresher)}{" "}
           <Link href="/terms" className="underline underline-offset-2">
             Terms
           </Link>
@@ -321,11 +323,13 @@ function ApplyButton({
   slug,
   state,
   unlock,
+  fresher,
   className = "w-full",
 }: {
   slug: string;
   state: ApplyState | null;
   unlock: { href: string; label: string };
+  fresher: boolean;
   className?: string;
 }) {
   if (state?.kind === "ready")
@@ -333,6 +337,7 @@ function ApplyButton({
       <ApplyNowButton
         slug={slug}
         needsTerms={state.needsTerms}
+        fresher={fresher}
         className={cn(BRAND_BUTTON, className)}
       />
     );

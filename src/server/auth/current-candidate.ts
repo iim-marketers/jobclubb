@@ -12,7 +12,7 @@ import {
   type MembershipPlan,
   type PaidPlan,
 } from "@/lib/membership";
-import { addDays, deadlineEnd } from "@/lib/placements";
+import { addDays, deadlineEnd, isFresher } from "@/lib/placements";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 const OFFER_ACCESS_DAYS = 30;
@@ -26,7 +26,7 @@ export const getCurrentCandidate = cache(async () => {
   const { data: candidate } = await supabase
     .from("candidates")
     .select(
-      "id, first_name, last_name, email, phone, city, pincode, industry, preferred_roles, email_verified, code, membership_plan, membership_expires_at, photo_path",
+      "id, first_name, last_name, email, phone, city, pincode, industry, preferred_roles, email_verified, code, membership_plan, membership_expires_at, photo_path, emporium_batch_id",
     )
     .eq("id", userId)
     .maybeSingle();
@@ -69,7 +69,7 @@ export const getLapsedAccessUntil = cache(
         .maybeSingle(),
       admin
         .from("placements")
-        .select("status, offer_deadline, joining_date")
+        .select("joining_date")
         .eq("candidate_id", candidateId)
         .in("status", ["released", "accepted", "joined", "not_joined"]),
     ]);
@@ -77,11 +77,7 @@ export const getLapsedAccessUntil = cache(
     if (offers.error) console.error("Loading lapsed member offers failed", offers.error);
 
     const ends: Date[] = (offers.data ?? []).flatMap((o) =>
-      o.status === "released" && o.offer_deadline
-        ? [deadlineEnd(o.offer_deadline)]
-        : o.joining_date
-          ? [deadlineEnd(addDays(o.joining_date, OFFER_ACCESS_DAYS))]
-          : [],
+      o.joining_date ? [deadlineEnd(addDays(o.joining_date, OFFER_ACCESS_DAYS))] : [],
     );
     if (interview.data) {
       const until = new Date(interview.data.starts_at);
@@ -129,12 +125,14 @@ export type MembershipView =
       kind: "unpaid";
       plan: PaidPlan;
       code: string | null;
+      fresher: boolean;
       expired: boolean;
     }
   | {
       kind: "member";
       plan: MembershipPlan;
       code: string | null;
+      fresher: boolean;
       validUntil: string;
       daysLeft: number;
     };
@@ -144,11 +142,13 @@ export const getMembershipView = cache(async (): Promise<MembershipView> => {
   if (!candidate) return { kind: "guest" };
 
   const code = candidate.code as string | null;
+  const fresher = isFresher(candidate);
   if (!isMembershipActive(candidate.membership_expires_at))
     return {
       kind: "unpaid",
       plan: planFor(code),
       code,
+      fresher,
       expired: !!candidate.membership_expires_at,
     };
 
@@ -159,6 +159,7 @@ export const getMembershipView = cache(async (): Promise<MembershipView> => {
       ? candidate.membership_plan
       : planFor(code),
     code,
+    fresher,
     validUntil: new Intl.DateTimeFormat("en-IN", {
       day: "numeric",
       month: "long",
