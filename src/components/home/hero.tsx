@@ -38,18 +38,18 @@ export function Hero({
   return (
     <section
       data-overlay-hero
-      className="relative isolate -mt-16.25 flex min-h-svh flex-col overflow-hidden bg-[#0b1723] bg-[url(/hero/hero-poster.jpg)] bg-cover bg-center pt-16.25 lg:-mt-18.25 lg:pt-18.25"
+      className="relative isolate -mt-16.25 flex min-h-svh flex-col overflow-hidden bg-[#0b1723] bg-[url(/hero/hero-hotel-poster.jpg)] bg-cover bg-center pt-16.25 lg:-mt-18.25 lg:pt-18.25"
     >
       <video
         autoPlay
         muted
         loop
         playsInline
-        poster="/hero/hero-poster.jpg"
+        poster="/hero/hero-hotel-poster.jpg"
         aria-hidden
         className="absolute inset-0 -z-10 size-full object-cover motion-reduce:hidden"
       >
-        <source src="/hero/hero-reel.mp4" type="video/mp4" />
+        <source src="/hero/hero-hotel-reel.mp4" type="video/mp4" />
       </video>
       <div
         aria-hidden
@@ -59,19 +59,11 @@ export function Hero({
       <div className="flex flex-1 items-center px-4 pt-4 pb-12 sm:px-6 md:py-12 lg:pt-6 lg:pb-16">
         <div className="mx-auto grid w-full grid-cols-1 max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
           <div className="min-w-0">
-            <span className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm text-white/90 backdrop-blur-sm">
-              3 guaranteed interviews for members
-            </span>
-
-            <h1 className="mt-0 md:mt-5 font-head text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 className="font-head text-4xl leading-[1.05] font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
               Your career in{" "}
               <span className="text-brand-accent">airlines &amp; hotels</span>{" "}
               starts here.
             </h1>
-
-            <span className="mt-5 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm text-white/90 backdrop-blur-sm md:hidden">
-              3 guaranteed interviews for members
-            </span>
 
             <p className="mt-5 max-w-lg text-base leading-7 text-white/80 sm:text-lg">
               5 lakh+ live jobs from verified employers. Get matched, upskill,

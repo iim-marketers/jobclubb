@@ -18,9 +18,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { interviewFields } from "@/server/applications/company";
 import { maskResume } from "@/server/applications/masking";
 
-// JobClubb's side of the employer agreement: preliminary screening, the
-// first-round interview, shortlisting and referral to the employer. Admin only.
-
 const REF = /^JC-[0-9A-Z]{6}$/;
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -262,7 +259,6 @@ export async function recordScreeningOutcome(id: string, outcome: InterviewOutco
   return data.length > 0;
 }
 
-// For candidates JobClubb already knows well enough to skip its own interview.
 export async function shortlistWithoutInterview(ref: string) {
   if (!REF.test(ref)) return false;
   const at = now();

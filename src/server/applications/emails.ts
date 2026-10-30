@@ -85,7 +85,6 @@ async function applicationWithCandidate(companyId: string | null, ref: string) {
   };
 }
 
-// Each email fails independently.
 export function sendReferred(ref: string) {
   const application = applicationWithCandidate(null, ref);
   return Promise.all([

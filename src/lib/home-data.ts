@@ -1,3 +1,5 @@
+import { GUARANTEED_INTERVIEWS } from "@/lib/candidate-activity";
+
 const AVATAR_COLORS = [
   "#c1442e",
   "#5a3d8a",
@@ -46,7 +48,11 @@ export const FRESH_JOBS = [
 export const HERO_STATS = [
   { icon: "chart", value: "3500+", label: "Live job openings" },
   { icon: "users", value: "2899", label: "Candidates placed" },
-  { icon: "check", value: "Verified", label: "Employers & job posts" },
+  {
+    icon: "check",
+    value: "Guaranteed",
+    label: `${GUARANTEED_INTERVIEWS} interviews for members`,
+  },
   { icon: "shield", value: "Secure", label: "Data protected & private" },
 ] as const;
 

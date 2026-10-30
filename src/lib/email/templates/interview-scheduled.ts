@@ -11,8 +11,6 @@ import {
 
 export type InterviewEmailKind = "scheduled" | "rescheduled" | "reminder";
 
-// "JobClubb's interview" for the first round JobClubb runs itself, otherwise
-// the employer's.
 export const interviewWith = (companyName: string, jobclubb: boolean) =>
   jobclubb ? "JobClubb" : companyName;
 
