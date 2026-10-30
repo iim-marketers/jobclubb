@@ -99,8 +99,8 @@ export function Hero({
               </Button>
             </Form>
 
-            <p className="mt-4 flex items-center gap-2 text-sm text-white/85">
-              <MapPin className="size-4 flex-none text-brand-accent" />
+            <p className="mt-4 flex items-start gap-1 text-sm text-white/85">
+              <MapPin className="mt-0.5 size-4 flex-none text-brand-accent" />
               Find jobs near your location, matched to your pincode.
             </p>
           </div>

@@ -118,14 +118,14 @@ const COMPANY_LEGAL_LINKS = [
 ];
 
 export const CONTACT_ITEMS = [
-  { icon: MapPin, text: "Kolkata, India", href: null },
+  // { icon: MapPin, text: "Kolkata, India", href: null },
   {
     icon: Mail,
     text: "support@jobclubb.com",
     href: "mailto:support@jobclubb.com",
   },
   { icon: Phone, text: "+91-7439922120", href: "tel:+917439922120" },
-  { icon: Clock, text: "Mon-Sat, 10:30am - 6:30pm", href: null },
+  { icon: Clock, text: "Mon-Fri, 10:30am - 5:30pm", href: null },
 ];
 
 async function footerAudience() {
@@ -228,20 +228,22 @@ export async function SiteFooter() {
             <span className="font-head font-semibold text-foreground">
               JobClubb
             </span>{" "}
-            © {new Date().getFullYear()}. All rights reserved. A brand of Raaisha
-            Technologies Private Limited.
+            © {new Date().getFullYear()}. All rights reserved. A brand of
+            Raaisha Technologies Private Limited.
           </p>
           <ul className="flex flex-wrap gap-x-5 gap-y-1">
-            {(audience === "company" ? COMPANY_LEGAL_LINKS : LEGAL_LINKS).map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="-my-1 inline-block py-1 transition-colors hover:text-brand"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+            {(audience === "company" ? COMPANY_LEGAL_LINKS : LEGAL_LINKS).map(
+              (link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="-my-1 inline-block py-1 transition-colors hover:text-brand"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ),
+            )}
           </ul>
         </div>
       </div>
