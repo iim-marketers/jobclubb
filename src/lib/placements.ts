@@ -183,7 +183,6 @@ export function validateOfferTerms(
   return { values, errors };
 }
 
-// What the employer must report after joining, under the employer agreement.
 export const LEFT_REASONS = {
   resigned: "Resigned",
   terminated: "Terminated",

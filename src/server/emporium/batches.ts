@@ -30,7 +30,6 @@ type BatchRow = {
 export const signUpUrlFor = (code: string) =>
   `${SITE_URL}/sign-up?code=${encodeURIComponent(code)}`;
 
-// e.g. JC-EM-SHI-B1-7KQ2MX: readable enough to type, random enough not to guess.
 function generateCode(location: string, batchNo: number) {
   const prefix = locationPrefix(location);
   let random = "";

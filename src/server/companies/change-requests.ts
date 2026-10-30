@@ -64,7 +64,6 @@ export async function countPendingChanges() {
   return count ?? 0;
 }
 
-// Returns null when this field already has a pending request.
 export async function createChangeRequest(request: {
   companyId: string;
   companyName: string;

@@ -163,7 +163,6 @@ export function StepProgress({
   );
 }
 
-// Inactive steps stay in the DOM but hidden.
 export function StepPanel({
   index,
   current,

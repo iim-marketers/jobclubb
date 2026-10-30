@@ -38,18 +38,18 @@ export function Hero({
   return (
     <section
       data-overlay-hero
-      className="relative isolate -mt-16.25 flex min-h-svh flex-col overflow-hidden bg-[#0b1723] bg-[url(/hero/hero-poster.jpg)] bg-cover bg-center pt-16.25 lg:-mt-18.25 lg:pt-18.25"
+      className="relative isolate -mt-16.25 flex min-h-svh flex-col overflow-hidden bg-[#0b1723] bg-[url(/hero/hero-hotel-poster.jpg)] bg-cover bg-center pt-16.25 lg:-mt-18.25 lg:pt-18.25"
     >
       <video
         autoPlay
         muted
         loop
         playsInline
-        poster="/hero/hero-poster.jpg"
+        poster="/hero/hero-hotel-poster.jpg"
         aria-hidden
         className="absolute inset-0 -z-10 size-full object-cover motion-reduce:hidden"
       >
-        <source src="/hero/hero-reel.mp4" type="video/mp4" />
+        <source src="/hero/hero-hotel-reel.mp4" type="video/mp4" />
       </video>
       <div
         aria-hidden
