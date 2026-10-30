@@ -44,8 +44,8 @@ export const FRESH_JOBS = [
 ];
 
 export const HERO_STATS = [
-  { icon: "chart", value: "5 Lakh+", label: "Live job openings" },
-  { icon: "users", value: "15,100+", label: "Candidates placed" },
+  { icon: "chart", value: "3500+", label: "Live job openings" },
+  { icon: "users", value: "2899", label: "Candidates placed" },
   { icon: "check", value: "Verified", label: "Employers & job posts" },
   { icon: "shield", value: "Secure", label: "Data protected & private" },
 ] as const;
@@ -217,8 +217,8 @@ export const FRANCHISE_STEPS = [
 ];
 
 export const ABOUT_STATS = [
-  { value: "15,100+", label: "members placed across 14+ companies" },
-  { value: "5 Lakh+", label: "Live jobs" },
+  { value: "2,899", label: "members placed across different companies" },
+  { value: "3,500+", label: "Live jobs" },
   { value: "100%", label: "Verified employers" },
   { value: "3", label: "Interviews" },
 ];
