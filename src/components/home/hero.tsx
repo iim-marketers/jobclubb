@@ -66,7 +66,7 @@ export function Hero({
             </h1>
 
             <p className="mt-5 max-w-lg text-base leading-7 text-white/80 sm:text-lg">
-              5 lakh+ live jobs from verified employers. Get matched, upskill,
+              3,500+ live jobs from verified employers. Get matched, upskill,
               and land the role that&apos;s right for you.
             </p>
 
