@@ -55,7 +55,7 @@ export default async function JobPostingsPage() {
         />
         <StatTile
           label="Open positions"
-          value={live.reduce((n, j) => n + j.openings, 0)}
+          value={live.reduce((n, j) => n + (j.openings ?? 0), 0)}
           note="Across live postings"
           icon={Briefcase}
         />

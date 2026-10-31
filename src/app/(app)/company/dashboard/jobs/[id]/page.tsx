@@ -127,13 +127,20 @@ export default async function JobDetailPage({
           </div>
         </div>
 
-        <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
+        <dl
+          className={cn(
+            "mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6",
+            job.openings === null ? "sm:grid-cols-3" : "sm:grid-cols-4",
+          )}
+        >
           {(
             [
               ["Salary", <Salary key="salary" value={formatSalary(job)} />],
               ["Experience", formatExperience(job)],
               ["Type", `${job.jobType} · ${job.workMode}`],
-              ["Openings", String(job.openings)],
+              ...(job.openings === null
+                ? []
+                : [["Openings", String(job.openings)]]),
             ] as [string, React.ReactNode][]
           ).map(([label, value]) => (
             <div key={label} className="min-w-0">
@@ -194,8 +201,14 @@ export default async function JobDetailPage({
             <dl className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 ["Referred", applicants.length],
-                ["New referrals", active.filter((a) => a.stage === REFERRED_STAGE).length],
-                ["Interviewing", active.filter((a) => a.stage > REFERRED_STAGE).length],
+                [
+                  "New referrals",
+                  active.filter((a) => a.stage === REFERRED_STAGE).length,
+                ],
+                [
+                  "Interviewing",
+                  active.filter((a) => a.stage > REFERRED_STAGE).length,
+                ],
                 ["Not selected", applicants.length - active.length],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-2xl bg-muted/50 px-4 py-3">

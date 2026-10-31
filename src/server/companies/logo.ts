@@ -11,7 +11,6 @@ const EXTENSIONS: Record<string, string> = {
 };
 
 // A fresh filename per upload, so a replaced logo is never served from a stale CDN cache.
-// asAdmin is for the admin panel, which has no company session for storage RLS.
 export async function uploadCompanyLogo(
   companyId: string,
   file: File,

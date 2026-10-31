@@ -32,7 +32,7 @@ export type CompanyJob = {
   // a minimum-only salary.
   salaryMinLpa: number | null;
   salaryMaxLpa: number | null;
-  openings: number;
+  openings: number | null;
   description: string;
   responsibilities: string[];
   requirements: string[];
@@ -69,7 +69,8 @@ function lakhs(raw: string) {
 
 function listError(items: string[], { required }: { required: boolean }) {
   if (required && items.length === 0) return "Add at least one, one per line.";
-  if (items.length > MAX_LIST_ITEMS) return `Keep it to ${MAX_LIST_ITEMS} lines or fewer.`;
+  if (items.length > MAX_LIST_ITEMS)
+    return `Keep it to ${MAX_LIST_ITEMS} lines or fewer.`;
   if (items.some((i) => i.length > MAX_LIST_ITEM_LENGTH))
     return `Keep each line under ${MAX_LIST_ITEM_LENGTH} characters.`;
 }
@@ -87,12 +88,16 @@ export function validateJob(formData: FormData): {
     workMode: text(formData, "workMode") as JobInput["workMode"],
     experienceMin: wholeNumber(text(formData, "experienceMin")),
     experienceMax: wholeNumber(text(formData, "experienceMax")),
-    salaryMinLpa: salaryUndisclosed ? null : lakhs(text(formData, "salaryMinLpa")),
+    salaryMinLpa: salaryUndisclosed
+      ? null
+      : lakhs(text(formData, "salaryMinLpa")),
     salaryMaxLpa:
       salaryUndisclosed || !text(formData, "salaryMaxLpa")
         ? null
         : lakhs(text(formData, "salaryMaxLpa")),
-    openings: wholeNumber(text(formData, "openings")),
+    openings: text(formData, "openings")
+      ? wholeNumber(text(formData, "openings"))
+      : null,
     description: text(formData, "description"),
     responsibilities: lines(formData, "responsibilities"),
     requirements: lines(formData, "requirements"),
@@ -102,11 +107,16 @@ export function validateJob(formData: FormData): {
 
   const industry = INDUSTRIES.find((v) => v.slug === values.industry);
   if (!industry) errors.industry = "Choose an industry.";
-  else if (!industry.roles.includes(values.role)) errors.role = "Choose a role.";
-  if (!values.designation) errors.designation = "Enter the job title candidates will see.";
-  else if (values.designation.length > 120) errors.designation = "Use 120 characters or fewer.";
-  if (!JOB_TYPES.includes(values.jobType)) errors.jobType = "Choose a job type.";
-  if (!WORK_MODES.includes(values.workMode)) errors.workMode = "Choose a work mode.";
+  else if (!industry.roles.includes(values.role))
+    errors.role = "Choose a role.";
+  if (!values.designation)
+    errors.designation = "Enter the job title candidates will see.";
+  else if (values.designation.length > 120)
+    errors.designation = "Use 120 characters or fewer.";
+  if (!JOB_TYPES.includes(values.jobType))
+    errors.jobType = "Choose a job type.";
+  if (!WORK_MODES.includes(values.workMode))
+    errors.workMode = "Choose a work mode.";
 
   if (!(values.experienceMin >= 0 && values.experienceMin <= 40))
     errors.experienceMin = "Enter years from 0 to 40.";
@@ -125,8 +135,11 @@ export function validateJob(formData: FormData): {
       errors.salaryMaxLpa = "Can't be less than the minimum.";
   }
 
-  if (!(values.openings >= 1 && values.openings <= 999))
-    errors.openings = "Enter from 1 to 999 openings.";
+  if (
+    values.openings !== null &&
+    !(values.openings >= 1 && values.openings <= 999)
+  )
+    errors.openings = "Enter from 1 to 999 openings, or leave it blank.";
 
   const descriptionLength = richTextToPlain(values.description).length;
   if (descriptionLength < 30)
@@ -134,7 +147,9 @@ export function validateJob(formData: FormData): {
   else if (descriptionLength > 4000)
     errors.description = "Use 4,000 characters or fewer.";
 
-  const responsibilities = listError(values.responsibilities, { required: true });
+  const responsibilities = listError(values.responsibilities, {
+    required: true,
+  });
   if (responsibilities) errors.responsibilities = responsibilities;
   const requirements = listError(values.requirements, { required: true });
   if (requirements) errors.requirements = requirements;
@@ -146,17 +161,21 @@ export function validateJob(formData: FormData): {
 
 export type JobLocation = Pick<CompanyJob, "city" | "pincode">;
 
-// Only partner companies choose a location; everyone else posts at their property.
 export function validateJobLocation(formData: FormData): {
   values: JobLocation;
   errors: FieldErrors;
 } {
-  const values = { city: text(formData, "city"), pincode: text(formData, "pincode") };
+  const values = {
+    city: text(formData, "city"),
+    pincode: text(formData, "pincode"),
+  };
   const errors: FieldErrors = {};
   if (!values.city) errors.city = "Enter the city this job is in.";
   else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
-  if (!/^\d{6}$/.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
-  else if (!pincodeState(values.pincode)) errors.pincode = "Enter a valid Indian pincode.";
+  if (!/^\d{6}$/.test(values.pincode))
+    errors.pincode = "Enter a 6-digit pincode.";
+  else if (!pincodeState(values.pincode))
+    errors.pincode = "Enter a valid Indian pincode.";
   return { values, errors };
 }
 
@@ -164,7 +183,9 @@ const lpa = (n: number) => `₹${Number(n.toFixed(2))} LPA`;
 
 export const SALARY_UNDISCLOSED = "Not disclosed";
 
-export function formatSalary(job: Pick<CompanyJob, "salaryMinLpa" | "salaryMaxLpa">) {
+export function formatSalary(
+  job: Pick<CompanyJob, "salaryMinLpa" | "salaryMaxLpa">,
+) {
   if (job.salaryMinLpa === null) return SALARY_UNDISCLOSED;
   if (job.salaryMaxLpa === null) return `From ${lpa(job.salaryMinLpa)}`;
   return job.salaryMinLpa === job.salaryMaxLpa
@@ -172,7 +193,9 @@ export function formatSalary(job: Pick<CompanyJob, "salaryMinLpa" | "salaryMaxLp
     : `${lpa(job.salaryMinLpa)} – ${lpa(job.salaryMaxLpa)}`;
 }
 
-export function formatExperience(job: Pick<CompanyJob, "experienceMin" | "experienceMax">) {
+export function formatExperience(
+  job: Pick<CompanyJob, "experienceMin" | "experienceMax">,
+) {
   if (job.experienceMax === 0) return "Fresher";
   const unit = job.experienceMax === 1 ? "year" : "years";
   return job.experienceMin === job.experienceMax
@@ -229,7 +252,7 @@ export function jobFormDefaults(
       designation: "",
       city: "",
       pincode: "",
-      openings: "1",
+      openings: "",
       jobType: "Full time",
       workMode: "Onsite",
       experienceMin: "0",
@@ -249,7 +272,7 @@ export function jobFormDefaults(
     designation: job.designation,
     city: job.city,
     pincode: job.pincode,
-    openings: String(job.openings),
+    openings: job.openings === null ? "" : String(job.openings),
     jobType: job.jobType,
     workMode: job.workMode,
     experienceMin: String(job.experienceMin),

@@ -1,6 +1,3 @@
--- Partners must be flagged on insert: their city and pincode may be null,
--- which companies_property_location only allows for partners. The flag comes
--- from app metadata, which only the service role can set.
 create or replace function public.handle_new_company()
 returns trigger
 language plpgsql

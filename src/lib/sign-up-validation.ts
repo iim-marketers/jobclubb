@@ -231,8 +231,6 @@ export function validateCompany(formData: FormData): FieldErrors {
   return errors;
 }
 
-// Partners sign a tie-up offline, so there are no terms, proof or company-email
-// checks: the admin vouches for the account.
 export function validatePartnerCompany(formData: FormData) {
   const values = {
     companyName: readText(formData, "companyName"),
@@ -292,7 +290,6 @@ export function propertyPincodeError(pincode: string, propertyPincode: string) {
     return `Use a pincode in ${GST_STATES[propertyState]}, where this property is registered.`;
 }
 
-// Partners have no property, so their office pincode is optional and can be anywhere.
 export function validateCompanyDetails(formData: FormData, propertyPincode: string | null) {
   const values = {
     propertyName: readText(formData, "propertyName"),

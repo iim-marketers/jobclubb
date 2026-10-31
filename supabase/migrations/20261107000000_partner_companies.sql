@@ -1,6 +1,3 @@
--- Partner companies have a tie-up with JobClubb and are created by the admin.
--- They aren't tied to a property: each job keeps the location it's posted
--- with, and the company's own city and pincode are just its office address.
 alter table public.companies add column is_partner boolean not null default false;
 
 create or replace function public.company_jobs_property_location()

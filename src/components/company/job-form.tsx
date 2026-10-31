@@ -52,7 +52,6 @@ export function JobForm({
 }: {
   action: (prev: JobFormState, formData: FormData) => Promise<JobFormState>;
   defaults: JobFormDefaults;
-  // Null for partner companies, which choose a location for each job.
   location: { city: string; pincode: string } | null;
   submitLabel: string;
   cancelHref: string;
@@ -129,7 +128,6 @@ export function JobForm({
           <Field
             id="openings"
             label="Openings"
-            required
             inputMode="numeric"
             defaultValue={initial.openings}
             maxLength={3}

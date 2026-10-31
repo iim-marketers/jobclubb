@@ -101,7 +101,6 @@ export async function createPartnerCompany(
       contact_name: input.contactName,
       designation: input.designation || undefined,
       phone: input.phone,
-      // The tie-up agreement is signed offline before the account is created.
       terms_version: EMPLOYER_TERMS_VERSION,
     },
   });
@@ -129,7 +128,6 @@ export async function createPartnerCompany(
     throw updateError;
   }
 
-  // The company can add a logo from settings, so a failed upload doesn't undo the account.
   if (logo) {
     try {
       const logoPath = await uploadCompanyLogo(id, logo, { asAdmin: true });

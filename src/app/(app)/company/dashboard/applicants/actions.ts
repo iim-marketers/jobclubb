@@ -48,7 +48,6 @@ export async function saveInterview(
   formData: FormData,
 ): Promise<InterviewFormState> {
   const company = await requireCompany(`${COMPANY_HOME}/applicants/${ref}`);
-  // Property walk-ins stay near the property; partner walk-ins near the job.
   const location = company.is_partner
     ? await getApplicantJobLocation(company.id, ref)
     : company;

@@ -1,7 +1,5 @@
--- Auth applies app metadata after inserting the user, so the company trigger
--- can't see a partner flag in time and the insert-time location check fails.
--- The server now flags partners right after creating them; sign-up validation
--- already requires a city and pincode for property companies.
+-- Auth applies app metadata after inserting the user, so the trigger can't see a
+-- partner flag; the server sets is_partner right after creating the account.
 alter table public.companies drop constraint companies_property_location;
 
 create or replace function public.handle_new_company()

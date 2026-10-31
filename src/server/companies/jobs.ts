@@ -22,7 +22,7 @@ type JobRow = {
   experience_max: number;
   salary_min_lpa: number | string | null;
   salary_max_lpa: number | string | null;
-  openings: number;
+  openings: number | null;
   description: string;
   responsibilities: string[];
   requirements: string[];
@@ -59,8 +59,7 @@ function toJob(row: JobRow): CompanyJob {
   };
 }
 
-// For property companies a database trigger overwrites city and pincode with
-// the property's, so only partners pass a location.
+// A database trigger overwrites city and pincode for property companies.
 function toRow(input: JobInput, location: JobLocation | null) {
   return {
     ...location,
