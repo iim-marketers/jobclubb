@@ -1,5 +1,3 @@
--- Experience, description, responsibilities and requirements are optional.
--- Both experience bounds null means the job doesn't state experience.
 alter table public.company_jobs
   alter column experience_min drop not null,
   alter column experience_max drop not null,

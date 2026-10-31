@@ -26,7 +26,6 @@ export type CompanyJob = {
   pincode: string;
   jobType: (typeof JOB_TYPES)[number];
   workMode: (typeof WORK_MODES)[number];
-  // Both null when the job doesn't state experience.
   experienceMin: number | null;
   experienceMax: number | null;
   // Both null when the company doesn't disclose pay; max alone null for

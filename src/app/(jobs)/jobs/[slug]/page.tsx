@@ -19,6 +19,7 @@ import { Salary } from "@/components/salary";
 import { ApplyNowButton } from "@/components/apply-now-button";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { JobsListLink } from "@/components/jobs-list-return";
 import { SaveJobButton } from "@/components/save-job-button";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
@@ -82,13 +83,10 @@ export default async function JobDetailPage({
   return (
     <section className="px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
       <div className="mx-auto max-w-6xl">
-        <Link
-          href="/jobs"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-brand"
-        >
+        <JobsListLink className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-brand">
           <ArrowLeft className="size-4" />
           All jobs
-        </Link>
+        </JobsListLink>
 
         <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">
