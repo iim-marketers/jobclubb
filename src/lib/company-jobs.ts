@@ -26,8 +26,9 @@ export type CompanyJob = {
   pincode: string;
   jobType: (typeof JOB_TYPES)[number];
   workMode: (typeof WORK_MODES)[number];
-  experienceMin: number;
-  experienceMax: number;
+  // Both null when the job doesn't state experience.
+  experienceMin: number | null;
+  experienceMax: number | null;
   // Both null when the company doesn't disclose pay; max alone null for
   // a minimum-only salary.
   salaryMinLpa: number | null;
@@ -80,14 +81,20 @@ export function validateJob(formData: FormData): {
   errors: FieldErrors;
 } {
   const salaryUndisclosed = text(formData, "salaryUndisclosed") === "yes";
+  const experienceStated =
+    !!text(formData, "experienceMin") || !!text(formData, "experienceMax");
   const values: JobInput = {
     industry: text(formData, "industry"),
     role: text(formData, "role"),
     designation: text(formData, "designation"),
     jobType: text(formData, "jobType") as JobInput["jobType"],
     workMode: text(formData, "workMode") as JobInput["workMode"],
-    experienceMin: wholeNumber(text(formData, "experienceMin")),
-    experienceMax: wholeNumber(text(formData, "experienceMax")),
+    experienceMin: experienceStated
+      ? wholeNumber(text(formData, "experienceMin"))
+      : null,
+    experienceMax: experienceStated
+      ? wholeNumber(text(formData, "experienceMax"))
+      : null,
     salaryMinLpa: salaryUndisclosed
       ? null
       : lakhs(text(formData, "salaryMinLpa")),
@@ -118,12 +125,15 @@ export function validateJob(formData: FormData): {
   if (!WORK_MODES.includes(values.workMode))
     errors.workMode = "Choose a work mode.";
 
-  if (!(values.experienceMin >= 0 && values.experienceMin <= 40))
-    errors.experienceMin = "Enter years from 0 to 40.";
-  if (!(values.experienceMax >= 0 && values.experienceMax <= 40))
-    errors.experienceMax = "Enter years from 0 to 40.";
-  else if (values.experienceMax < values.experienceMin)
-    errors.experienceMax = "Can't be less than the minimum.";
+  const { experienceMin, experienceMax } = values;
+  if (experienceMin !== null && experienceMax !== null) {
+    if (!(experienceMin >= 0 && experienceMin <= 40))
+      errors.experienceMin = "Enter years from 0 to 40.";
+    if (!(experienceMax >= 0 && experienceMax <= 40))
+      errors.experienceMax = "Enter years from 0 to 40.";
+    else if (experienceMax < experienceMin)
+      errors.experienceMax = "Can't be less than the minimum.";
+  }
 
   const { salaryMinLpa, salaryMaxLpa } = values;
   if (salaryMinLpa !== null) {
@@ -142,16 +152,16 @@ export function validateJob(formData: FormData): {
     errors.openings = "Enter from 1 to 999 openings, or leave it blank.";
 
   const descriptionLength = richTextToPlain(values.description).length;
-  if (descriptionLength < 30)
-    errors.description = "Describe the role in at least 30 characters.";
+  // The editor submits empty markup when cleared.
+  if (descriptionLength === 0) values.description = "";
   else if (descriptionLength > 4000)
     errors.description = "Use 4,000 characters or fewer.";
 
   const responsibilities = listError(values.responsibilities, {
-    required: true,
+    required: false,
   });
   if (responsibilities) errors.responsibilities = responsibilities;
-  const requirements = listError(values.requirements, { required: true });
+  const requirements = listError(values.requirements, { required: false });
   if (requirements) errors.requirements = requirements;
   const benefits = listError(values.benefits, { required: false });
   if (benefits) errors.benefits = benefits;
@@ -193,14 +203,14 @@ export function formatSalary(
     : `${lpa(job.salaryMinLpa)} – ${lpa(job.salaryMaxLpa)}`;
 }
 
-export function formatExperience(
-  job: Pick<CompanyJob, "experienceMin" | "experienceMax">,
-) {
-  if (job.experienceMax === 0) return "Fresher";
-  const unit = job.experienceMax === 1 ? "year" : "years";
-  return job.experienceMin === job.experienceMax
-    ? `${job.experienceMin} ${unit}`
-    : `${job.experienceMin} – ${job.experienceMax} ${unit}`;
+export function formatExperience({
+  experienceMin: min,
+  experienceMax: max,
+}: Pick<CompanyJob, "experienceMin" | "experienceMax">) {
+  if (min === null || max === null) return null;
+  if (max === 0) return "Fresher";
+  const unit = max === 1 ? "year" : "years";
+  return min === max ? `${min} ${unit}` : `${min} – ${max} ${unit}`;
 }
 
 export function formatPostedDate(iso: string) {
@@ -255,7 +265,7 @@ export function jobFormDefaults(
       openings: "",
       jobType: "Full time",
       workMode: "Onsite",
-      experienceMin: "0",
+      experienceMin: "",
       experienceMax: "",
       salaryMinLpa: "",
       salaryMaxLpa: "",
@@ -275,8 +285,8 @@ export function jobFormDefaults(
     openings: job.openings === null ? "" : String(job.openings),
     jobType: job.jobType,
     workMode: job.workMode,
-    experienceMin: String(job.experienceMin),
-    experienceMax: String(job.experienceMax),
+    experienceMin: job.experienceMin === null ? "" : String(job.experienceMin),
+    experienceMax: job.experienceMax === null ? "" : String(job.experienceMax),
     salaryMinLpa: job.salaryMinLpa === null ? "" : String(job.salaryMinLpa),
     salaryMaxLpa: job.salaryMaxLpa === null ? "" : String(job.salaryMaxLpa),
     salaryUndisclosed: job.salaryMinLpa === null,

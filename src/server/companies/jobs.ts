@@ -18,8 +18,8 @@ type JobRow = {
   pincode: string;
   job_type: CompanyJob["jobType"];
   work_mode: CompanyJob["workMode"];
-  experience_min: number;
-  experience_max: number;
+  experience_min: number | null;
+  experience_max: number | null;
   salary_min_lpa: number | string | null;
   salary_max_lpa: number | string | null;
   openings: number | null;

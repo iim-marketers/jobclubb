@@ -512,7 +512,9 @@ function PostingCard({
         </span>
         <span className="flex items-center gap-1.5">
           <Clock className="size-3.5" />
-          {formatExperience(job)} · {postedAgo(job.createdAt)}
+          {[formatExperience(job), postedAgo(job.createdAt)]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       </div>
     </li>

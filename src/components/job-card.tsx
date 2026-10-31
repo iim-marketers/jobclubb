@@ -4,6 +4,7 @@ import { ArrowRight, Briefcase, Clock, Lock, MapPin } from "lucide-react";
 import { Salary } from "@/components/salary";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { SaveJobHeart } from "@/components/save-job-button";
+import { SALARY_UNDISCLOSED } from "@/lib/company-jobs";
 import type { JobListing } from "@/lib/jobs-data";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ export function JobCard({
 }) {
   const shown = locked ? PLACEHOLDER : job;
   const hidden = locked ? HIDDEN : undefined;
+  const showSalary = shown.salaryRange !== SALARY_UNDISCLOSED;
 
   return (
     <article className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-4 transition-[border-color,box-shadow] hover:border-brand/40 hover:shadow-md">
@@ -82,28 +84,33 @@ export function JobCard({
         aria-hidden={locked}
         className={cn(
           "mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground",
+          !showSalary && "mb-4",
           hidden,
         )}
       >
         <Meta icon={MapPin}>{shown.location}</Meta>
-        <Meta icon={Briefcase}>{shown.experience}</Meta>
+        {shown.experience && (
+          <Meta icon={Briefcase}>{shown.experience}</Meta>
+        )}
         <Meta icon={Clock}>{shown.workMode}</Meta>
       </ul>
 
-      <div className="my-4 flex">
-        <div className="flex min-w-0 items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5">
-          {locked && <Lock className="size-3 flex-none text-brand" />}
-          <span
-            aria-hidden={locked}
-            className={cn(
-              "truncate font-head text-sm font-bold text-foreground",
-              hidden,
-            )}
-          >
-            <Salary value={shown.salaryRange} />
-          </span>
+      {showSalary && (
+        <div className="my-4 flex">
+          <div className="flex min-w-0 items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5">
+            {locked && <Lock className="size-3 flex-none text-brand" />}
+            <span
+              aria-hidden={locked}
+              className={cn(
+                "truncate font-head text-sm font-bold text-foreground",
+                hidden,
+              )}
+            >
+              <Salary value={shown.salaryRange} />
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="-mx-4 mt-auto flex items-center justify-between gap-3 border-t border-border px-4 pt-4">
         <span
@@ -126,7 +133,7 @@ function Meta({
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex min-w-0 items-center gap-1.5">
+    <li className="flex min-w-0 items-center gap-1">
       <Icon className="size-3.5 flex-none" />
       <span className="truncate">{children}</span>
     </li>

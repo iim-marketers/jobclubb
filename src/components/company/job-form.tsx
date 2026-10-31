@@ -207,13 +207,13 @@ export function JobForm({
 
       <Panel
         title="Experience and pay"
-        description="Ranges are fine. Use 0 years for freshers."
+        description="Ranges are fine. Use 0 years for freshers, or leave experience blank to skip it."
       >
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field
             id="experienceMin"
             label="Minimum experience (years)"
-            required
+            optional
             inputMode="numeric"
             defaultValue={initial.experienceMin}
             maxLength={2}
@@ -222,7 +222,7 @@ export function JobForm({
           <Field
             id="experienceMax"
             label="Maximum experience (years)"
-            required
+            optional
             inputMode="numeric"
             defaultValue={initial.experienceMax}
             maxLength={2}
@@ -307,7 +307,7 @@ export function JobForm({
           <div className="space-y-2">
             <Label id="description-label">
               About the role
-              <span className="text-destructive">*</span>
+              <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
             <RichTextEditor
               id="description"
@@ -326,7 +326,7 @@ export function JobForm({
             <TextareaField
               id="responsibilities"
               label="Responsibilities"
-              required
+              optional
               rows={5}
               defaultValue={initial.responsibilities}
               hint="One per line."
@@ -335,7 +335,7 @@ export function JobForm({
             <TextareaField
               id="requirements"
               label="Requirements"
-              required
+              optional
               rows={5}
               defaultValue={initial.requirements}
               hint="One per line."

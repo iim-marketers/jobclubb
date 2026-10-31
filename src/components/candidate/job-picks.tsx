@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Briefcase, Clock, MapPin, Sparkles } from "lucide-react";
 
-import { Salary } from "@/components/salary";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { SALARY_UNDISCLOSED } from "@/lib/company-jobs";
 import { richTextToPlain } from "@/lib/rich-text";
 import type { JobPick, JobPicks } from "@/server/jobs/recommend";
 
@@ -62,10 +62,14 @@ export function JobPicksList({ picks }: { picks: JobPicks }) {
             </div>
           </div>
           <div className="mt-3 flex items-center justify-between gap-3 text-xs">
-            <span className="truncate font-head text-sm font-bold">
-              <Salary value={job.salaryRange} />
+            {job.salaryRange !== SALARY_UNDISCLOSED && (
+              <span className="truncate font-head text-sm font-bold">
+                {job.salaryRange}
+              </span>
+            )}
+            <span className="ml-auto flex-none text-muted-foreground">
+              {job.postedAgo}
             </span>
-            <span className="flex-none text-muted-foreground">{job.postedAgo}</span>
           </div>
         </li>
       ))}
@@ -79,7 +83,7 @@ function TopMatch({ pick, matched }: { pick: JobPick; matched: boolean }) {
     { icon: MapPin, value: job.location },
     { icon: Briefcase, value: job.experience },
     { icon: Clock, value: `${job.workMode} · ${job.jobType}` },
-  ];
+  ].filter((m): m is typeof m & { value: string } => !!m.value);
 
   return (
     <article className="group relative flex flex-col rounded-2xl border-2 border-brand bg-linear-to-br from-brand/6 to-card p-5 shadow-md shadow-brand/10 transition-shadow hover:shadow-lg hover:shadow-brand/20">
@@ -136,13 +140,15 @@ function TopMatch({ pick, matched }: { pick: JobPick; matched: boolean }) {
       )}
 
       <div className="mt-auto -mx-5 flex flex-wrap items-end justify-between gap-3 border-t border-border px-5 pt-4">
-        <div>
-          <p className="text-xs text-muted-foreground">Salary</p>
-          <p className="font-head text-lg font-extrabold">
-            <Salary value={job.salaryRange} />
-          </p>
-        </div>
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 font-head text-sm font-bold text-brand-foreground transition-colors group-hover:bg-brand-dark">
+        {job.salaryRange !== SALARY_UNDISCLOSED && (
+          <div>
+            <p className="text-xs text-muted-foreground">Salary</p>
+            <p className="font-head text-lg font-extrabold">
+              {job.salaryRange}
+            </p>
+          </div>
+        )}
+        <span className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 font-head text-sm font-bold text-brand-foreground transition-colors group-hover:bg-brand-dark">
           View & apply
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </span>
@@ -172,9 +178,9 @@ function PickRow({ pick }: { pick: JobPick }) {
         </p>
       </div>
       <div className="hidden flex-none text-right sm:block">
-        <p className="font-head text-sm font-bold">
-          <Salary value={job.salaryRange} />
-        </p>
+        {job.salaryRange !== SALARY_UNDISCLOSED && (
+          <p className="font-head text-sm font-bold">{job.salaryRange}</p>
+        )}
         {pick.reasons[0] && (
           <p className="text-[11px] font-semibold text-good">
             {pick.reasons[0]}
