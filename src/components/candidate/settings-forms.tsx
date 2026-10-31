@@ -433,6 +433,11 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
             {roles.map((role) => (
               <input key={role} type="hidden" name="roles" value={role} />
             ))}
+            {options.length === 0 && (
+              <p className="pt-1 text-sm text-muted-foreground">
+                Select an industry first to see its roles.
+              </p>
+            )}
             <div className="flex flex-wrap gap-2 pt-1">
               {options.map((role) => {
                 const selected = roles.includes(role);

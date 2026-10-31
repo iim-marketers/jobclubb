@@ -145,6 +145,7 @@ export function SelectField({
   id,
   options,
   placeholder,
+  emptyMessage = "Nothing to choose from yet.",
   value,
   defaultValue,
   onValueChange,
@@ -152,6 +153,7 @@ export function SelectField({
 }: FieldShellProps & {
   options: readonly { value: string; label: string }[];
   placeholder?: string;
+  emptyMessage?: string;
   value?: string | null;
   defaultValue?: string;
   onValueChange?: (value: string | null) => void;
@@ -171,12 +173,18 @@ export function SelectField({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
-          {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
+        <SelectContent className="w-(--anchor-width) max-w-[calc(100vw-1.5rem)]">
+          {options.length === 0 ? (
+            <p className="px-2.5 py-2 text-sm text-muted-foreground">
+              {emptyMessage}
+            </p>
+          ) : (
+            options.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
     </FieldShell>

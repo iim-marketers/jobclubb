@@ -134,7 +134,7 @@ export function isCompanyIndustry(slug: string) {
 export const ALL_DEPARTMENTS = "All departments";
 
 export function jobRoles(industry: Industry) {
-  return [...industry.roles, ALL_DEPARTMENTS];
+  return [ALL_DEPARTMENTS, ...industry.roles];
 }
 
 export const JOB_TYPES = ["Full time", "Internship"] as const;

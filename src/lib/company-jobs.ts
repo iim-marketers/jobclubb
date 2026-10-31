@@ -127,9 +127,13 @@ export function validateJob(formData: FormData): {
 
   const { experienceMin, experienceMax } = values;
   if (experienceMin !== null && experienceMax !== null) {
-    if (!(experienceMin >= 0 && experienceMin <= 40))
+    if (!text(formData, "experienceMin"))
+      errors.experienceMin = "Enter the minimum too, or leave both blank.";
+    else if (!(experienceMin >= 0 && experienceMin <= 40))
       errors.experienceMin = "Enter years from 0 to 40.";
-    if (!(experienceMax >= 0 && experienceMax <= 40))
+    if (!text(formData, "experienceMax"))
+      errors.experienceMax = "Enter the maximum too, or leave both blank.";
+    else if (!(experienceMax >= 0 && experienceMax <= 40))
       errors.experienceMax = "Enter years from 0 to 40.";
     else if (experienceMax < experienceMin)
       errors.experienceMax = "Can't be less than the minimum.";
@@ -137,7 +141,10 @@ export function validateJob(formData: FormData): {
 
   const { salaryMinLpa, salaryMaxLpa } = values;
   if (salaryMinLpa !== null) {
-    if (!(salaryMinLpa > 0 && salaryMinLpa <= 100))
+    if (!text(formData, "salaryMinLpa"))
+      errors.salaryMinLpa =
+        "Enter the minimum salary, or tick “Don't disclose salary”.";
+    else if (!(salaryMinLpa > 0 && salaryMinLpa <= 100))
       errors.salaryMinLpa = "Enter lakhs per year, like 3.5.";
     if (salaryMaxLpa !== null && !(salaryMaxLpa > 0 && salaryMaxLpa <= 100))
       errors.salaryMaxLpa = "Enter lakhs per year, like 5.";

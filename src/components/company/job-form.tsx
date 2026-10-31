@@ -107,7 +107,10 @@ export function JobForm({
             id="role"
             label="Role"
             required
-            placeholder="Choose a role"
+            placeholder={
+              selectedIndustry ? "Choose a role" : "Select an industry first"
+            }
+            emptyMessage="Select an industry first to see its roles."
             options={roleOptions}
             value={role}
             onValueChange={(v) => {
