@@ -17,7 +17,7 @@ export type CompanyProfile = {
   propertyName: string | null;
   email: string;
   sector?: string;
-  city: string;
+  city: string | null;
   logoUrl: string | null;
 };
 

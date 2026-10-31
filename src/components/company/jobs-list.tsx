@@ -140,7 +140,7 @@ const columns = helper.columns([
     sortFn: "basic",
     sortDescFirst: true,
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue()}</span>
+      <span className="text-muted-foreground">{getValue() ?? "—"}</span>
     ),
   }),
   helper.accessor("createdAt", {

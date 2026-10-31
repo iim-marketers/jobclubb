@@ -161,7 +161,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="footer-surface border-t border-border bg-card">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 pt-14 pb-8 sm:px-6">
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
           <div className="col-span-2 md:col-span-1 lg:pr-6">
             <Image

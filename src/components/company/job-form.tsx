@@ -52,7 +52,7 @@ export function JobForm({
 }: {
   action: (prev: JobFormState, formData: FormData) => Promise<JobFormState>;
   defaults: JobFormDefaults;
-  location: { city: string; pincode: string };
+  location: { city: string; pincode: string } | null;
   submitLabel: string;
   cancelHref: string;
 }) {
@@ -128,7 +128,6 @@ export function JobForm({
           <Field
             id="openings"
             label="Openings"
-            required
             inputMode="numeric"
             defaultValue={initial.openings}
             maxLength={3}
@@ -142,23 +141,49 @@ export function JobForm({
         description="Candidates near this pincode see the role first."
       >
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <ReadOnlyField
-            label="Location"
-            value={`${location.city} · ${location.pincode}`}
-            className="sm:col-span-2"
-            hint={
-              <>
-                Jobs are posted at your property. Moved offices?{" "}
-                <Link
-                  href={`${COMPANY_HOME}/settings#details`}
-                  className="font-medium text-foreground underline underline-offset-2"
-                >
-                  Update your pincode
-                </Link>
-                . Hiring for a property in another city? It signs up separately.
-              </>
-            }
-          />
+          {location ? (
+            <ReadOnlyField
+              label="Location"
+              value={`${location.city} · ${location.pincode}`}
+              className="sm:col-span-2"
+              hint={
+                <>
+                  Jobs are posted at your property. Moved offices?{" "}
+                  <Link
+                    href={`${COMPANY_HOME}/settings#details`}
+                    className="font-medium text-foreground underline underline-offset-2"
+                  >
+                    Update your pincode
+                  </Link>
+                  . Hiring for a property in another city? It signs up separately.
+                </>
+              }
+            />
+          ) : (
+            <>
+              <Field
+                id="city"
+                label="City"
+                required
+                placeholder="e.g. Kolkata"
+                autoComplete="address-level2"
+                defaultValue={initial.city}
+                maxLength={80}
+                error={errors.city}
+              />
+              <Field
+                id="pincode"
+                label="Pincode"
+                required
+                inputMode="numeric"
+                placeholder="e.g. 700001"
+                defaultValue={initial.pincode}
+                maxLength={6}
+                hint="Hiring in more cities? Post this job, then duplicate it for each one."
+                error={errors.pincode}
+              />
+            </>
+          )}
           <SelectField
             id="jobType"
             label="Job type"
@@ -182,13 +207,13 @@ export function JobForm({
 
       <Panel
         title="Experience and pay"
-        description="Ranges are fine. Use 0 years for freshers."
+        description="Ranges are fine. Use 0 years for freshers, or leave experience blank to skip it."
       >
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <Field
             id="experienceMin"
             label="Minimum experience (years)"
-            required
+            optional
             inputMode="numeric"
             defaultValue={initial.experienceMin}
             maxLength={2}
@@ -197,7 +222,7 @@ export function JobForm({
           <Field
             id="experienceMax"
             label="Maximum experience (years)"
-            required
+            optional
             inputMode="numeric"
             defaultValue={initial.experienceMax}
             maxLength={2}
@@ -282,7 +307,7 @@ export function JobForm({
           <div className="space-y-2">
             <Label id="description-label">
               About the role
-              <span className="text-destructive">*</span>
+              <span className="font-normal text-muted-foreground">(optional)</span>
             </Label>
             <RichTextEditor
               id="description"
@@ -301,7 +326,7 @@ export function JobForm({
             <TextareaField
               id="responsibilities"
               label="Responsibilities"
-              required
+              optional
               rows={5}
               defaultValue={initial.responsibilities}
               hint="One per line."
@@ -310,7 +335,7 @@ export function JobForm({
             <TextareaField
               id="requirements"
               label="Requirements"
-              required
+              optional
               rows={5}
               defaultValue={initial.requirements}
               hint="One per line."

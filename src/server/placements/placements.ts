@@ -438,7 +438,7 @@ export type AdminPlacement = PlacementSummary & {
   candidatePhone: string;
   candidateCity: string;
   propertyName: string | null;
-  companyContact: { name: string; designation: string; email: string; phone: string };
+  companyContact: { name: string; designation: string | null; email: string; phone: string };
   offerReceivedAt: string | null;
 };
 
@@ -449,7 +449,7 @@ type AdminRow = BaseRow & {
   companies: {
     property_name: string | null;
     contact_name: string;
-    designation: string;
+    designation: string | null;
     email: string;
     phone: string;
   };

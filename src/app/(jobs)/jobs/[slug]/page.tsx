@@ -19,6 +19,7 @@ import { Salary } from "@/components/salary";
 import { ApplyNowButton } from "@/components/apply-now-button";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
+import { JobsListLink } from "@/components/jobs-list-return";
 import { SaveJobButton } from "@/components/save-job-button";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
@@ -82,13 +83,10 @@ export default async function JobDetailPage({
   return (
     <section className="px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
       <div className="mx-auto max-w-6xl">
-        <Link
-          href="/jobs"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-brand"
-        >
+        <JobsListLink className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-brand">
           <ArrowLeft className="size-4" />
           All jobs
-        </Link>
+        </JobsListLink>
 
         <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">
@@ -101,16 +99,13 @@ export default async function JobDetailPage({
           </div>
 
           <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block lg:self-start">
-            <div className="rounded-2xl border border-border bg-card p-5">
-              {access.member && (
-                <div className="mb-4 -mx-5 px-5 border-b border-border pb-4">
-                  <p className="text-xs text-muted-foreground">Salary</p>
-                  <p className="mt-0.5 font-head text-lg font-bold tracking-tight">
-                    <Salary value={job.salaryRange} />
-                  </p>
-                </div>
-              )}
-              <ApplyButton slug={slug} state={applyState} unlock={unlock} fresher={fresher} />
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <ApplyButton
+                slug={slug}
+                state={applyState}
+                unlock={unlock}
+                fresher={fresher}
+              />
               {candidate && (
                 <SaveJobButton
                   slug={slug}
@@ -123,14 +118,14 @@ export default async function JobDetailPage({
                 One click sends your resume to the employer. Track every step
                 from your dashboard.
               </p>
-              {access.member && (
+              {/* {access.member && (
                 <p className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
                   {placementFeeNote(fresher)}{" "}
                   <Link href="/terms" className="underline underline-offset-2">
                     Terms
                   </Link>
                 </p>
-              )}
+              )} */}
             </div>
             <PrivacyNote />
           </aside>
@@ -217,10 +212,21 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
         </div>
       </div>
 
-      <dl className="mt-5 -mx-5 px-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-border pt-5 sm:grid-cols-4">
+      <dl
+        className={cn(
+          "mt-5 -mx-5 px-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-border pt-5",
+          job.experience ? "sm:grid-cols-4" : "sm:grid-cols-3",
+        )}
+      >
         <Fact icon={MapPin} label="Location" value={job.location} />
-        <Fact icon={Briefcase} label="Experience" value={job.experience} />
-        <Fact icon={IndianRupee} label="Salary" value={<Salary value={job.salaryRange} />} />
+        {job.experience && (
+          <Fact icon={Briefcase} label="Experience" value={job.experience} />
+        )}
+        <Fact
+          icon={IndianRupee}
+          label="Salary"
+          value={<Salary value={job.salaryRange} />}
+        />
         <Fact
           icon={job.workMode === "WFH" ? Monitor : Clock}
           label="Job type"
@@ -232,35 +238,50 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
 }
 
 function JobBody({ job, fresher }: { job: JobListing; fresher: boolean }) {
+  if (
+    !job.description &&
+    job.responsibilities.length === 0 &&
+    job.requirements.length === 0 &&
+    job.benefits.length === 0
+  )
+    return null;
   return (
     <div className="divide-y divide-border rounded-2xl border border-border bg-card">
-      <Section title="About the role">
-        <div
-          className="rich-text text-sm leading-7 text-muted-foreground"
-          dangerouslySetInnerHTML={{
-            __html: sanitizeRichText(toRichTextHtml(job.description)),
-          }}
-        />
-      </Section>
-      <Section title="Responsibilities">
-        <CheckList items={job.responsibilities} />
-      </Section>
-      <Section title="Requirements">
-        <CheckList items={job.requirements} />
-      </Section>
-      <Section title="Benefits">
-        <ul className="flex flex-wrap gap-2">
-          {job.benefits.map((benefit) => (
-            <li
-              key={benefit}
-              className="rounded-lg bg-muted px-3 py-1.5 text-sm text-foreground"
-            >
-              {benefit}
-            </li>
-          ))}
-        </ul>
-      </Section>
-      <div className="space-y-3 p-5 sm:p-6 lg:hidden">
+      {job.description && (
+        <Section title="About the role">
+          <div
+            className="rich-text text-sm leading-7 text-muted-foreground"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeRichText(toRichTextHtml(job.description)),
+            }}
+          />
+        </Section>
+      )}
+      {job.responsibilities.length > 0 && (
+        <Section title="Responsibilities">
+          <CheckList items={job.responsibilities} />
+        </Section>
+      )}
+      {job.requirements.length > 0 && (
+        <Section title="Requirements">
+          <CheckList items={job.requirements} />
+        </Section>
+      )}
+      {job.benefits.length > 0 && (
+        <Section title="Benefits">
+          <ul className="flex flex-wrap gap-2">
+            {job.benefits.map((benefit) => (
+              <li
+                key={benefit}
+                className="rounded-lg bg-muted px-3 py-1.5 text-sm text-foreground"
+              >
+                {benefit}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+      {/* <div className="space-y-3 p-5 sm:p-6 lg:hidden">
         <p className="text-xs leading-5 text-muted-foreground">
           {placementFeeNote(fresher)}{" "}
           <Link href="/terms" className="underline underline-offset-2">
@@ -268,7 +289,7 @@ function JobBody({ job, fresher }: { job: JobListing; fresher: boolean }) {
           </Link>
         </p>
         <PrivacyNote />
-      </div>
+      </div> */}
     </div>
   );
 }
@@ -348,9 +369,7 @@ function ApplyButton({
         variant="outline"
         className={cn("font-head", className)}
         nativeButton={false}
-        render={
-          <Link href={`${CANDIDATE_HOME}/applications/${state.ref}`} />
-        }
+        render={<Link href={`${CANDIDATE_HOME}/applications/${state.ref}`} />}
       >
         <CircleCheck className="size-4 text-good" />
         Applied · View status
@@ -382,12 +401,11 @@ function ApplyButton({
 
 function PrivacyNote() {
   return (
-    <div className="flex gap-3 rounded-2xl bg-muted/50 p-4">
+    <div className="flex gap-1 rounded-2xl bg-muted/50 p-4">
       <ShieldCheck className="mt-0.5 size-4 flex-none text-brand" />
       <p className="text-xs leading-5 text-muted-foreground">
-        Employers see your skills and experience first. Your name is shared
-        only if they shortlist you, and your phone number and email are never
-        shared.
+        Employers see your skills and experience first. Your name is shared only
+        if they shortlist you.
       </p>
     </div>
   );

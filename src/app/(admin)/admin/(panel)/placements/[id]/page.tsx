@@ -430,10 +430,12 @@ export default async function AdminPlacementPage({
           <Section title="Company contact">
             <p className="text-sm font-medium">
               {p.companyContact.name}
-              <span className="font-normal text-muted-foreground">
-                {" "}
-                · {p.companyContact.designation}
-              </span>
+              {p.companyContact.designation && (
+                <span className="font-normal text-muted-foreground">
+                  {" "}
+                  · {p.companyContact.designation}
+                </span>
+              )}
             </p>
             <ul className="mt-2.5 space-y-2.5 text-sm">
               <ContactLine

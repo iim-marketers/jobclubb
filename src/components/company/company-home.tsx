@@ -300,7 +300,7 @@ function CompanyCard({
   name: string;
   logoUrl: string | null;
   sector: string;
-  city: string;
+  city: string | null;
   stats: { label: string; value: number }[];
   unreviewed: number;
 }) {
@@ -316,7 +316,7 @@ function CompanyCard({
           <p className="truncate font-head font-bold tracking-tight">{name}</p>
           <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
             <MapPin className="size-3 flex-none" />
-            {sector} · {city}
+            {[sector, city].filter(Boolean).join(" · ")}
           </p>
         </div>
         <span className="flex flex-none items-center gap-1 rounded-full bg-good/12 px-2.5 py-1 font-head text-[11px] font-bold text-good">
@@ -512,7 +512,9 @@ function PostingCard({
         </span>
         <span className="flex items-center gap-1.5">
           <Clock className="size-3.5" />
-          {formatExperience(job)} · {postedAgo(job.createdAt)}
+          {[formatExperience(job), postedAgo(job.createdAt)]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       </div>
     </li>

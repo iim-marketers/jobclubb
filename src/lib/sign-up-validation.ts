@@ -231,6 +231,54 @@ export function validateCompany(formData: FormData): FieldErrors {
   return errors;
 }
 
+export function validatePartnerCompany(formData: FormData) {
+  const values = {
+    companyName: readText(formData, "companyName"),
+    industry: readText(formData, "industry"),
+    size: readText(formData, "size"),
+    website: readText(formData, "website"),
+    gstin: readText(formData, "gstin").toUpperCase(),
+    city: readText(formData, "city"),
+    pincode: readText(formData, "pincode"),
+    contactName: readText(formData, "contactName"),
+    designation: readText(formData, "designation"),
+    email: readText(formData, "email").toLowerCase(),
+    phone: readText(formData, "phone"),
+    password: String(formData.get("password") ?? ""),
+  };
+  const errors: FieldErrors = {};
+
+  if (!values.companyName) errors.companyName = "Enter the company's registered name.";
+  else if (values.companyName.length > 120) errors.companyName = "Use 120 characters or fewer.";
+  if (!isCompanyIndustry(values.industry)) errors.industry = "Choose an industry.";
+  if (!COMPANY_SIZES.some((s) => s.value === values.size)) errors.size = "Choose the company size.";
+  if (values.website.length > 255 || (values.website && !getWebsiteDomain(values.website)))
+    errors.website = "Enter a valid website, like taj.com.";
+  if (values.gstin && !GSTIN_PATTERN.test(values.gstin))
+    errors.gstin = "GSTIN should be 15 characters, like 19AABCT1234F1Z5.";
+  if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
+  const pincode = optionalPincodeError(values.pincode);
+  if (pincode) errors.pincode = pincode;
+  if (!values.contactName) errors.contactName = "Enter the contact's full name.";
+  else if (values.contactName.length > 80) errors.contactName = "Use 80 characters or fewer.";
+  if (values.designation.length > 80) errors.designation = "Use 80 characters or fewer.";
+  if (!EMAIL_PATTERN.test(values.email)) errors.email = "Enter a valid email address.";
+  if (!PHONE_PATTERN.test(values.phone)) errors.phone = "Enter a valid 10-digit Indian mobile number.";
+  if (values.password.length < 8) errors.password = "Use at least 8 characters.";
+  else if (new TextEncoder().encode(values.password).length > 72)
+    errors.password = "Use 72 characters or fewer.";
+
+  return { values, errors };
+}
+
+export type PartnerCompanyInput = ReturnType<typeof validatePartnerCompany>["values"];
+
+function optionalPincodeError(pincode: string) {
+  if (!pincode) return;
+  if (!PINCODE_PATTERN.test(pincode)) return "Enter a 6-digit pincode.";
+  if (!pincodeState(pincode)) return "Enter a valid Indian pincode.";
+}
+
 // A property can move within its state; another state means another property.
 export function propertyPincodeError(pincode: string, propertyPincode: string) {
   if (!PINCODE_PATTERN.test(pincode)) return "Enter a 6-digit pincode.";
@@ -242,7 +290,7 @@ export function propertyPincodeError(pincode: string, propertyPincode: string) {
     return `Use a pincode in ${GST_STATES[propertyState]}, where this property is registered.`;
 }
 
-export function validateCompanyDetails(formData: FormData, propertyPincode: string) {
+export function validateCompanyDetails(formData: FormData, propertyPincode: string | null) {
   const values = {
     propertyName: readText(formData, "propertyName"),
     industry: readText(formData, "industry"),
@@ -257,13 +305,18 @@ export function validateCompanyDetails(formData: FormData, propertyPincode: stri
   if (!COMPANY_SIZES.some((s) => s.value === values.size)) errors.size = "Choose your company size.";
   if (values.website.length > 255 || (values.website && !getWebsiteDomain(values.website)))
     errors.website = "Enter a valid website, like taj.com.";
-  const pincode = propertyPincodeError(values.pincode, propertyPincode);
+  const pincode = propertyPincode
+    ? propertyPincodeError(values.pincode, propertyPincode)
+    : optionalPincodeError(values.pincode);
   if (pincode) errors.pincode = pincode;
 
   return { values, errors };
 }
 
-export function validateCompanyContact(formData: FormData) {
+export function validateCompanyContact(
+  formData: FormData,
+  { designationOptional = false } = {},
+) {
   const values = {
     contactName: readText(formData, "contactName"),
     designation: readText(formData, "designation"),
@@ -273,7 +326,7 @@ export function validateCompanyContact(formData: FormData) {
 
   if (!values.contactName) errors.contactName = "Enter your full name.";
   else if (values.contactName.length > 80) errors.contactName = "Use 80 characters or fewer.";
-  if (!values.designation) errors.designation = "Enter your designation.";
+  if (!values.designation && !designationOptional) errors.designation = "Enter your designation.";
   else if (values.designation.length > 80) errors.designation = "Use 80 characters or fewer.";
   if (!PHONE_PATTERN.test(values.phone)) errors.phone = "Enter a valid 10-digit Indian mobile number.";
 

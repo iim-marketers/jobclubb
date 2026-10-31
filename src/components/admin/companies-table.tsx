@@ -1,6 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import {
   ArrowRight,
   Check,
@@ -28,7 +34,11 @@ import {
   formatDate,
   industryName,
 } from "@/components/admin/data-table";
-import { FormStatus, submitManually } from "@/components/candidate/settings-forms";
+import {
+  FormStatus,
+  submitManually,
+} from "@/components/candidate/settings-forms";
+import { CompanyAvatar } from "@/components/company-avatar";
 import { FieldError, useFieldErrors } from "@/components/sign-up/fields";
 import { FilterSelect } from "@/components/table-toolbar";
 import {
@@ -75,6 +85,7 @@ const TABS = [
   { key: "all", label: "All" },
   { key: "verified", label: "Verified" },
   { key: "pending_email", label: "Awaiting email" },
+  { key: "partners", label: "Partners" },
   { key: "changes", label: "Change requested" },
 ] as const;
 
@@ -103,6 +114,7 @@ const COLUMNS = helper.columns([
         <div className="min-w-44">
           <p className="font-head font-bold">
             {c.companyName}
+            {c.isPartner && <PartnerBadge className="ml-2" />}
             {c.pendingChanges.length > 0 && <ChangeBadge className="ml-2" />}
           </p>
           <p className="text-xs text-muted-foreground">
@@ -132,7 +144,7 @@ const COLUMNS = helper.columns([
     header: "City",
     sortFn: "text",
     cell: ({ getValue }) => (
-      <span className="text-muted-foreground">{getValue()}</span>
+      <span className="text-muted-foreground">{getValue() ?? "—"}</span>
     ),
   }),
   helper.accessor("size", {
@@ -168,6 +180,19 @@ const COLUMN_CLASS: Record<string, string> = {
   size: "hidden xl:table-cell",
   createdAt: "hidden lg:table-cell",
 };
+
+function PartnerBadge({ className }: { className?: string }) {
+  return (
+    <Badge
+      className={cn(
+        "bg-brand/10 align-middle font-head font-bold text-brand",
+        className,
+      )}
+    >
+      Partner
+    </Badge>
+  );
+}
 
 function ChangeBadge({ className }: { className?: string }) {
   return (
@@ -209,7 +234,9 @@ export function CompaniesTable({
         ? companies
         : tab === "changes"
           ? companies.filter((c) => c.pendingChanges.length > 0)
-          : companies.filter((c) => c.status === tab),
+          : tab === "partners"
+            ? companies.filter((c) => c.isPartner)
+            : companies.filter((c) => c.status === tab),
     [companies, tab],
   );
 
@@ -250,7 +277,6 @@ export function CompaniesTable({
         company={viewing}
         onClose={() => setViewingId(undefined)}
       />
-
     </>
   );
 }
@@ -304,12 +330,21 @@ function CompanyDialog({
           <>
             <DialogHeader className="gap-0 border-b border-border bg-linear-to-b from-brand/8 to-transparent px-5 pt-6 pb-5 sm:px-7">
               <div className="flex items-start gap-4 pr-8">
-                <div className="flex size-14 flex-none items-center justify-center rounded-2xl bg-brand font-head text-lg font-extrabold text-brand-foreground shadow-sm ring-4 ring-brand/10">
-                  {initials(company.companyName)}
-                </div>
+                {company.logoUrl ? (
+                  <CompanyAvatar
+                    name={company.companyName}
+                    logoUrl={company.logoUrl}
+                    className="size-14 rounded-2xl shadow-sm ring-4 ring-brand/10"
+                  />
+                ) : (
+                  <div className="flex size-14 flex-none items-center justify-center rounded-2xl bg-brand font-head text-lg font-extrabold text-brand-foreground shadow-sm ring-4 ring-brand/10">
+                    {initials(company.companyName)}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap gap-1.5">
                     <StatusBadge status={company.status} />
+                    {company.isPartner && <PartnerBadge />}
                     {company.pendingChanges.length > 0 && <ChangeBadge />}
                   </div>
                   <DialogTitle className="mt-2 font-head text-xl leading-tight font-extrabold sm:text-2xl">
@@ -372,7 +407,9 @@ function CompanyDialog({
               <VerificationChecks
                 steps={[
                   {
-                    label: "Registered",
+                    label: company.isPartner
+                      ? "Added by JobClubb"
+                      : "Registered",
                     done: true,
                     detail: formatDate(company.createdAt),
                   },
@@ -414,7 +451,11 @@ function CompanyDialog({
                   />
                   <Detail
                     label="Location"
-                    value={`${company.city} — ${company.pincode}`}
+                    value={
+                      [company.city, company.pincode]
+                        .filter(Boolean)
+                        .join(" — ") || null
+                    }
                   />
                   <Detail
                     label="Website"
@@ -701,10 +742,17 @@ function ChangeRequestCard({ request }: { request: ChangeRequest }) {
       </p>
 
       {rejecting ? (
-        <RejectForm requestId={request.id} onCancel={() => setRejecting(false)} />
+        <RejectForm
+          requestId={request.id}
+          onCancel={() => setRejecting(false)}
+        />
       ) : (
         <div className="mt-3 flex flex-wrap gap-2">
-          <ApproveButton id={request.id} label={label} newValue={request.newValue} />
+          <ApproveButton
+            id={request.id}
+            label={label}
+            newValue={request.newValue}
+          />
           <Button
             variant="outline-destructive"
             size="sm"
@@ -739,10 +787,15 @@ function ApproveButton({
       >
         Approve
       </Button>
-      <AlertDialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
+      <AlertDialog
+        open={open}
+        onOpenChange={(next) => !pending && setOpen(next)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Change {label.toLowerCase()} to “{newValue}”?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Change {label.toLowerCase()} to “{newValue}”?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               The company&apos;s profile, job postings and applications update
               straight away, and the company is emailed.

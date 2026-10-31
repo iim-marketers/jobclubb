@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { COMPANY_JOBS } from "@/components/company/nav";
-import { validateJob } from "@/lib/company-jobs";
+import { validateJob, validateJobLocation } from "@/lib/company-jobs";
 import { EMPLOYER_TERMS_VERSION } from "@/lib/terms-content";
 import type { FieldErrors } from "@/lib/sign-up-validation";
-import { requireCompany } from "@/server/auth/current-company";
+import { requireCompany, type CurrentCompany } from "@/server/auth/current-company";
 import {
   createCompanyJob,
   setCompanyJobOpen,
@@ -16,6 +16,17 @@ import {
 
 export type JobFormState = { errors?: FieldErrors; error?: string };
 
+function validate(company: CurrentCompany, formData: FormData) {
+  const job = validateJob(formData);
+  if (!company.is_partner) return { ...job, location: null };
+  const location = validateJobLocation(formData);
+  return {
+    values: job.values,
+    location: location.values,
+    errors: { ...job.errors, ...location.errors },
+  };
+}
+
 export async function createJob(
   _prev: JobFormState,
   formData: FormData,
@@ -23,12 +34,12 @@ export async function createJob(
   const company = await requireCompany(`${COMPANY_JOBS}/new`);
   if (company.terms_version !== EMPLOYER_TERMS_VERSION)
     return { error: "Accept the updated terms at the top of the page before posting a job." };
-  const { values, errors } = validateJob(formData);
+  const { values, location, errors } = validate(company, formData);
   if (Object.keys(errors).length > 0) return { errors };
 
   let id: string;
   try {
-    id = await createCompanyJob(company.id, values);
+    id = await createCompanyJob(company.id, values, location);
   } catch (error) {
     console.error("Creating job posting failed", error);
     return { error: "We couldn't post this job. Please try again." };
@@ -44,12 +55,12 @@ export async function updateJob(
   formData: FormData,
 ): Promise<JobFormState> {
   const company = await requireCompany(`${COMPANY_JOBS}/${id}/edit`);
-  const { values, errors } = validateJob(formData);
+  const { values, location, errors } = validate(company, formData);
   if (Object.keys(errors).length > 0) return { errors };
 
   let updated: boolean;
   try {
-    updated = await updateCompanyJob(company.id, id, values);
+    updated = await updateCompanyJob(company.id, id, values, location);
   } catch (error) {
     console.error("Updating job posting failed", error);
     return { error: "We couldn't save this job. Please try again." };

@@ -260,21 +260,26 @@ export default async function ApplicationDetailPage({
           )}
 
           <Panel title="About the role" className="flex-1">
-            <div
-              className="rich-text mb-6 text-sm leading-7 text-muted-foreground"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeRichText(toRichTextHtml(job.description)),
-              }}
-            />
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <DetailList
-                title="Responsibilities"
-                items={job.responsibilities}
+            {job.description && (
+              <div
+                className="rich-text mb-6 text-sm leading-7 text-muted-foreground"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeRichText(toRichTextHtml(job.description)),
+                }}
               />
-              <DetailList title="Requirements" items={job.requirements} />
-            </div>
+            )}
+            {(job.responsibilities.length > 0 ||
+              job.requirements.length > 0) && (
+              <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <DetailList
+                  title="Responsibilities"
+                  items={job.responsibilities}
+                />
+                <DetailList title="Requirements" items={job.requirements} />
+              </div>
+            )}
             {job.benefits.length > 0 && (
-              <div className="mt-6 border-t border-border pt-5">
+              <div className="border-t border-border pt-5">
                 <p className="font-head text-sm font-bold">Benefits</p>
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {job.benefits.map((b) => (
@@ -307,7 +312,9 @@ export default async function ApplicationDetailPage({
                 [
                   ["Applied on", formatLongDate(application.appliedOn)],
                   ["Salary", <Salary key="salary" value={job.salaryRange} />],
-                  ["Experience", job.experience],
+                  ...(job.experience === null
+                    ? []
+                    : [["Experience", job.experience]]),
                   ["Job type", job.jobType],
                   ["Work mode", job.workMode],
                   ["Location", `${job.location} ${job.pincode}`],
@@ -559,6 +566,7 @@ function StageStepper({ application: a }: { application: Application }) {
 }
 
 function DetailList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
   return (
     <div>
       <p className="font-head text-sm font-bold">{title}</p>

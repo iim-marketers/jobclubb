@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { BriefcaseBusiness, Lock, SearchX } from "lucide-react";
 
 import { JobCard } from "@/components/job-card";
+import { RememberJobsList } from "@/components/jobs-list-return";
 import {
   ActiveFilters,
   JobFiltersPanel,
@@ -94,6 +95,7 @@ async function JobResults({
 
   return (
     <section className="px-4 pb-12 sm:px-6">
+      <RememberJobsList href={jobsHref(query, paging)} />
       <div className="mx-auto grid grid-cols-1 max-w-6xl gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="hidden min-w-0 lg:sticky lg:top-18 lg:block lg:self-start lg:pt-6">
           <JobFiltersPanel

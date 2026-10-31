@@ -57,6 +57,22 @@ export default async function JobDetailPage({
   const applicants = await listCompanyApplicants(company.id, job.id);
   const active = applicants.filter((a) => a.status === "active");
   const closed = job.status === "closed";
+  const experience = formatExperience(job);
+  const facts: [string, React.ReactNode][] = [
+    ["Salary", <Salary key="salary" value={formatSalary(job)} />],
+    ...(experience === null
+      ? []
+      : [["Experience", experience] as [string, string]]),
+    ["Type", `${job.jobType} · ${job.workMode}`],
+    ...(job.openings === null
+      ? []
+      : [["Openings", String(job.openings)] as [string, string]]),
+  ];
+  const hasDetails =
+    !!job.description ||
+    job.responsibilities.length > 0 ||
+    job.requirements.length > 0 ||
+    job.benefits.length > 0;
 
   return (
     <div className="space-y-6">
@@ -113,19 +129,27 @@ export default async function JobDetailPage({
                 Edit
               </Button>
             )}
+            {company.is_partner && (
+              <Button
+                variant="outline"
+                className="font-head"
+                nativeButton={false}
+                render={<Link href={`${COMPANY_JOBS}/new?from=${job.id}`} />}
+              >
+                Duplicate
+              </Button>
+            )}
             <JobOpenToggle jobId={job.id} closed={closed} />
           </div>
         </div>
 
-        <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
-          {(
-            [
-              ["Salary", <Salary key="salary" value={formatSalary(job)} />],
-              ["Experience", formatExperience(job)],
-              ["Type", `${job.jobType} · ${job.workMode}`],
-              ["Openings", String(job.openings)],
-            ] as [string, React.ReactNode][]
-          ).map(([label, value]) => (
+        <dl
+          className={cn(
+            "mt-6 grid grid-cols-2 gap-4 border-t border-border pt-6",
+            facts.length === 4 ? "sm:grid-cols-4" : "sm:grid-cols-3",
+          )}
+        >
+          {facts.map(([label, value]) => (
             <div key={label} className="min-w-0">
               <dt className="text-xs text-muted-foreground">{label}</dt>
               <dd className="mt-0.5 font-head text-sm font-bold sm:truncate">
@@ -184,8 +208,14 @@ export default async function JobDetailPage({
             <dl className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 ["Referred", applicants.length],
-                ["New referrals", active.filter((a) => a.stage === REFERRED_STAGE).length],
-                ["Interviewing", active.filter((a) => a.stage > REFERRED_STAGE).length],
+                [
+                  "New referrals",
+                  active.filter((a) => a.stage === REFERRED_STAGE).length,
+                ],
+                [
+                  "Interviewing",
+                  active.filter((a) => a.stage > REFERRED_STAGE).length,
+                ],
                 ["Not selected", applicants.length - active.length],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-2xl bg-muted/50 px-4 py-3">
@@ -207,38 +237,51 @@ export default async function JobDetailPage({
         )}
       </Panel>
 
-      <Panel title="About the role">
-        <div
-          className="rich-text max-w-4xl text-sm text-muted-foreground"
-          dangerouslySetInnerHTML={{
-            __html: sanitizeRichText(job.description),
-          }}
-        />
-        <div className="mt-6 grid grid-cols-1 gap-6 border-t border-border pt-6 md:grid-cols-2 md:gap-10">
-          <DetailList title="Responsibilities" items={job.responsibilities} />
-          <DetailList title="Requirements" items={job.requirements} />
-        </div>
-        {job.benefits.length > 0 && (
-          <div className="mt-6 border-t border-border pt-6">
-            <p className="font-head text-sm font-bold">Benefits</p>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {job.benefits.map((b) => (
-                <li
-                  key={b}
-                  className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
-                >
-                  {b}
-                </li>
-              ))}
-            </ul>
+      {hasDetails && (
+        <Panel title="About the role">
+          <div className="divide-y divide-border [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+            {job.description && (
+              <div
+                className="rich-text max-w-4xl text-sm text-muted-foreground"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeRichText(job.description),
+                }}
+              />
+            )}
+            {(job.responsibilities.length > 0 ||
+              job.requirements.length > 0) && (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10">
+                <DetailList
+                  title="Responsibilities"
+                  items={job.responsibilities}
+                />
+                <DetailList title="Requirements" items={job.requirements} />
+              </div>
+            )}
+            {job.benefits.length > 0 && (
+              <div>
+                <p className="font-head text-sm font-bold">Benefits</p>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {job.benefits.map((b) => (
+                    <li
+                      key={b}
+                      className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
+                    >
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
-        )}
-      </Panel>
+        </Panel>
+      )}
     </div>
   );
 }
 
 function DetailList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
   return (
     <div>
       <p className="font-head text-sm font-bold">{title}</p>

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { jobSlug, type CompanyJob, type JobInput } from "@/lib/company-jobs";
+import { jobSlug, type CompanyJob, type JobInput, type JobLocation } from "@/lib/company-jobs";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { getCompanyLogoUrl } from "@/server/companies/logo";
 import { sanitizeRichText } from "@/server/rich-text";
@@ -18,11 +18,11 @@ type JobRow = {
   pincode: string;
   job_type: CompanyJob["jobType"];
   work_mode: CompanyJob["workMode"];
-  experience_min: number;
-  experience_max: number;
+  experience_min: number | null;
+  experience_max: number | null;
   salary_min_lpa: number | string | null;
   salary_max_lpa: number | string | null;
-  openings: number;
+  openings: number | null;
   description: string;
   responsibilities: string[];
   requirements: string[];
@@ -59,9 +59,10 @@ function toJob(row: JobRow): CompanyJob {
   };
 }
 
-// city and pincode are copied from the company by a database trigger.
-function toRow(input: JobInput) {
+// A database trigger overwrites city and pincode for property companies.
+function toRow(input: JobInput, location: JobLocation | null) {
   return {
+    ...location,
     industry: input.industry,
     role: input.role,
     designation: input.designation,
@@ -103,12 +104,16 @@ export async function getCompanyJob(companyId: string, id: string) {
   return data ? toJob(data as JobRow) : null;
 }
 
-export async function createCompanyJob(companyId: string, input: JobInput) {
+export async function createCompanyJob(
+  companyId: string,
+  input: JobInput,
+  location: JobLocation | null,
+) {
   const admin = createAdminClient();
   for (let attempt = 0; ; attempt++) {
     const { data, error } = await admin
       .from("company_jobs")
-      .insert({ ...toRow(input), company_id: companyId, slug: jobSlug(input.designation) })
+      .insert({ ...toRow(input, location), company_id: companyId, slug: jobSlug(input.designation) })
       .select("id")
       .single();
     if (!error) return data.id as string;
@@ -222,10 +227,15 @@ export async function getLiveJobBySlug(slug: string): Promise<PublicJob | null> 
   return data ? toPublicJob(data as unknown as PublicJobRow) : null;
 }
 
-export async function updateCompanyJob(companyId: string, id: string, input: JobInput) {
+export async function updateCompanyJob(
+  companyId: string,
+  id: string,
+  input: JobInput,
+  location: JobLocation | null,
+) {
   const { data, error } = await createAdminClient()
     .from("company_jobs")
-    .update({ ...toRow(input), updated_at: new Date().toISOString() })
+    .update({ ...toRow(input, location), updated_at: new Date().toISOString() })
     .eq("company_id", companyId)
     .eq("id", id)
     .neq("status", "closed")

@@ -173,10 +173,12 @@ function SectionForm({
 export function CompanyDetailsForm({
   defaults,
   city,
+  partner,
   walkInsElsewhere,
 }: {
   defaults: CompanyDefaults;
-  city: string;
+  city: string | null;
+  partner: boolean;
   walkInsElsewhere: number;
 }) {
   const [initial] = useState(defaults);
@@ -184,22 +186,28 @@ export function CompanyDetailsForm({
     <SectionForm
       id="details"
       title="Company details"
-      description="Your property's area, size and the industry we match candidates from."
+      description={
+        partner
+          ? "Your office, size and the industry we match candidates from."
+          : "Your property's area, size and the industry we match candidates from."
+      }
       action={updateCompanyDetails}
       successMessage="Company details saved"
     >
       {(errors, markDirty) => (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <Field
-            id="propertyName"
-            label="Property or branch name"
-            optional
-            defaultValue={initial.propertyName}
-            maxLength={120}
-            hint="Shown to candidates alongside your company name."
-            error={errors.propertyName}
-            className="sm:col-span-2"
-          />
+          {!partner && (
+            <Field
+              id="propertyName"
+              label="Property or branch name"
+              optional
+              defaultValue={initial.propertyName}
+              maxLength={120}
+              hint="Shown to candidates alongside your company name."
+              error={errors.propertyName}
+              className="sm:col-span-2"
+            />
+          )}
           <SelectField
             id="industry"
             label="Industry"
@@ -235,7 +243,11 @@ export function CompanyDetailsForm({
             autoComplete="postal-code"
             defaultValue={initial.pincode}
             maxLength={6}
-            hint={`Moved offices within ${city}? Your job postings move with the pincode.`}
+            hint={
+              partner
+                ? "Your office pincode. Each job keeps its own location."
+                : `Moved offices within ${city}? Your job postings move with the pincode.`
+            }
             error={errors.pincode}
           />
           {walkInsElsewhere > 0 && (

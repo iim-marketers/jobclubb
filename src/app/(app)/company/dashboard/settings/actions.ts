@@ -52,14 +52,17 @@ export async function updateCompanyDetails(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const company = await requireCompany(SETTINGS_PATH);
-  const { values, errors } = validateCompanyDetails(formData, company.pincode);
+  const { values, errors } = validateCompanyDetails(
+    formData,
+    company.is_partner ? null : company.pincode,
+  );
   return saveCompany(
     {
       property_name: values.propertyName || null,
       industry: values.industry,
       size: values.size,
       website: values.website || null,
-      pincode: values.pincode,
+      pincode: values.pincode || null,
     },
     errors,
   );
@@ -69,11 +72,14 @@ export async function updateCompanyContact(
   _prev: SettingsActionState,
   formData: FormData,
 ): Promise<SettingsActionState> {
-  const { values, errors } = validateCompanyContact(formData);
+  const company = await requireCompany(SETTINGS_PATH);
+  const { values, errors } = validateCompanyContact(formData, {
+    designationOptional: company.is_partner,
+  });
   return saveCompany(
     {
       contact_name: values.contactName,
-      designation: values.designation,
+      designation: values.designation || null,
       phone: values.phone,
     },
     errors,

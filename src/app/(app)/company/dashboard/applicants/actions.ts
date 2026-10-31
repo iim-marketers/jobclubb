@@ -10,6 +10,7 @@ import { requireCompany } from "@/server/auth/current-company";
 import {
   cancelInterview as cancelCompanyInterview,
   finishInterview as finishCompanyInterview,
+  getApplicantJobLocation,
   recordInterviewOutcome,
   rejectApplicant,
   rescheduleInterview,
@@ -47,7 +48,11 @@ export async function saveInterview(
   formData: FormData,
 ): Promise<InterviewFormState> {
   const company = await requireCompany(`${COMPANY_HOME}/applicants/${ref}`);
-  const { values, errors } = validateInterview(formData, company);
+  const location = company.is_partner
+    ? await getApplicantJobLocation(company.id, ref)
+    : company;
+  if (!location) return { error: STALE };
+  const { values, errors } = validateInterview(formData, location);
   if (Object.keys(errors).length > 0) return { errors };
 
   try {

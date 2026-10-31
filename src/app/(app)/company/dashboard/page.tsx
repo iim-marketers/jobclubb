@@ -233,7 +233,7 @@ function CompanySummary({
   logoUrl: string | null;
   propertyName: string | null;
   sector: string;
-  city: string;
+  city: string | null;
   hiringFor: string[];
   nextInterview?: CompanyInterview;
 }) {
@@ -267,9 +267,11 @@ function CompanySummary({
               <span className="flex items-center gap-1.5">
                 <Briefcase className="size-3.5" /> {sector}
               </span>
-              <span className="flex items-center gap-1.5">
-                <MapPin className="size-3.5" /> {city}
-              </span>
+              {city && (
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="size-3.5" /> {city}
+                </span>
+              )}
             </div>
           </div>
         </div>

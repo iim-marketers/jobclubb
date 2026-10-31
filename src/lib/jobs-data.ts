@@ -9,7 +9,7 @@ export type JobListing = {
   location: string;
   pincode: string;
   salaryRange: string;
-  experience: string;
+  experience: string | null;
   jobType: "Full time" | "Internship";
   workMode: "WFO" | "WFH" | "Hybrid" | "Field" | "Onsite";
   postedAgo: string;
