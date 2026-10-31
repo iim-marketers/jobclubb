@@ -24,7 +24,7 @@ const MEMBER_BENEFITS = [
   "Unlock all live jobs",
   "Unlimited one-click apply",
   "Guaranteed employer interviews",
-  "Full upskilling & certification access",
+  // "Full upskilling & certification access",
   "AI-generated, ATS-approved resume",
   "Location match — jobs near your home",
   "Priority support till you're hired",
@@ -154,10 +154,13 @@ export default async function MembershipPage() {
                     Your membership is included with your Emporium batch. When
                     an employer selects you, our placement team contacts you
                     about the offer and a one-time placement fee equal to one
-                    month&apos;s salary. It isn&apos;t paid on JobClubb: the team
-                    arranges it with you directly, then sends your offer letter.
-                    Once paid, the fee is non-refundable. See our{" "}
-                    <Link href="/terms" className="font-medium text-foreground underline underline-offset-2">
+                    month&apos;s salary. It isn&apos;t paid on JobClubb: the
+                    team arranges it with you directly, then sends your offer
+                    letter. Once paid, the fee is non-refundable. See our{" "}
+                    <Link
+                      href="/terms"
+                      className="font-medium text-foreground underline underline-offset-2"
+                    >
                       terms
                     </Link>{" "}
                     for details.
@@ -169,11 +172,14 @@ export default async function MembershipPage() {
                     No placement fee for members
                   </h2>
                   <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
-                    Membership is all you pay. When an employer selects you,
-                    our placement team confirms the offer with you and sends
-                    your offer letter, and you never pay JobClubb any part of
-                    your salary. See our{" "}
-                    <Link href="/terms" className="font-medium text-foreground underline underline-offset-2">
+                    Membership is all you pay. When an employer selects you, our
+                    placement team confirms the offer with you and sends your
+                    offer letter, and you never pay JobClubb any part of your
+                    salary. See our{" "}
+                    <Link
+                      href="/terms"
+                      className="font-medium text-foreground underline underline-offset-2"
+                    >
                       terms
                     </Link>{" "}
                     for details.
