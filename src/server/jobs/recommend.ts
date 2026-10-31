@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { JobListing } from "@/lib/jobs-data";
+import { ALL_DEPARTMENTS, INDUSTRIES } from "@/lib/taxonomy";
 
 import PINCODE_GEO from "./pincode-geo.json";
 
@@ -114,7 +115,13 @@ export function recommendJobs(
       score += 4;
       reasons.push("Your sector");
     }
-    if (roles.some((r) => title.includes(r))) {
+    const roleMatch =
+      job.title === ALL_DEPARTMENTS
+        ? !!INDUSTRIES.find((v) => v.name === job.industry)?.roles.some((r) =>
+            roles.includes(r.toLowerCase()),
+          )
+        : roles.some((r) => title.includes(r));
+    if (roleMatch) {
       score += 3;
       reasons.push("Preferred role");
     }

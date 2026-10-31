@@ -6,6 +6,7 @@ import {
   JOB_TYPES,
   INDUSTRIES,
   WORK_MODES,
+  jobRoles,
 } from "@/lib/taxonomy";
 
 export const JOB_STATUSES = ["live", "closed"] as const;
@@ -113,7 +114,7 @@ export function validateJob(formData: FormData): {
 
   const industry = INDUSTRIES.find((v) => v.slug === values.industry);
   if (!industry) errors.industry = "Choose an industry.";
-  else if (!industry.roles.includes(values.role))
+  else if (!jobRoles(industry).includes(values.role))
     errors.role = "Choose a role.";
   if (!values.designation)
     errors.designation = "Enter the job title candidates will see.";

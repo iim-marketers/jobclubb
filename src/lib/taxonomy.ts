@@ -130,6 +130,13 @@ export function isCompanyIndustry(slug: string) {
   return COMPANY_INDUSTRY_OPTIONS.some((o) => o.value === slug);
 }
 
+// Job-only: kept out of candidate role preferences.
+export const ALL_DEPARTMENTS = "All departments";
+
+export function jobRoles(industry: Industry) {
+  return [...industry.roles, ALL_DEPARTMENTS];
+}
+
 export const JOB_TYPES = ["Full time", "Internship"] as const;
 export const WORK_MODES = ["WFO", "WFH", "Hybrid", "Field", "Onsite"] as const;
 

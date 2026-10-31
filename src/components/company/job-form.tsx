@@ -24,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { JobFormDefaults } from "@/lib/company-jobs";
-import { JOB_TYPES, INDUSTRIES, WORK_MODES } from "@/lib/taxonomy";
+import { JOB_TYPES, INDUSTRIES, WORK_MODES, jobRoles } from "@/lib/taxonomy";
 
 const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({
   value: v.slug,
@@ -69,9 +69,10 @@ export function JobForm({
     state.error,
   );
   const hasErrors = Object.keys(errors).length > 0;
-  const roleOptions = (
-    INDUSTRIES.find((v) => v.slug === industry)?.roles ?? []
-  ).map((r) => ({ value: r, label: r }));
+  const selectedIndustry = INDUSTRIES.find((v) => v.slug === industry);
+  const roleOptions = (selectedIndustry ? jobRoles(selectedIndustry) : []).map(
+    (r) => ({ value: r, label: r }),
+  );
 
   return (
     <form
