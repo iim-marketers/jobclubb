@@ -24,20 +24,21 @@ const STEPS = [
     title: "Apply & get screened",
     body: "Apply in one click to roles that suit your skills. JobClubb screens and interviews you first, then refers shortlisted candidates to the employer. Members enjoy guaranteed interviews with hiring employers.",
   },
+  // {
+  //   step: "03",
+  //   title: "Upskill & prepare",
+  //   body: "Boost your resume and interview performance with our upskilling programs - from interview coaching to certification courses.",
+  // },
   {
     step: "03",
-    title: "Upskill & prepare",
-    body: "Boost your resume and interview performance with our upskilling programs - from interview coaching to certification courses.",
-  },
-  {
-    step: "04",
     title: "Get your dream job",
-    body: "Interview with the employer. When they select you, JobClubb's placement team confirms the offer with you and sends your offer letter, and we support you through to onboarding. Members pay no placement fee.",
+    body: "Interview with the employer. When they select you, JobClubb's placement team confirms the offer with you and sends your offer letter, and we support you through to onboarding.",
   },
 ];
 
 export default async function HowItWorksPage() {
-  const signedIn = !!(await getCandidateSession()) || !!(await getCompanySession());
+  const signedIn =
+    !!(await getCandidateSession()) || !!(await getCompanySession());
 
   return (
     <>
@@ -48,14 +49,21 @@ export default async function HowItWorksPage() {
       />
 
       <Section>
-        <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {STEPS.map((item) => (
-            <li key={item.step} className="rounded-2xl border border-border bg-card p-6">
+            <li
+              key={item.step}
+              className="rounded-2xl border border-border bg-card p-6"
+            >
               <span className="font-head text-3xl font-extrabold text-brand/25">
                 {item.step}
               </span>
-              <h3 className="mt-3 font-head font-bold tracking-tight">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.body}</p>
+              <h3 className="mt-3 font-head font-bold tracking-tight">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {item.body}
+              </p>
             </li>
           ))}
         </ol>
@@ -69,8 +77,8 @@ export default async function HowItWorksPage() {
               An ATS-approved resume, built for you
             </h2>
             <p className="mt-4 leading-7 text-muted-foreground">
-              Every candidate profile generates an AI-built,
-              ATS-approved resume. Applicant tracking systems parse it cleanly, so your
+              Every candidate profile generates an AI-built, ATS-approved
+              resume. Applicant tracking systems parse it cleanly, so your
               application reaches a human instead of being filtered out.
             </p>
             <ul className="mt-6 space-y-3">
@@ -104,8 +112,8 @@ export default async function HowItWorksPage() {
               ))}
             </ul>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Joining through a franchise partner? Use their code at sign-up so they can
-              support your placement.
+              Joining through a franchise partner? Use their code at sign-up so
+              they can support your placement.
             </p>
           </div>
         </div>

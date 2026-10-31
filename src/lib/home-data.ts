@@ -226,5 +226,5 @@ export const ABOUT_STATS = [
   { value: "2,899", label: "members placed across different companies" },
   { value: "3,500+", label: "Live jobs" },
   { value: "100%", label: "Verified employers" },
-  { value: "3", label: "Interviews" },
+  { value: "3", label: "Guaranteed interviews" },
 ];

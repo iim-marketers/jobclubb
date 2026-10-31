@@ -12,15 +12,14 @@ export const metadata = {
 };
 
 const STATS = [
-  { value: "15,100+", label: "members placed across 14+ companies" },
+  { value: "2,899", label: "members placed across different companies" },
+  { value: "3,500+", label: "Live jobs" },
   { value: "100%", label: "Verified employers" },
   { value: "3", label: "Guaranteed interviews" },
-  { value: "7", label: "Sector verticals covered" },
 ];
 
 const WHY = [
   "Screened referrals — JobClubb screens and interviews every applicant before referring them to the employer",
-  "Built on Emporium's existing, deep employer relationships in Airlines, Hotels and Travel",
   "Sector-focused rather than generalist, ensuring relevant roles and relevant candidates",
   "A growing platform with a clear roadmap to expand into additional sectors over time",
   "Positioned at the intersection of two high-demand, high-turnover industries: aviation and hospitality",

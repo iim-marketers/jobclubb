@@ -57,6 +57,18 @@ export async function listJobs(limit?: number): Promise<JobListing[]> {
   return (await listLiveJobs(limit)).map(toListing);
 }
 
+// Round-robin across titles so a teaser doesn't repeat one role while
+// others exist; each title's jobs stay newest-first.
+export function varyTitles(jobs: JobListing[]): JobListing[] {
+  const groups = new Map<string, JobListing[]>();
+  for (const job of jobs)
+    groups.set(job.title, [...(groups.get(job.title) ?? []), job]);
+  const varied: JobListing[] = [];
+  for (let i = 0; varied.length < jobs.length; i++)
+    for (const group of groups.values()) if (group[i]) varied.push(group[i]);
+  return varied;
+}
+
 export async function searchJobListings(
   query: JobQuery,
   member: boolean,

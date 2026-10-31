@@ -28,7 +28,11 @@ import {
   getJobAccess,
 } from "@/server/auth/current-candidate";
 import { listSavedJobSlugs } from "@/server/candidates/saved-jobs";
-import { jobFacetCounts, searchJobListings } from "@/server/jobs/listings";
+import {
+  jobFacetCounts,
+  searchJobListings,
+  varyTitles,
+} from "@/server/jobs/listings";
 
 export const metadata = {
   title: "Jobs — JobClubb",
@@ -38,6 +42,8 @@ export const metadata = {
 };
 
 const PREVIEW_LIMIT = 6;
+// Fetched for the preview so varyTitles has other roles to pick from.
+const PREVIEW_POOL = 60;
 
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
   const [access, params] = await Promise.all([getJobAccess(), searchParams]);
@@ -72,17 +78,21 @@ async function JobResults({
   query: JobQuery;
   paging: Paging;
 }) {
-  const [{ jobs, total }, counts, savedSlugs] = await Promise.all([
+  const [results, counts, savedSlugs] = await Promise.all([
     searchJobListings(
       query,
       access.member,
-      access.member ? paging.page * paging.limit : PREVIEW_LIMIT,
+      access.member ? paging.page * paging.limit : PREVIEW_POOL,
     ),
     access.member ? jobFacetCounts(query) : undefined,
     access.member
       ? getCurrentCandidate().then((c) => (c ? listSavedJobSlugs(c.id) : []))
       : undefined,
   ]);
+  const { total } = results;
+  const jobs = access.member
+    ? results.jobs
+    : varyTitles(results.jobs).slice(0, PREVIEW_LIMIT);
   const saved = savedSlugs && new Set(savedSlugs);
   const noOpenings = total === 0 && isBlank(query);
   const hasMore = access.member && jobs.length < total;

@@ -3,7 +3,7 @@ export const TERMS_VERSION = "2026.10.2";
 export const TERMS_SECTIONS = [
   {
     heading: "1. About these terms",
-    body: "These terms govern your use of JobClubb.com, a recruitment, placement and career consultancy service for the Airlines, Hospitality and Travel & Tourism sectors, run by Raaisha Technologies Private Limited, Kolkata (\"JobClubb\"). JobClubb is a recruitment consultant: it helps you find a job but is never your employer. By creating an account you agree to be bound by these terms.",
+    body: 'These terms govern your use of JobClubb.com, a recruitment, placement and career consultancy service for the Airlines, Hospitality and Travel & Tourism sectors, run by Raaisha Technologies Private Limited, Kolkata ("JobClubb"). JobClubb is a recruitment consultant: it helps you find a job but is never your employer. By creating an account you agree to be bound by these terms.',
   },
   {
     heading: "2. Eligibility",
@@ -15,11 +15,11 @@ export const TERMS_SECTIONS = [
   },
   {
     heading: "4. Fresher and Experienced Candidates",
-    body: "What you pay depends on how you joined. You are a Fresher Candidate if you joined JobClubb with an Emporium batch code from a JobClubb partner institute. Every other candidate, who joins by paying for membership, is an Experienced Candidate. Your category is fixed when you sign up.",
+    body: "What you pay depends on how you joined. You are a Fresher Candidate if you joined JobClubb with franchise partner's batch code. Every other candidate, who joins by paying for membership, is an Experienced Candidate. Your category is fixed when you sign up.",
   },
   {
     heading: "5. Membership",
-    body: "Membership costs ₹1,499 a year, or ₹1,199 if you joined with a franchise partner's code, GST included, paid through our payment gateway. Fresher Candidates' first year of membership is included with their Emporium batch, and renews at the standard price. Membership lasts 365 days from activation and does not renew automatically; we remind you 15 days before it ends. It includes three guaranteed employer interviews, as described in section 12. Membership is not a guarantee of employment, and it is not refunded just because you are not selected; our Refund Policy explains when we do refund it. If you are not placed by the end of your membership, you may join a JobClubb training programme, which is charged separately. Your profile stays on JobClubb whether or not your membership is active.",
+    body: "Membership costs ₹1,499 a year, GST included, paid through our payment gateway. Fresher Candidates' first year of membership is included with their partner institute batch, and renews at the standard price. Membership lasts 365 days from activation and does not renew automatically; we remind you 15 days before it ends. It includes three guaranteed employer interviews, as described in section 12. Membership is not a guarantee of employment, and it is not refunded just because you are not selected; our Refund Policy explains when we do refund it. If you are not placed by the end of your membership, you may join a JobClubb training programme, which is charged separately. Your profile stays on JobClubb whether or not your membership is active.",
   },
   {
     heading: "6. Referral codes",
@@ -86,7 +86,7 @@ export const EMPLOYER_TERMS_VERSION = "2026.10.3";
 export const EMPLOYER_TERMS_SECTIONS = [
   {
     heading: "1. About these terms",
-    body: "These terms govern how employers use JobClubb.com, run by Raaisha Technologies Private Limited, Kolkata (\"JobClubb\"), to recruit for the Airlines, Hospitality and Travel & Tourism sectors. By creating an employer account you appoint JobClubb as a recruitment consultant, on a non-exclusive basis unless agreed otherwise in writing, and agree to be bound by these terms.",
+    body: 'These terms govern how employers use JobClubb.com, run by Raaisha Technologies Private Limited, Kolkata ("JobClubb"), to recruit for the Airlines, Hospitality and Travel & Tourism sectors. By creating an employer account you appoint JobClubb as a recruitment consultant, on a non-exclusive basis unless agreed otherwise in writing, and agree to be bound by these terms.',
   },
   {
     heading: "2. Your account",
