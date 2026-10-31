@@ -202,7 +202,7 @@ export default async function MembershipPage() {
           with every membership so you walk into the interview prepared.
         </p>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             {
               title: "Interview coaching",
@@ -216,10 +216,10 @@ export default async function MembershipPage() {
               title: "Communication",
               body: "Spoken English and guest-handling practice pitched at service-industry expectations.",
             },
-            {
-              title: "Certification",
-              body: "Sector certifications that make your profile stand out to hiring managers.",
-            },
+            // {
+            //   title: "Certification",
+            //   body: "Sector certifications that make your profile stand out to hiring managers.",
+            // },
           ].map((item) => (
             <div
               key={item.title}
@@ -281,13 +281,13 @@ export default async function MembershipPage() {
                 — your profile is kept safe, and job access resumes as soon as
                 you renew.
               </li>
-              <li>
+              {/* <li>
                 <span className="font-head font-bold text-foreground">
                   No early renewal
                 </span>{" "}
                 — you can renew only once your membership ends. Your new year
                 starts from the day you renew.
-              </li>
+              </li> */}
             </ul>
           </div>
         </div>

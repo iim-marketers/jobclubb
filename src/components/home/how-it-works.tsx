@@ -12,7 +12,7 @@ export function HowItWorks() {
           How JobClubb works
         </h2>
 
-        <ol className={cn(CAROUSEL, "mt-10 sm:grid-cols-2 lg:grid-cols-4")}>
+        <ol className={cn(CAROUSEL, "mt-10 sm:grid-cols-2 lg:grid-cols-3")}>
           {HOW_IT_WORKS.map((item) => (
             <li
               key={item.step}
