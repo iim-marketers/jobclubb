@@ -52,7 +52,8 @@ export function JobForm({
 }: {
   action: (prev: JobFormState, formData: FormData) => Promise<JobFormState>;
   defaults: JobFormDefaults;
-  location: { city: string; pincode: string };
+  // Null for partner companies, which choose a location for each job.
+  location: { city: string; pincode: string } | null;
   submitLabel: string;
   cancelHref: string;
 }) {
@@ -142,23 +143,49 @@ export function JobForm({
         description="Candidates near this pincode see the role first."
       >
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <ReadOnlyField
-            label="Location"
-            value={`${location.city} · ${location.pincode}`}
-            className="sm:col-span-2"
-            hint={
-              <>
-                Jobs are posted at your property. Moved offices?{" "}
-                <Link
-                  href={`${COMPANY_HOME}/settings#details`}
-                  className="font-medium text-foreground underline underline-offset-2"
-                >
-                  Update your pincode
-                </Link>
-                . Hiring for a property in another city? It signs up separately.
-              </>
-            }
-          />
+          {location ? (
+            <ReadOnlyField
+              label="Location"
+              value={`${location.city} · ${location.pincode}`}
+              className="sm:col-span-2"
+              hint={
+                <>
+                  Jobs are posted at your property. Moved offices?{" "}
+                  <Link
+                    href={`${COMPANY_HOME}/settings#details`}
+                    className="font-medium text-foreground underline underline-offset-2"
+                  >
+                    Update your pincode
+                  </Link>
+                  . Hiring for a property in another city? It signs up separately.
+                </>
+              }
+            />
+          ) : (
+            <>
+              <Field
+                id="city"
+                label="City"
+                required
+                placeholder="e.g. Kolkata"
+                autoComplete="address-level2"
+                defaultValue={initial.city}
+                maxLength={80}
+                error={errors.city}
+              />
+              <Field
+                id="pincode"
+                label="Pincode"
+                required
+                inputMode="numeric"
+                placeholder="e.g. 700001"
+                defaultValue={initial.pincode}
+                maxLength={6}
+                hint="Hiring in more cities? Post this job, then duplicate it for each one."
+                error={errors.pincode}
+              />
+            </>
+          )}
           <SelectField
             id="jobType"
             label="Job type"

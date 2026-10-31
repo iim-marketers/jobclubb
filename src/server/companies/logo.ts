@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 export { isAcceptedPhoto as isAcceptedLogo } from "@/server/candidates/photo";
 
@@ -11,9 +11,14 @@ const EXTENSIONS: Record<string, string> = {
 };
 
 // A fresh filename per upload, so a replaced logo is never served from a stale CDN cache.
-export async function uploadCompanyLogo(companyId: string, file: File) {
+// asAdmin is for the admin panel, which has no company session for storage RLS.
+export async function uploadCompanyLogo(
+  companyId: string,
+  file: File,
+  { asAdmin = false } = {},
+) {
   const path = `${companyId}/${Date.now()}.${EXTENSIONS[file.type]}`;
-  const supabase = await createClient();
+  const supabase = asAdmin ? createAdminClient() : await createClient();
   const { error } = await supabase.storage
     .from(BUCKET)
     .upload(path, file, { contentType: file.type });

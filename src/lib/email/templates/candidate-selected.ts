@@ -13,7 +13,7 @@ export function candidateSelectedEmail({
   adminUrl,
 }: {
   candidate: { name: string; email: string; phone: string };
-  company: { name: string; contactName: string; designation: string; email: string; phone: string };
+  company: { name: string; contactName: string; designation: string | null; email: string; phone: string };
   jobTitle: string;
   jobCity: string;
   applicationRef: string;
@@ -40,7 +40,7 @@ export function candidateSelectedEmail({
       { label: "Candidate email", value: candidate.email, href: `mailto:${candidate.email}` },
       { label: "Candidate phone", value: candidate.phone },
       { label: "Company", value: company.name },
-      { label: "Company contact", value: `${company.contactName}, ${company.designation}` },
+      { label: "Company contact", value: [company.contactName, company.designation].filter(Boolean).join(", ") },
       { label: "Contact email", value: company.email, href: `mailto:${company.email}` },
       { label: "Contact phone", value: company.phone },
     ],

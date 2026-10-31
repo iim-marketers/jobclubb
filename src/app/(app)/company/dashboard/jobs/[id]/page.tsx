@@ -113,6 +113,16 @@ export default async function JobDetailPage({
                 Edit
               </Button>
             )}
+            {company.is_partner && (
+              <Button
+                variant="outline"
+                className="font-head"
+                nativeButton={false}
+                render={<Link href={`${COMPANY_JOBS}/new?from=${job.id}`} />}
+              >
+                Duplicate
+              </Button>
+            )}
             <JobOpenToggle jobId={job.id} closed={closed} />
           </div>
         </div>

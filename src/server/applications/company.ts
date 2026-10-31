@@ -172,6 +172,19 @@ export async function getCompanyApplicant(
   };
 }
 
+export async function getApplicantJobLocation(companyId: string, ref: string) {
+  if (!REF.test(ref)) return null;
+  const { data, error } = await createAdminClient()
+    .from("job_applications")
+    .select("company_jobs (city, pincode)")
+    .eq("company_id", companyId)
+    .eq("ref", ref)
+    .gte("stage", REFERRED_STAGE)
+    .maybeSingle();
+  if (error) throw error;
+  return (data?.company_jobs ?? null) as unknown as { city: string; pincode: string } | null;
+}
+
 const INTERVIEW_COLUMNS = `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at)`;
 
 type InterviewRow = InterviewPlaceRow & {

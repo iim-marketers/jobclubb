@@ -36,15 +36,19 @@ export default async function CompanySettingsPage() {
     industry: company.industry,
     size: company.size,
     website: company.website ?? "",
-    pincode: company.pincode,
+    pincode: company.pincode ?? "",
     contactName: company.contact_name,
-    designation: company.designation,
+    designation: company.designation ?? "",
     phone: company.phone,
   };
 
   const verified: VerifiedItem[] = [
     { label: "Company name", value: company.company_name, field: "company_name" },
-    { label: "Property city", value: company.city, field: "city" },
+    {
+      label: company.is_partner ? "Office city" : "Property city",
+      value: company.city ?? "—",
+      field: "city",
+    },
     { label: "Sign-in email", value: company.email },
     { label: "GSTIN", value: company.gstin ?? "—", field: "gstin" },
     {
@@ -91,7 +95,12 @@ export default async function CompanySettingsPage() {
           <CompanyDetailsForm
             defaults={defaults}
             city={company.city}
-            walkInsElsewhere={await countWalkInsAwayFrom(company.id, company.pincode)}
+            partner={company.is_partner}
+            walkInsElsewhere={
+              company.is_partner
+                ? 0
+                : await countWalkInsAwayFrom(company.id, company.pincode)
+            }
           />
           <ContactForm defaults={defaults} />
           <PasswordForm

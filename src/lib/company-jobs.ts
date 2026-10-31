@@ -1,3 +1,4 @@
+import { pincodeState } from "@/lib/gst";
 import { richTextToPlain, toRichTextHtml } from "@/lib/rich-text";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import {
@@ -143,6 +144,22 @@ export function validateJob(formData: FormData): {
   return { values, errors };
 }
 
+export type JobLocation = Pick<CompanyJob, "city" | "pincode">;
+
+// Only partner companies choose a location; everyone else posts at their property.
+export function validateJobLocation(formData: FormData): {
+  values: JobLocation;
+  errors: FieldErrors;
+} {
+  const values = { city: text(formData, "city"), pincode: text(formData, "pincode") };
+  const errors: FieldErrors = {};
+  if (!values.city) errors.city = "Enter the city this job is in.";
+  else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
+  if (!/^\d{6}$/.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
+  else if (!pincodeState(values.pincode)) errors.pincode = "Enter a valid Indian pincode.";
+  return { values, errors };
+}
+
 const lpa = (n: number) => `₹${Number(n.toFixed(2))} LPA`;
 
 export const SALARY_UNDISCLOSED = "Not disclosed";
@@ -192,7 +209,7 @@ export function industryName(slug: string) {
 }
 
 export type JobFormDefaults = Record<
-  Exclude<keyof JobInput, "industry" | "role">,
+  Exclude<keyof JobInput, "industry" | "role"> | keyof JobLocation,
   string
 > & {
   industry: string | null;
@@ -210,6 +227,8 @@ export function jobFormDefaults(
         company.industry === ALL_INDUSTRIES.slug ? null : company.industry,
       role: null,
       designation: "",
+      city: "",
+      pincode: "",
       openings: "1",
       jobType: "Full time",
       workMode: "Onsite",
@@ -228,6 +247,8 @@ export function jobFormDefaults(
     industry: job.industry,
     role: job.role,
     designation: job.designation,
+    city: job.city,
+    pincode: job.pincode,
     openings: String(job.openings),
     jobType: job.jobType,
     workMode: job.workMode,
