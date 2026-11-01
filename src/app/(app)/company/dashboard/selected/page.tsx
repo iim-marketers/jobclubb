@@ -154,7 +154,9 @@ export default async function SelectedPage() {
                         ? `${LEFT_REASONS[p.left.reason]} ${formatDateOnly(p.left.leftOn)}`
                         : COMPANY_PLACEMENT_LABELS[p.status]}
                     </span>
-                    {p.replacement && <ReplacementLine replacement={p.replacement} />}
+                    {p.replacement && (
+                      <ReplacementLine replacement={p.replacement} />
+                    )}
                   </TableCell>
                   <TableCell
                     className={cn("px-3 py-3.5", cellClass("joining"))}
@@ -182,7 +184,7 @@ export default async function SelectedPage() {
         </div>
       )}
 
-      <p className="flex items-start gap-2 rounded-2xl bg-muted/50 p-3 text-xs leading-5 text-muted-foreground">
+      {/* <p className="flex items-start gap-2 rounded-2xl bg-muted/50 p-3 text-xs leading-5 text-muted-foreground">
         <Handshake className="mt-0.5 size-3.5 flex-none" />
         JobClubb confirms your offer with the selected candidate and sends them
         your offer letter. There&apos;s no recruitment fee for Fresher
@@ -193,7 +195,7 @@ export default async function SelectedPage() {
           terms
         </Link>
         , offers to candidates found on JobClubb go through JobClubb.
-      </p>
+      </p> */}
     </div>
   );
 }
@@ -207,7 +209,10 @@ function ReplacementLine({
     <p className="mt-1 flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground">
       <RefreshCw className="size-3 flex-none" />
       {r.status === "fulfilled" && r.ref ? (
-        <Link href={applicantHref(r.ref)} className="hover:text-brand hover:underline">
+        <Link
+          href={applicantHref(r.ref)}
+          className="hover:text-brand hover:underline"
+        >
           Replaced by {r.candidate}
         </Link>
       ) : (
