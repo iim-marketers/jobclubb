@@ -8,7 +8,6 @@ as $$
   select regexp_replace(designation, '\s+[–—-]\s.*$', '');
 $$;
 
--- Guests now see the designation without its property, so they can search it.
 create or replace function public.live_jobs_matching(
   search_text text,
   place text,

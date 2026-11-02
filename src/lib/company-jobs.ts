@@ -229,8 +229,7 @@ export function formatPostedDate(iso: string) {
   }).format(new Date(iso));
 }
 
-// Partner designations read "Position – Property"; non-members only see the
-// position. Keep in sync with public_job_title() in the database.
+// Keep in sync with public_job_title() in the database.
 export function publicJobTitle(designation: string) {
   return designation.replace(/\s+[–—-]\s.*$/, "");
 }
