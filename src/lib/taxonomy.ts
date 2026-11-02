@@ -40,6 +40,8 @@ export const INDUSTRIES: Industry[] = [
       "Guest Relations Executives",
       "F&B Service Staff",
       "Chefs & Kitchen Staff",
+      "Kitchen Stewards",
+      "Security Staff",
       "Banquet & Events Staff",
       "Spa & Wellness Staff",
       "Hotel Management Trainees",
