@@ -117,10 +117,7 @@ export function Hero({
                   {locked ? (
                     <span
                       aria-hidden
-                      className={cn(
-                        "size-10 flex-none rounded-full bg-muted",
-                        HIDDEN,
-                      )}
+                      className="size-10 flex-none rounded-full bg-muted"
                     />
                   ) : (
                     <CompanyAvatar

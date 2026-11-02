@@ -71,7 +71,7 @@ export function FeaturedOpenings({
             <div
               aria-hidden
               inert
-              className="grid grid-cols-1 max-h-96 gap-4 overflow-hidden p-5 blur-[6px] select-none lg:max-h-none lg:grid-cols-2"
+              className="grid grid-cols-1 max-h-96 gap-4 overflow-hidden p-5 jc-redacted lg:max-h-none lg:grid-cols-2"
             >
               {ghosts.map((job, i) => (
                 <JobCard
@@ -141,7 +141,7 @@ function JobCard({
         {locked ? (
           <span
             aria-hidden
-            className={cn("size-10 flex-none rounded-full bg-muted", HIDDEN)}
+            className="size-10 flex-none rounded-full bg-muted"
           />
         ) : (
           <CompanyAvatar name={job.company} logoUrl={job.companyLogoUrl} />

@@ -443,7 +443,7 @@ function ProfilePreview({
     >
       <div className="flex items-center gap-3.5">
         <span className="relative flex size-12 flex-none items-center justify-center overflow-hidden rounded-2xl bg-linear-to-br from-brand-accent/60 to-white/20">
-          <span className="font-head text-lg font-extrabold blur-[5px]">
+          <span className="font-head text-lg font-extrabold jc-redacted">
             {(firstName?.[0] ?? "J") + (lastName?.[0] ?? "C")}
           </span>
           <Lock className="absolute size-4 text-white/90" />
@@ -451,7 +451,7 @@ function ProfilePreview({
         <div className="min-w-0">
           <p
             aria-hidden
-            className="truncate font-head text-lg font-bold blur-[6px] select-none"
+            className="truncate font-head text-lg font-bold jc-redacted"
           >
             {name || "Your full name"}
           </p>
