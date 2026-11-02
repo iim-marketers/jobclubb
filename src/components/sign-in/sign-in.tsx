@@ -449,20 +449,20 @@ function CandidatePreview({ roles }: { roles: string[] }) {
           >
             <span
               aria-hidden
-              className="size-9 flex-none rounded-full bg-white/20 ring-2 ring-white/15 blur-[3px]"
+              className="size-9 flex-none rounded-full bg-white/20 ring-2 ring-white/15"
             />
             <div className="min-w-0 flex-1">
               <p className="truncate font-head text-sm font-bold">{role}</p>
               <p
                 aria-hidden
-                className="truncate text-xs text-white/60 blur-[4px] select-none"
+                className="truncate text-xs text-white/60 jc-redacted"
               >
                 Company name · City
               </p>
             </div>
             <span
               aria-hidden
-              className="font-head text-sm font-bold text-brand-accent blur-[4px] select-none"
+              className="font-head text-sm font-bold text-brand-accent jc-redacted"
             >
               ₹0L
             </span>

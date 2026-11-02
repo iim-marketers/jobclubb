@@ -330,6 +330,14 @@
   display: none;
 }
 
+/* Blurred text without `filter: blur()`, which some Windows GPUs never draw. */
+.jc-redacted,
+.jc-redacted * {
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 10px currentColor;
+  user-select: none;
+}
+
 .jc-auth-panel {
   background:
     radial-gradient(

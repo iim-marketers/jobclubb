@@ -8,8 +8,6 @@ import { SALARY_UNDISCLOSED } from "@/lib/company-jobs";
 import type { JobListing } from "@/lib/jobs-data";
 import { cn } from "@/lib/utils";
 
-const HIDDEN = "blur-[5px] select-none";
-
 // Without an active membership only the title is real; the rest is placeholder
 // text under a blur, so the details never reach the page.
 const PLACEHOLDER = {
@@ -31,7 +29,7 @@ export function JobCard({
   saved?: boolean;
 }) {
   const shown = locked ? PLACEHOLDER : job;
-  const hidden = locked ? HIDDEN : undefined;
+  const hidden = locked ? "jc-redacted" : undefined;
   const showSalary = shown.salaryRange !== SALARY_UNDISCLOSED;
 
   return (
@@ -40,7 +38,7 @@ export function JobCard({
         {locked ? (
           <span
             aria-hidden
-            className={cn("size-11 flex-none rounded-xl bg-muted", HIDDEN)}
+            className="size-11 flex-none rounded-xl bg-muted"
           />
         ) : (
           <CompanyAvatar

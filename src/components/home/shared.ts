@@ -8,4 +8,4 @@ export const CAROUSEL_ITEM = "w-[82%] flex-none snap-start sm:w-auto";
 
 // Non-members see only the role; the rest is placeholder text under a blur,
 // so the real company, location and salary never reach the page.
-export const HIDDEN = "blur-[5px] select-none";
+export const HIDDEN = "jc-redacted";

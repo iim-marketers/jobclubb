@@ -170,7 +170,7 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
         <div className="flex items-start gap-4">
           <span
             aria-hidden
-            className="size-14 flex-none rounded-xl bg-muted blur-[5px]"
+            className="size-14 flex-none rounded-xl bg-muted"
           />
           <div className="min-w-0 flex-1">
             <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
