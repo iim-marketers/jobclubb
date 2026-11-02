@@ -6,6 +6,7 @@ import {
   formatExperience,
   formatSalary,
   industryName,
+  publicJobTitle,
 } from "@/lib/company-jobs";
 import type { JobListing } from "@/lib/jobs-data";
 import type { FacetCounts, JobQuery } from "@/lib/jobs-search";
@@ -34,7 +35,8 @@ export function postedAgo(iso: string) {
 export function toListing(job: PublicJob): JobListing {
   return {
     slug: job.slug,
-    title: job.role,
+    role: job.role,
+    title: publicJobTitle(job.designation),
     designation: job.designation,
     company: job.companyName,
     companyLogoUrl: job.companyLogoUrl,
@@ -57,12 +59,12 @@ export async function listJobs(limit?: number): Promise<JobListing[]> {
   return (await listLiveJobs(limit)).map(toListing);
 }
 
-// Round-robin across titles so a teaser doesn't repeat one role while
-// others exist; each title's jobs stay newest-first.
-export function varyTitles(jobs: JobListing[]): JobListing[] {
+// Round-robin across roles so a teaser doesn't repeat one role while
+// others exist; each role's jobs stay newest-first.
+export function varyRoles(jobs: JobListing[]): JobListing[] {
   const groups = new Map<string, JobListing[]>();
   for (const job of jobs)
-    groups.set(job.title, [...(groups.get(job.title) ?? []), job]);
+    groups.set(job.role, [...(groups.get(job.role) ?? []), job]);
   const varied: JobListing[] = [];
   for (let i = 0; varied.length < jobs.length; i++)
     for (const group of groups.values()) if (group[i]) varied.push(group[i]);

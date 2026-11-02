@@ -54,7 +54,7 @@ export function JobPicksList({ picks }: { picks: JobPicks }) {
                 href={`/jobs/${job.slug}`}
                 className="block truncate font-head text-sm font-bold after:absolute after:inset-0 after:rounded-2xl group-hover:text-brand"
               >
-                {job.title}
+                {job.designation}
               </Link>
               <p className="truncate text-xs text-muted-foreground">
                 {job.company} · {job.location}
@@ -104,7 +104,7 @@ function TopMatch({ pick, matched }: { pick: JobPick; matched: boolean }) {
               href={`/jobs/${job.slug}`}
               className="after:absolute after:inset-0 after:rounded-2xl group-hover:text-brand"
             >
-              {job.title}
+              {job.designation}
             </Link>
           </h3>
           <p className="truncate text-sm text-muted-foreground">
@@ -171,7 +171,7 @@ function PickRow({ pick }: { pick: JobPick }) {
           href={`/jobs/${job.slug}`}
           className="block truncate font-head font-bold tracking-tight after:absolute after:inset-0 group-hover:text-brand"
         >
-          {job.title}
+          {job.designation}
         </Link>
         <p className="truncate text-xs text-muted-foreground">
           {job.company} · {job.location} · {job.postedAgo}

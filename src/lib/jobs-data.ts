@@ -1,6 +1,8 @@
 export type JobListing = {
   // Role + id only: the URL is visible to non-members, so no company or city.
   slug: string;
+  role: string;
+  // The designation without the property, safe to show non-members.
   title: string;
   designation: string;
   company: string;

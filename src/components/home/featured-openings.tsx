@@ -152,7 +152,7 @@ function JobCard({
               href={`/jobs/${job.slug}`}
               className="after:absolute after:inset-0 after:rounded-2xl"
             >
-              {job.title}
+              {locked ? job.title : job.designation}
             </Link>
           </h3>
           <p

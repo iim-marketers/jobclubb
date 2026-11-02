@@ -133,7 +133,7 @@ export function Hero({
                       href={`/jobs/${job.slug}`}
                       className="block truncate font-head text-sm font-bold after:absolute after:inset-0 after:rounded-2xl"
                     >
-                      {job.title}
+                      {locked ? job.title : job.designation}
                     </Link>
                     <p
                       aria-hidden={locked}

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const HIDDEN = "blur-[5px] select-none";
 
-// Without an active membership only the role is real; the rest is placeholder
+// Without an active membership only the title is real; the rest is placeholder
 // text under a blur, so the details never reach the page.
 const PLACEHOLDER = {
   company: "Company name",
@@ -55,7 +55,7 @@ export function JobCard({
               href={`/jobs/${job.slug}`}
               className="after:absolute after:inset-0 after:rounded-2xl"
             >
-              {job.title}
+              {locked ? job.title : job.designation}
             </Link>
           </h3>
           <p
