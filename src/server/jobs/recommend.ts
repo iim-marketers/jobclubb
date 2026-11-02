@@ -108,7 +108,7 @@ export function recommendJobs(
 ): JobPicks {
   const roles = (profile.roles ?? []).flatMap((r) => r?.trim().toLowerCase() || []);
   const scored = jobs.map((job) => {
-    const title = `${job.title} ${job.designation}`.toLowerCase();
+    const title = `${job.role} ${job.designation}`.toLowerCase();
     const reasons: string[] = [];
     let score = 0;
     if (!!profile.sector && job.industry === profile.sector) {
@@ -116,7 +116,7 @@ export function recommendJobs(
       reasons.push("Your sector");
     }
     const roleMatch =
-      job.title === ALL_DEPARTMENTS
+      job.role === ALL_DEPARTMENTS
         ? !!INDUSTRIES.find((v) => v.name === job.industry)?.roles.some((r) =>
             roles.includes(r.toLowerCase()),
           )

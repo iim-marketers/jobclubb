@@ -229,11 +229,16 @@ export function formatPostedDate(iso: string) {
   }).format(new Date(iso));
 }
 
+// Keep in sync with public_job_title() in the database.
+export function publicJobTitle(designation: string) {
+  return designation.replace(/\s+[–—-]\s.*$/, "");
+}
+
 // Title + random suffix only: the URL is visible to non-members, so no
 // company or city. Kept stable across edits so shared links keep working.
 export function jobSlug(designation: string) {
   const base =
-    designation
+    publicJobTitle(designation)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")

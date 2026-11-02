@@ -14,7 +14,7 @@ import {
   getMembershipView,
 } from "@/server/auth/current-candidate";
 import { getCurrentCompany } from "@/server/auth/current-company";
-import { listJobs, varyTitles } from "@/server/jobs/listings";
+import { listJobs, varyRoles } from "@/server/jobs/listings";
 
 export const metadata = {
   alternates: { canonical: "/" },
@@ -31,7 +31,7 @@ export default async function Home() {
   )
     return <MemberHome jobs={jobs} />;
 
-  const teaser = varyTitles(jobs);
+  const teaser = varyRoles(jobs);
   return (
     <>
       <SiteJsonLd />

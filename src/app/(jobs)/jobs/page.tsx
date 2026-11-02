@@ -31,7 +31,7 @@ import { listSavedJobSlugs } from "@/server/candidates/saved-jobs";
 import {
   jobFacetCounts,
   searchJobListings,
-  varyTitles,
+  varyRoles,
 } from "@/server/jobs/listings";
 
 export const metadata = {
@@ -42,7 +42,7 @@ export const metadata = {
 };
 
 const PREVIEW_LIMIT = 6;
-// Fetched for the preview so varyTitles has other roles to pick from.
+// Fetched for the preview so varyRoles has other roles to pick from.
 const PREVIEW_POOL = 60;
 
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
@@ -92,7 +92,7 @@ async function JobResults({
   const { total } = results;
   const jobs = access.member
     ? results.jobs
-    : varyTitles(results.jobs).slice(0, PREVIEW_LIMIT);
+    : varyRoles(results.jobs).slice(0, PREVIEW_LIMIT);
   const saved = savedSlugs && new Set(savedSlugs);
   const noOpenings = total === 0 && isBlank(query);
   const hasMore = access.member && jobs.length < total;
