@@ -176,8 +176,8 @@ function JobHeader({ job, member }: { job: JobListing; member: boolean }) {
             <h1 className="font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
               {job.title}
             </h1>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Lock className="size-3.5 text-brand" />
+            <p className="mt-1 flex items-start gap-1.5 text-sm text-muted-foreground">
+              <Lock className="mt-[3px] size-3.5 flex-none text-brand" />
               Company and details visible to members
             </p>
           </div>

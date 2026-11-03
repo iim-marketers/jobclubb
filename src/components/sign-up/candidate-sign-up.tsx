@@ -331,9 +331,9 @@ export function CandidateSignUp({
                 emporium.batchNo && (
                   <p
                     role="status"
-                    className="mt-2 flex items-center gap-1.5 text-xs font-medium text-good"
+                    className="mt-2 flex items-start gap-1.5 text-xs font-medium text-good"
                   >
-                    <BadgeCheck className="size-3.5 flex-none" />
+                    <BadgeCheck className="mt-px size-3.5 flex-none" />
                     {batchLabel(emporium.location, emporium.batchNo)}:
                     membership included
                   </p>
