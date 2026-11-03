@@ -123,19 +123,22 @@ export async function createCompanyJob(
 }
 
 export type PublicJob = CompanyJob & {
+  featured: boolean;
   companyName: string;
   companyLogoUrl: string | null;
 };
 
 export type PublicJobRow = JobRow & {
+  featured: boolean;
   companies: { company_name: string; logo_path: string | null } | null;
 };
 
-export const PUBLIC_JOB_COLUMNS = `${COLUMNS}, companies (company_name, logo_path)`;
+export const PUBLIC_JOB_COLUMNS = `${COLUMNS}, featured, companies (company_name, logo_path)`;
 
 export function toPublicJob(row: PublicJobRow): PublicJob {
   return {
     ...toJob(row),
+    featured: row.featured,
     companyName: row.companies?.company_name ?? "",
     companyLogoUrl: getCompanyLogoUrl(row.companies?.logo_path ?? null),
   };
@@ -171,11 +174,13 @@ export type LiveJobSearch = {
   jobTypes: string[];
   workModes: string[];
   titlesOnly: boolean;
+  featuredOnly: boolean;
   sort: "recent" | "salary" | "experience";
   limit: number;
 };
 
 type SearchRow = JobRow & {
+  featured: boolean;
   company_name: string;
   logo_path: string | null;
   total_count: number;
@@ -193,6 +198,7 @@ export async function searchLiveJobs(
     titles_only: search.titlesOnly,
     sort_by: search.sort,
     max_rows: search.limit,
+    featured_only: search.featuredOnly,
   });
   if (error) throw error;
   const rows = data as SearchRow[];

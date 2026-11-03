@@ -48,6 +48,7 @@ export function toListing(job: PublicJob): JobListing {
     jobType: job.jobType,
     workMode: job.workMode,
     postedAgo: postedAgo(job.createdAt),
+    featured: job.featured,
     description: job.description,
     responsibilities: job.responsibilities,
     requirements: job.requirements,
@@ -85,6 +86,7 @@ export async function searchJobListings(
     jobTypes: query.jobTypes,
     workModes: query.workModes,
     titlesOnly: !member,
+    featuredOnly: !member,
     sort: query.sort,
     limit,
   });
