@@ -3,7 +3,7 @@
 export type Industry = {
   slug: string;
   name: string;
-  sector: "Airlines" | "Hospitality" | "Travel & Tourism";
+  sector: "Airlines" | "Airport" | "Hospitality" | "Travel & Tourism";
   roles: string[];
 };
 
@@ -27,6 +27,39 @@ export const INDUSTRIES: Industry[] = [
       "Aviation Security Staff",
       "Flight Dispatch Executives",
       "VIP & Premium Services Staff",
+    ],
+  },
+  {
+    slug: "airport",
+    name: "Airport",
+    sector: "Airport",
+    roles: [
+      "Firefighter",
+      "Airport Operations Officer",
+      "Air Traffic Controller",
+      "Security Officer",
+      "Baggage Handler",
+      "Customer Service Agent",
+      "Ground Handling Agent",
+      "Ramp Agent",
+      "Aircraft Maintenance Engineer",
+      "Aircraft Technician",
+      "Electrical Technician",
+      "Mechanical Technician",
+      "HVAC Technician",
+      "Facilities Maintenance Technician",
+      "Fueler",
+      "Dispatcher",
+      "Safety Officer",
+      "IT Support Specialist",
+      "Administrative Assistant",
+      "Procurement Officer",
+      "HR Officer",
+      "Finance Officer",
+      "Marketing Executive",
+      "Environmental Officer",
+      "Cleaner",
+      "Driver",
     ],
   },
   {

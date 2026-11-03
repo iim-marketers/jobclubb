@@ -120,7 +120,7 @@ export type ApplicantDetail = Applicant & {
   referralNote: string;
   designation: string;
   jobClosed: boolean;
-  jobLocation: { city: string; pincode: string };
+  jobLocation: { city: string; pincode: string } | null;
   resume: Resume;
   interviews: CompanyInterview[];
   nextRound: number | null;
@@ -143,7 +143,7 @@ export async function getCompanyApplicant(
 
   const row = data as unknown as ApplicantRow & {
     masked_resume: Resume;
-    company_jobs: { designation: string; status: string; city: string; pincode: string };
+    company_jobs: { designation: string; status: string; city: string; pincode: string | null };
   };
   const [names, interviews] = await Promise.all([
     revealedNames(nameRows([row])),
@@ -155,7 +155,7 @@ export async function getCompanyApplicant(
     referralNote: row.referral_note ?? "",
     designation: row.company_jobs.designation,
     jobClosed: row.company_jobs.status === "closed",
-    jobLocation: { city: row.company_jobs.city, pincode: row.company_jobs.pincode },
+    jobLocation: interviewLocation(row.company_jobs),
     resume: row.masked_resume,
     interviews,
     selected: latest?.outcome === OUTCOME_LABELS.selected,
@@ -172,6 +172,12 @@ export async function getCompanyApplicant(
   };
 }
 
+// Jobs outside India have no pincode, so their in-person interviews may be
+// held at any venue, like JobClubb's own.
+export function interviewLocation(job: { city: string; pincode: string | null }) {
+  return job.pincode ? { city: job.city, pincode: job.pincode } : null;
+}
+
 export async function getApplicantJobLocation(companyId: string, ref: string) {
   if (!REF.test(ref)) return null;
   const { data, error } = await createAdminClient()
@@ -182,7 +188,7 @@ export async function getApplicantJobLocation(companyId: string, ref: string) {
     .gte("stage", REFERRED_STAGE)
     .maybeSingle();
   if (error) throw error;
-  return (data?.company_jobs ?? null) as unknown as { city: string; pincode: string } | null;
+  return (data?.company_jobs ?? null) as unknown as { city: string; pincode: string | null } | null;
 }
 
 const INTERVIEW_COLUMNS = `id, starts_at, duration_mins, finished_at, mode, ${PLACE_COLUMNS}, interviewer, round_no, round, outcome, job_applications!inner (ref, job_id, job_title, candidate_id, candidate_no, shortlisted_at)`;

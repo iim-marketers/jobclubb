@@ -24,7 +24,7 @@ export function ApplicantActions({
   nextRound,
 }: {
   applicantRef: string;
-  jobLocation: { city: string; pincode: string };
+  jobLocation: { city: string; pincode: string } | null;
   nextRound: number | null;
 }) {
   const [confirming, setConfirming] = useState(false);

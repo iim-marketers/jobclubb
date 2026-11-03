@@ -344,7 +344,7 @@ function InterviewPanel({
   now,
 }: {
   applicantRef: string;
-  jobLocation: { city: string; pincode: string };
+  jobLocation: { city: string; pincode: string } | null;
   interview: CompanyInterview;
   settled: boolean;
   now: Date;

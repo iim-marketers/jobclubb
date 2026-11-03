@@ -11,6 +11,7 @@ import {
   cancelInterview as cancelCompanyInterview,
   finishInterview as finishCompanyInterview,
   getApplicantJobLocation,
+  interviewLocation,
   recordInterviewOutcome,
   rejectApplicant,
   rescheduleInterview,
@@ -52,7 +53,7 @@ export async function saveInterview(
     ? await getApplicantJobLocation(company.id, ref)
     : company;
   if (!location) return { error: STALE };
-  const { values, errors } = validateInterview(formData, location);
+  const { values, errors } = validateInterview(formData, interviewLocation(location));
   if (Object.keys(errors).length > 0) return { errors };
 
   try {

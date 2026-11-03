@@ -24,7 +24,8 @@ export type CompanyJob = {
   role: string;
   designation: string;
   city: string;
-  pincode: string;
+  // Null only for partner jobs outside India.
+  pincode: string | null;
   jobType: (typeof JOB_TYPES)[number];
   workMode: (typeof WORK_MODES)[number];
   experienceMin: number | null;
@@ -184,14 +185,14 @@ export function validateJobLocation(formData: FormData): {
 } {
   const values = {
     city: text(formData, "city"),
-    pincode: text(formData, "pincode"),
+    pincode: text(formData, "pincode") || null,
   };
   const errors: FieldErrors = {};
   if (!values.city) errors.city = "Enter the city this job is in.";
   else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
-  if (!/^\d{6}$/.test(values.pincode))
+  if (values.pincode !== null && !/^\d{6}$/.test(values.pincode))
     errors.pincode = "Enter a 6-digit pincode.";
-  else if (!pincodeState(values.pincode))
+  else if (values.pincode !== null && !pincodeState(values.pincode))
     errors.pincode = "Enter a valid Indian pincode.";
   return { values, errors };
 }
@@ -293,7 +294,7 @@ export function jobFormDefaults(
     role: job.role,
     designation: job.designation,
     city: job.city,
-    pincode: job.pincode,
+    pincode: job.pincode ?? "",
     openings: job.openings === null ? "" : String(job.openings),
     jobType: job.jobType,
     workMode: job.workMode,
