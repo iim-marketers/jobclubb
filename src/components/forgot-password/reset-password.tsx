@@ -77,9 +77,9 @@ export function ResetPassword({
         {formError && (
           <p
             role="alert"
-            className="flex items-center gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            className="flex items-start gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
           >
-            <CircleAlert className="size-4 flex-none" />
+            <CircleAlert className="mt-0.5 size-4 flex-none" />
             {formError}
           </p>
         )}

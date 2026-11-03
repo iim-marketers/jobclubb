@@ -44,8 +44,8 @@ function Panel({ children }: { children: React.ReactNode }) {
 
 function ContactLine({ icon: Icon, href, children }: { icon: typeof Mail; href?: string; children: React.ReactNode }) {
   return (
-    <li className="flex items-center gap-2.5">
-      <Icon className="size-4 flex-none text-muted-foreground" />
+    <li className="flex items-start gap-2.5">
+      <Icon className="mt-0.5 size-4 flex-none text-muted-foreground" />
       {href ? (
         <a href={href} className="min-w-0 break-all hover:text-brand">
           {children}

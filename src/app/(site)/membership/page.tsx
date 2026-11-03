@@ -105,8 +105,8 @@ export default async function MembershipPage() {
               ))}
             </ol>
             <p className="mt-6 text-xs leading-5 text-muted-foreground">
-              Paid securely via Razorpay. Membership lasts a year, with a
-              renewal reminder 15 days before it ends.
+              Pay securely via Razorpay. Membership lasts a year, with a renewal
+              reminder 15 days before it ends.
             </p>
           </div>
         </div>

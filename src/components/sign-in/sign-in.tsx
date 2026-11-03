@@ -174,9 +174,9 @@ export function SignIn({
                 {linkExpired && (
                   <p
                     role="alert"
-                    className="flex items-center gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                    className="flex items-start gap-2 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
                   >
-                    <CircleAlert className="size-4 flex-none" />
+                    <CircleAlert className="mt-0.5 size-4 flex-none" />
                     That link has expired or was already used. Sign in below.
                   </p>
                 )}

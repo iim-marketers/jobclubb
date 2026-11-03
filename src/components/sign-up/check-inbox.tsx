@@ -84,8 +84,8 @@ export function CheckInbox({
             </PanelCard>
           </div>
 
-          <p className="mt-8 flex items-center gap-2.5 text-sm text-white/60">
-            <ShieldCheck className="size-4 flex-none text-brand-accent" />
+          <p className="mt-8 flex items-start gap-2.5 text-sm text-white/60">
+            <ShieldCheck className="mt-0.5 size-4 flex-none text-brand-accent" />
             Confirming your email keeps your profile and applications secure.
           </p>
         </div>
