@@ -8,7 +8,7 @@ export type JobListing = {
   companyLogoUrl?: string | null;
   industry: string;
   location: string;
-  pincode: string;
+  pincode: string | null;
   salaryRange: string;
   experience: string | null;
   jobType: "Full time" | "Internship";

@@ -317,7 +317,7 @@ export default async function ApplicationDetailPage({
                     : [["Experience", job.experience]]),
                   ["Job type", job.jobType],
                   ["Work mode", job.workMode],
-                  ["Location", `${job.location} ${job.pincode}`],
+                  ["Location", `${job.location} ${job.pincode ?? ""}`.trim()],
                 ] as [string, React.ReactNode][]
               ).map(([label, value]) => (
                 <div

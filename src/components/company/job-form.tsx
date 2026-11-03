@@ -178,12 +178,12 @@ export function JobForm({
               <Field
                 id="pincode"
                 label="Pincode"
-                required
+                optional
                 inputMode="numeric"
                 placeholder="e.g. 700001"
                 defaultValue={initial.pincode}
                 maxLength={6}
-                hint="Hiring in more cities? Post this job, then duplicate it for each one."
+                hint="Leave blank for jobs outside India. Hiring in more cities? Post this job, then duplicate it for each one."
                 error={errors.pincode}
               />
             </>

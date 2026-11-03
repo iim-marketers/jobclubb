@@ -39,7 +39,7 @@ export default function OpengraphImage() {
         Find your dream job with verified employers
       </div>
       <div style={{ marginTop: 24, fontSize: 32, color: "#00789f" }}>
-        Airlines · Hospitality · Travel & Tourism · Cruise Lines
+        Airlines · Airport · Hospitality · Travel & Tourism · Cruise Lines
       </div>
     </div>,
     size,

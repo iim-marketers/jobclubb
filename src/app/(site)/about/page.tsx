@@ -97,7 +97,7 @@ export default function AboutPage() {
       <Section>
         <SectionEyebrow>Sectors &amp; roles we cover</SectionEyebrow>
         <h2 className="mt-2 font-head text-3xl font-extrabold tracking-tight">
-          Three core sectors, seven verticals
+          Four core sectors, eight verticals
         </h2>
         <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
           Additional sectors are planned as JobClubb.com expands, building on

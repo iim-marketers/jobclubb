@@ -109,7 +109,7 @@ export async function countApplicationsToScreen() {
 export type ScreeningDetail = ScreeningApplication & {
   candidateEmail: string;
   jobId: string;
-  jobLocation: { city: string; pincode: string };
+  jobLocation: { city: string; pincode: string | null };
   resume: Resume;
   referralNote: string;
   referredAt: string | null;
@@ -154,7 +154,7 @@ export async function getScreeningApplication(ref: string): Promise<ScreeningDet
     referral_note: string | null;
     shortlisted_at: string | null;
     candidates: Row["candidates"] & { email: string };
-    company_jobs: { status: string; city: string; pincode: string };
+    company_jobs: { status: string; city: string; pincode: string | null };
     placements: { id: string } | { id: string }[] | null;
   };
   const base = toScreening(row);
