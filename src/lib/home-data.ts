@@ -202,8 +202,8 @@ export const CATEGORIES = [
 export const FRANCHISE_STEPS = [
   {
     step: "01",
-    title: "Apply & partner up",
-    body: "Complete the application and, once approved, secure the rights to your territory.",
+    title: "Sign up & partner up",
+    body: "Sign up online, sign the franchise agreement, pay the one-time ₹3,00,000 + GST fee and secure your territory.",
   },
   {
     step: "02",
@@ -213,12 +213,12 @@ export const FRANCHISE_STEPS = [
   {
     step: "03",
     title: "Launch your business",
-    body: "Go live with ready-made marketing tools and a full platform to attract seekers and employers.",
+    body: "Open your outlet and register candidates from your own JobClubb dashboard, with ready-made marketing tools.",
   },
   {
     step: "04",
     title: "Grow with support",
-    body: "Earn from placements, memberships and upskilling - with lifelong mentoring behind you.",
+    body: "Earn half of every registration and placement fee your candidates pay, with ongoing support from head office.",
   },
 ];
 

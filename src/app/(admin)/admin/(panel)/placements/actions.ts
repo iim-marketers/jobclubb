@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
-import { validateOfferTerms } from "@/lib/placements";
+import { validateCandidateFee } from "@/lib/franchise";
+import { todayIst, validateOfferTerms } from "@/lib/placements";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { requireAdmin } from "@/server/admin/session";
+import { recordCandidateFee } from "@/server/franchises/ledger";
 import { deleteOfferDocument, offerFiles } from "@/server/placements/documents";
 import {
   sendOfferDeclined,
@@ -123,5 +125,33 @@ export async function closeReplacement(id: string, _prev: AdminFormState, formDa
   const result = await attempt(id, "Closing replacement", () => waiveReplacement(id, note));
   if (result.error) return result;
   revalidatePath("/company", "layout");
+  return { ok: true };
+}
+
+const FEE_ERRORS = {
+  missing: "This placement no longer exists. Refresh to see the latest.",
+  no_fee: "This candidate doesn't pay a placement fee: the company is charged instead.",
+  paid_out:
+    "The franchise has already been paid commission on this fee, so it can't be changed. Reverse that commission from the franchise's page first.",
+};
+
+export async function recordFee(
+  id: string,
+  selectedAt: string,
+  _prev: AdminFormState,
+  formData: FormData,
+): Promise<AdminFormState> {
+  await requireAdmin();
+  const { values, errors } = validateCandidateFee(formData, todayIst(new Date(selectedAt)));
+  if (Object.keys(errors).length > 0 || values.amount === null) return { errors };
+  const amount = values.amount;
+
+  const result = await attempt(id, "Recording placement fee", async () => {
+    const outcome = await recordCandidateFee(id, { ...values, amount });
+    if (outcome in FEE_ERRORS) return FEE_ERRORS[outcome as keyof typeof FEE_ERRORS];
+  });
+  if (result.error) return result;
+  revalidatePath("/admin/franchises", "layout");
+  revalidatePath("/franchise/dashboard", "layout");
   return { ok: true };
 }

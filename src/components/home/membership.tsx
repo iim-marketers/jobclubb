@@ -75,11 +75,6 @@ export function Membership({ view }: { view: NonMemberView }) {
             <span className="font-head text-4xl font-extrabold tracking-tight text-brand">
               {details.price}
             </span>
-            {plan === "franchise" && (
-              <span className="text-lg text-muted-foreground line-through">
-                {PLAN_DETAILS.member.price}
-              </span>
-            )}
             <span className="text-sm text-muted-foreground">/ year</span>
           </p>
 

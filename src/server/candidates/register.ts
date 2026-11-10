@@ -91,9 +91,6 @@ export async function registerCandidate(formData: FormData): Promise<RegisterCan
     await storeStudentId(result.userId, studentId);
   }
 
-  // TODO: attribute the franchise / referral code to its owner (SOP §3.1)
-  // once franchise accounts are on Supabase.
-
   return { ok: true, userId: result.userId, email, membershipIncluded: emporium };
 }
 

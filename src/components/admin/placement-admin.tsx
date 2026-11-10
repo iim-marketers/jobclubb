@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import {
   closeReplacement,
+  recordFee,
   markDeclined,
   markJoining,
   removeDocument,
@@ -149,6 +150,68 @@ export function TermsForm({
   );
 }
 
+export function CandidateFeeForm({
+  placementId,
+  selectedAt,
+  defaults,
+  submitLabel,
+}: {
+  placementId: string;
+  selectedAt: string;
+  defaults: { amount: number | null; receivedOn: string | null; reference: string | null };
+  submitLabel: string;
+}) {
+  const { formAction, pending, errors, formError, clearAll, onChange } = useAdminForm(
+    recordFee.bind(null, placementId, selectedAt),
+    "Placement fee recorded",
+  );
+  return (
+    <form
+      onSubmit={(e) => {
+        clearAll();
+        submitManually(formAction)(e);
+      }}
+      onChange={onChange}
+      noValidate
+      className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+    >
+      <Field
+        id="amount"
+        label="Amount received (₹)"
+        required
+        inputMode="decimal"
+        maxLength={12}
+        defaultValue={defaults.amount ? String(defaults.amount / 100) : undefined}
+        error={errors.amount}
+      />
+      <Field
+        id="receivedOn"
+        type="date"
+        label="Received on"
+        required
+        defaultValue={defaults.receivedOn ?? undefined}
+        error={errors.receivedOn}
+      />
+      <Field
+        id="reference"
+        label="Payment reference"
+        optional
+        maxLength={120}
+        placeholder="UTR, UPI ref or receipt no."
+        defaultValue={defaults.reference ?? undefined}
+        error={errors.reference}
+      />
+      <div className="flex items-center justify-between gap-3 sm:col-span-3">
+        <FormStatus error={formError} />
+        <Button type="submit" variant="outline" className="font-head" disabled={pending}>
+          {pending && <Loader2 className="size-4 animate-spin" />}
+          {submitLabel}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export function UploadDocumentsForm({ placementId }: { placementId: string }) {
   const { formAction, pending, errors, clearAll, onChange, state } =
     useAdminForm(uploadDocuments.bind(null, placementId), "Documents uploaded");
@@ -257,13 +320,13 @@ function ConfirmButton({
 export function PlacementActions({
   placementId,
   candidate,
-  fresher,
+  candidatePays,
   monthlySalary,
   can,
 }: {
   placementId: string;
   candidate: string;
-  fresher: boolean;
+  candidatePays: boolean;
   monthlySalary: number | null;
   can: {
     send: boolean;
@@ -280,7 +343,7 @@ export function PlacementActions({
           tone="brand"
           title={`Send the offer letter to ${candidate}?`}
           description={`Only send it once you've confirmed the offer with them${
-            fresher
+            candidatePays
               ? ` and their placement fee${monthlySalary ? ` of ${formatRupees(monthlySalary)}` : ""} is settled outside JobClubb`
               : ""
           }. They get the offer letter and joining details, and the company is told they've confirmed. This can't be undone.`}

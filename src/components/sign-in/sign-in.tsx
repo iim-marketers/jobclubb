@@ -33,7 +33,6 @@ const ROLES: {
   eyebrow: string;
   title: [string, string, string];
   description: string;
-  comingSoon?: boolean;
 }[] = [
   {
     id: "candidate",
@@ -58,10 +57,9 @@ const ROLES: {
     label: "Franchise",
     icon: Store,
     eyebrow: "For franchise partners",
-    title: ["Track every lead, ", "sent to placed", "."],
+    title: ["Every candidate, ", "registered to placed", "."],
     description:
-      "Add leads, follow up on payments and see your conversions in one dashboard.",
-    comingSoon: true,
+      "Register candidates at your outlet, follow their progress and track your commission in one dashboard.",
   },
 ];
 
@@ -203,7 +201,7 @@ export function SignIn({
                   aria-label="Account type"
                   className="grid grid-cols-3 gap-2"
                 >
-                  {ROLES.map(({ id, label, icon: Icon, comingSoon }) => (
+                  {ROLES.map(({ id, label, icon: Icon }) => (
                     <label
                       key={id}
                       className="relative flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 short:py-2 font-head text-xs font-semibold text-muted-foreground transition-all hover:border-brand/50 hover:text-foreground has-checked:border-brand has-checked:bg-brand has-checked:text-brand-foreground has-checked:shadow-md has-checked:shadow-brand/20 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
@@ -222,20 +220,12 @@ export function SignIn({
                       />
                       <Icon className="size-5" />
                       {label}
-                      {comingSoon && (
-                        <span className="absolute -top-2 right-1.5 rounded-full bg-brand-accent px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-brand-surface-strong uppercase">
-                          Soon
-                        </span>
-                      )}
                     </label>
                   ))}
                 </div>
                 <FieldError message={errors.role} />
 
-                {active.comingSoon ? (
-                  <ComingSoon />
-                ) : (
-                  <>
+                <>
                     <IconField
                       key={`email-${role}`}
                       id="email"
@@ -243,9 +233,9 @@ export function SignIn({
                       type="email"
                       icon={Mail}
                       placeholder={
-                        role === "candidate"
-                          ? "you@example.com"
-                          : "you@yourcompany.com"
+                        role === "company"
+                          ? "you@yourcompany.com"
+                          : "you@example.com"
                       }
                       autoComplete="email"
                       defaultValue={verifiedEmail ?? rememberedEmail}
@@ -300,9 +290,9 @@ export function SignIn({
                       </label>
                       <Link
                         href={
-                          role === "company"
-                            ? "/forgot-password?as=company"
-                            : "/forgot-password"
+                          role === "candidate"
+                            ? "/forgot-password"
+                            : `/forgot-password?as=${role}`
                         }
                         className="-my-1 py-1 text-sm font-semibold text-brand hover:underline"
                       >
@@ -321,8 +311,7 @@ export function SignIn({
                         : `Sign in as ${active.label.toLowerCase()}`}
                       {!pending && <ArrowRight className="size-4" />}
                     </Button>
-                  </>
-                )}
+                </>
               </form>
 
               <div className="mt-6 border-t border-border pt-5 short:mt-4 short:pt-3 text-center text-sm text-muted-foreground">
@@ -350,12 +339,12 @@ export function SignIn({
                 )}
                 {role === "franchise" && (
                   <>
-                    Want to partner with us?{" "}
+                    Want to open a JobClubb franchise?{" "}
                     <Link
-                      href="/franchise"
+                      href="/sign-up/franchise"
                       className="font-semibold text-brand hover:underline"
                     >
-                      See the franchise program
+                      Sign up as a franchise
                     </Link>
                   </>
                 )}
@@ -364,30 +353,6 @@ export function SignIn({
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ComingSoon() {
-  return (
-    <div className="rounded-2xl border border-dashed border-brand/40 bg-brand/5 px-5 py-6 text-center">
-      <span className="mx-auto flex size-10 items-center justify-center rounded-full bg-brand/10 text-brand">
-        <Store className="size-5" />
-      </span>
-      <p className="mt-3 font-head text-base font-bold tracking-tight">
-        Franchise sign-in is coming soon
-      </p>
-      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-        We&apos;re getting franchise accounts ready. For anything urgent, write
-        to{" "}
-        <a
-          href="mailto:support@jobclubb.com"
-          className="font-semibold text-brand hover:underline"
-        >
-          support@jobclubb.com
-        </a>
-        .
-      </p>
     </div>
   );
 }
@@ -535,7 +500,7 @@ function CompanyPreview() {
 function FranchisePreview() {
   return (
     <PanelCard
-      label="Lead tracking"
+      label="Your candidates"
       badge={
         <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/60">
           Example
@@ -544,21 +509,21 @@ function FranchisePreview() {
     >
       <div className="space-y-4 rounded-2xl bg-black/15 p-4">
         <LeadBar
-          label="Leads sent"
+          label="Registered"
           value={48}
           width="100%"
           tone="bg-white/70"
         />
         <LeadBar
-          label="Leads placed"
+          label="Placed"
           value={19}
           width="40%"
           tone="bg-brand-accent"
         />
       </div>
       <p data-fit="9" className="mt-4 text-xs leading-5 text-white/60">
-        Unpaid leads stay on your dashboard until they pay the registration fee
-        or head office converts them.
+        You earn half of each candidate&apos;s first membership fee and half of
+        their placement fee, paid within two working days.
       </p>
     </PanelCard>
   );

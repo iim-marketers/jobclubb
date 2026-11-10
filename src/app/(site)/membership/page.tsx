@@ -79,15 +79,6 @@ export default async function MembershipPage() {
                 . Renewal is at the standard price.
               </p>
             )}
-            {viewer.kind !== "guest" && viewer.plan === "franchise" && (
-              <p className="mt-4 text-xs leading-5 text-muted-foreground">
-                Franchise price for candidates who joined with code{" "}
-                <span className="font-mono font-semibold whitespace-nowrap text-foreground">
-                  {viewer.code}
-                </span>
-                .
-              </p>
-            )}
           </PlanCard>
 
           <div className="flex flex-col rounded-3xl border border-border bg-card p-8">
@@ -145,14 +136,16 @@ export default async function MembershipPage() {
             </span>
             <div className="min-w-0 flex-1">
               <SectionEyebrow>When you&apos;re selected</SectionEyebrow>
-              {viewer.kind !== "guest" && viewer.fresher ? (
+              {viewer.kind !== "guest" && viewer.category !== "experienced" ? (
                 <>
                   <h2 className="mt-1.5 font-head text-xl font-bold tracking-tight">
                     A placement fee applies only when you land the job
                   </h2>
                   <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
-                    Your membership is included with your Emporium batch. When
-                    an employer selects you, our placement team contacts you
+                    {viewer.category === "fresher"
+                      ? "Your membership is included with your Emporium batch."
+                      : "You were registered through a JobClubb franchise partner."}{" "}
+                    When an employer selects you, our placement team contacts you
                     about the offer and a one-time placement fee equal to one
                     month&apos;s salary. It isn&apos;t paid on JobClubb: the
                     team arranges it with you directly, then sends your offer

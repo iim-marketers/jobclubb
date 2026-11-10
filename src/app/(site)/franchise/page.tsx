@@ -14,8 +14,8 @@ export const metadata = {
 const STEPS = [
   {
     step: "01",
-    title: "Apply & partner up",
-    body: "Complete the application and, once approved, secure the rights to your territory.",
+    title: "Sign up & partner up",
+    body: "Sign up online, sign the franchise agreement, pay the one-time ₹3,00,000 + GST fee and secure your territory.",
   },
   {
     step: "02",
@@ -25,12 +25,12 @@ const STEPS = [
   {
     step: "03",
     title: "Launch your business",
-    body: "Go live with ready-made marketing tools and a full platform to attract seekers and employers.",
+    body: "Open your outlet and register candidates from your own JobClubb dashboard, with ready-made marketing tools.",
   },
   {
     step: "04",
     title: "Grow with support",
-    body: "Earn from placements, memberships and upskilling - with lifelong mentoring behind you.",
+    body: "Earn half of every registration and placement fee your candidates pay, with ongoing support from head office.",
   },
 ];
 
@@ -106,12 +106,13 @@ export default function FranchisePage() {
             <div>
               <SectionEyebrow>Revenue model</SectionEyebrow>
               <h2 className="mt-2 font-head text-xl font-extrabold tracking-tight sm:mt-3 sm:text-3xl">
-                50% share of profit on every successful placement
+                50% of what every candidate you register pays
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground sm:mt-3 sm:text-base sm:leading-7">
-                Franchise partners earn a share of profit from the
-                candidate&apos;s first month salary, collected on successful
-                placement — alongside earnings from memberships and upskilling.
+                Franchise partners earn half of each candidate&apos;s ₹1,499
+                membership fee, and half of the placement fee of one
+                month&apos;s salary they pay when placed. JobClubb collects every
+                payment and transfers your share within two working days.
               </p>
             </div>
 
@@ -128,7 +129,7 @@ export default function FranchisePage() {
                   Partner share
                 </p>
                 <p className="mt-1 text-sm leading-5 text-white/80 sm:leading-6">
-                  of profit on the candidate&apos;s first month salary
+                  of registration and placement fees
                 </p>
               </div>
             </div>

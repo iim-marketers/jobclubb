@@ -17,17 +17,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { placementFeeNote } from "@/lib/placements";
+import { paysPlacementFee, placementFeeNote, type CandidateCategory } from "@/lib/placements";
 
 export function ApplyNowButton({
   slug,
   needsTerms = false,
-  fresher,
+  category,
   className,
 }: {
   slug: string;
   needsTerms?: boolean;
-  fresher: boolean;
+  category: CandidateCategory;
   className?: string;
 }) {
   const [pending, startTransition] = useTransition();
@@ -71,8 +71,8 @@ export function ApplyNowButton({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm leading-6">
-            <p className="rounded-2xl bg-muted/60 p-4">{placementFeeNote(fresher)}</p>
-            {fresher && (
+            <p className="rounded-2xl bg-muted/60 p-4">{placementFeeNote(category)}</p>
+            {paysPlacementFee(category) && (
               <p className="text-muted-foreground">
                 Once paid, the placement fee is non-refundable.
               </p>

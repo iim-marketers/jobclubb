@@ -5,14 +5,14 @@ import { cache } from "react";
 
 import {
   CHECKOUT_PATH,
+  CHECKOUT_PLAN,
   INTERVIEW_GRACE_DAYS,
   isMembershipActive,
   isMembershipPlan,
-  planFor,
   type MembershipPlan,
   type PaidPlan,
 } from "@/lib/membership";
-import { addDays, deadlineEnd, isFresher } from "@/lib/placements";
+import { addDays, categoryOf, deadlineEnd, type CandidateCategory } from "@/lib/placements";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 const OFFER_ACCESS_DAYS = 30;
@@ -26,7 +26,7 @@ export const getCurrentCandidate = cache(async () => {
   const { data: candidate } = await supabase
     .from("candidates")
     .select(
-      "id, first_name, last_name, email, phone, city, pincode, industry, preferred_roles, email_verified, code, membership_plan, membership_expires_at, photo_path, emporium_batch_id",
+      "id, first_name, last_name, email, phone, city, pincode, industry, preferred_roles, email_verified, code, membership_plan, membership_expires_at, photo_path, emporium_batch_id, franchise_id",
     )
     .eq("id", userId)
     .maybeSingle();
@@ -112,7 +112,7 @@ export async function requireMember(
     ...candidate,
     membership_plan: isMembershipPlan(candidate.membership_plan)
       ? candidate.membership_plan
-      : planFor(candidate.code),
+      : CHECKOUT_PLAN,
     membership_expires_at: expiresAt as string,
     lapsed,
     lapsedAccessUntil,
@@ -125,14 +125,14 @@ export type MembershipView =
       kind: "unpaid";
       plan: PaidPlan;
       code: string | null;
-      fresher: boolean;
+      category: CandidateCategory;
       expired: boolean;
     }
   | {
       kind: "member";
       plan: MembershipPlan;
       code: string | null;
-      fresher: boolean;
+      category: CandidateCategory;
       validUntil: string;
       daysLeft: number;
     };
@@ -142,13 +142,13 @@ export const getMembershipView = cache(async (): Promise<MembershipView> => {
   if (!candidate) return { kind: "guest" };
 
   const code = candidate.code as string | null;
-  const fresher = isFresher(candidate);
+  const category = categoryOf(candidate);
   if (!isMembershipActive(candidate.membership_expires_at))
     return {
       kind: "unpaid",
-      plan: planFor(code),
+      plan: CHECKOUT_PLAN,
       code,
-      fresher,
+      category,
       expired: !!candidate.membership_expires_at,
     };
 
@@ -157,9 +157,9 @@ export const getMembershipView = cache(async (): Promise<MembershipView> => {
     kind: "member",
     plan: isMembershipPlan(candidate.membership_plan)
       ? candidate.membership_plan
-      : planFor(code),
+      : CHECKOUT_PLAN,
     code,
-    fresher,
+    category,
     validUntil: new Intl.DateTimeFormat("en-IN", {
       day: "numeric",
       month: "long",

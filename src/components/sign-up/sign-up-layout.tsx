@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { Building2, User } from "lucide-react";
+import { Building2, Store, User } from "lucide-react";
 
 import { useFitToHeight } from "@/components/sign-up/use-fit-to-height";
 
@@ -21,6 +21,14 @@ const AUDIENCES = [
     short: "Company",
     href: "/sign-up/company",
     icon: Building2,
+    disabled: false,
+  },
+  {
+    id: "franchise",
+    label: "I'm a franchise",
+    short: "Franchise",
+    href: "/sign-up/franchise",
+    icon: Store,
     disabled: false,
   },
 ] as const;
@@ -86,7 +94,7 @@ function AudienceSwitch({ active }: { active: Audience }) {
   return (
     <nav
       aria-label="Account type"
-      className="grid grid-cols-2 gap-1 rounded-2xl bg-white/8 p-1 ring-1 ring-white/12 backdrop-blur-sm"
+      className="grid grid-cols-3 gap-1 rounded-2xl bg-white/8 p-1 ring-1 ring-white/12 backdrop-blur-sm"
     >
       {AUDIENCES.map(({ id, label, short, href, icon: Icon, disabled }) => {
         const content = (

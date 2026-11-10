@@ -9,11 +9,12 @@ export const metadata = {
 export default async function ResetPasswordPage({
   searchParams,
 }: PageProps<"/reset-password">) {
-  const { token_hash, as } = await searchParams;
+  const { token_hash, as, welcome } = await searchParams;
   return (
     <ResetPassword
       tokenHash={typeof token_hash === "string" ? token_hash : ""}
-      role={as === "company" ? "company" : "candidate"}
+      role={as === "company" || as === "franchise" ? as : "candidate"}
+      welcome={welcome === "1"}
     />
   );
 }

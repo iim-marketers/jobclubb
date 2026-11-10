@@ -11,7 +11,7 @@ import {
   REMEMBERED_EMAIL_MAX_AGE,
   rememberedEmailCookie,
 } from "@/lib/supabase/session";
-import { signInCandidate, signInCompany } from "@/server/auth/sign-in";
+import { signInCandidate, signInCompany, signInFranchise } from "@/server/auth/sign-in";
 
 const DASHBOARDS = {
   candidate: "/candidate/dashboard",
@@ -33,10 +33,8 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
   if (!(role in DASHBOARDS))
     return { errors: { role: "Choose an account type." } };
 
-  if (role === "franchise")
-    return { errors: { role: "Franchise sign-in is coming soon." } };
-
-  const signInAs = role === "company" ? signInCompany : signInCandidate;
+  const signInAs =
+    role === "company" ? signInCompany : role === "franchise" ? signInFranchise : signInCandidate;
   const result = await signInAs(await createClient(), {
     email: String(formData.get("email") ?? ""),
     password: String(formData.get("password") ?? ""),
@@ -58,6 +56,8 @@ export async function signIn(formData: FormData): Promise<SignInResult> {
   const next = safeRedirectPath(formData.get("next"), DASHBOARDS.candidate);
   if (role === "company")
     redirect(next.startsWith("/company/") ? next : DASHBOARDS.company);
+  if (role === "franchise")
+    redirect(next.startsWith(`${DASHBOARDS.franchise}`) ? next : DASHBOARDS.franchise);
   redirect(next);
 }
 
@@ -65,9 +65,11 @@ export async function signOut() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims.sub;
-  const { data: company } = userId
-    ? await supabase.from("companies").select("id").eq("id", userId).maybeSingle()
-    : { data: null };
+  const role = data?.claims.user_metadata?.role;
+  const { data: company } =
+    userId && role !== "franchise"
+      ? await supabase.from("companies").select("id").eq("id", userId).maybeSingle()
+      : { data: null };
   await supabase.auth.signOut();
-  redirect(company ? "/sign-in?as=company" : "/sign-in");
+  redirect(role === "franchise" ? "/sign-in?as=franchise" : company ? "/sign-in?as=company" : "/sign-in");
 }

@@ -2,6 +2,7 @@ import {
   CandidatesTable,
   type AdminCandidate,
 } from "@/components/admin/candidates-table";
+import { categoryOf } from "@/lib/placements";
 import { createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/server/admin/session";
 
@@ -13,7 +14,7 @@ export default async function AdminCandidatesPage() {
   const { data, error } = await createAdminClient()
     .from("candidates")
     .select(
-      "id, first_name, last_name, email, phone, city, industry, membership_plan, membership_expires_at, email_verified_at, created_at",
+      "id, first_name, last_name, email, phone, city, industry, membership_plan, membership_expires_at, email_verified_at, created_at, emporium_batch_id, franchise_id, franchises (id, name, code)",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -29,6 +30,8 @@ export default async function AdminCandidatesPage() {
     membershipExpiresAt: c.membership_expires_at,
     emailVerified: c.email_verified_at !== null,
     createdAt: c.created_at,
+    category: categoryOf(c),
+    franchise: c.franchises as unknown as AdminCandidate["franchise"],
   }));
 
   return (
@@ -38,7 +41,9 @@ export default async function AdminCandidatesPage() {
           Candidates
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Everyone who has registered as a candidate, newest first.
+          Everyone who has registered as a candidate, newest first. Fresher
+          candidates joined with an Emporium code; franchise candidates were
+          registered by a franchise partner.
         </p>
       </div>
       <CandidatesTable candidates={candidates} />

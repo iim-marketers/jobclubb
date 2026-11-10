@@ -20,6 +20,8 @@ import {
   getMembershipView,
 } from "@/server/auth/current-candidate";
 import { getCompanySession } from "@/server/auth/current-company";
+import { FRANCHISE_HOME } from "@/lib/franchise";
+import { getFranchiseSession } from "@/server/franchises/current";
 
 const NAV_LINKS = [
   { label: "Jobs", href: "/jobs" },
@@ -50,6 +52,7 @@ const COMPANY_NAV_LINKS = COMPANY_NAV[0].items
 export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const candidate = await getCandidateSession();
   const company = candidate ? null : await getCompanySession();
+  const franchise = candidate || company ? null : await getFranchiseSession();
   const view = candidate ? await getMembershipView() : null;
   const lapsed = view?.kind === "unpaid" && !!(await getLapsedAccess());
   const links = company
@@ -141,6 +144,15 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
                 Dashboard
               </Link>
             </>
+          ) : franchise ? (
+            <Link
+              href={FRANCHISE_HOME}
+              className="hidden items-center gap-2 rounded-full border border-border bg-card py-1 pr-3.5 pl-1 font-head text-sm font-semibold transition-colors hover:border-brand/40 hover:text-brand focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:flex"
+            >
+              <CompanyAvatar name={franchise.name} logoUrl={null} className="size-7 text-[11px]" />
+              <LayoutDashboard className="size-4 text-muted-foreground" />
+              Dashboard
+            </Link>
           ) : (
             <>
               <Button
@@ -172,7 +184,9 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
                 ? { kind: "candidate", ...candidate }
                 : company
                   ? { kind: "company", ...company }
-                  : null
+                  : franchise
+                    ? { kind: "franchise", ...franchise, logoUrl: null }
+                    : null
             }
             alwaysVisible={Boolean(search)}
           />

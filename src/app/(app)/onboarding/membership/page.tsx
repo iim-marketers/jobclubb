@@ -11,9 +11,9 @@ import {
   MEMBER_FEATURES,
   PLAN_DETAILS,
   isMembershipActive,
-  planFor,
+  CHECKOUT_PLAN,
 } from "@/lib/membership";
-import { isFresher } from "@/lib/placements";
+import { categoryOf, paysPlacementFee } from "@/lib/placements";
 import {
   getCurrentCandidate,
   getLapsedAccessUntil,
@@ -42,9 +42,8 @@ export default async function CheckoutPage() {
   if (isMembershipActive(candidate.membership_expires_at))
     redirect("/candidate/dashboard");
 
-  const plan = planFor(candidate.code);
-  const details = PLAN_DETAILS[plan];
-  const franchise = plan === "franchise";
+  const details = PLAN_DETAILS[CHECKOUT_PLAN];
+  const category = categoryOf(candidate);
   const expiresAt = candidate.membership_expires_at as string | null;
   const renewal = !!expiresAt;
   const accessUntil = expiresAt
@@ -146,32 +145,13 @@ export default async function CheckoutPage() {
                   Renewal
                 </span>
               )}
-              {franchise && (
-                <span className="rounded-full bg-brand-accent/15 px-2.5 py-0.5 font-head text-xs font-bold text-good">
-                  Franchise price applied
-                </span>
-              )}
             </div>
             <p className="mt-4 flex flex-wrap items-baseline gap-2">
               <span className="font-head text-4xl font-extrabold tracking-tight text-brand">
                 {details.price}
               </span>
-              {franchise && (
-                <span className="text-lg text-muted-foreground line-through">
-                  {PLAN_DETAILS.member.price}
-                </span>
-              )}
               <span className="text-sm text-muted-foreground">/ year</span>
             </p>
-            {franchise && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                Because you joined with franchise code{" "}
-                <span className="font-mono font-semibold whitespace-nowrap text-foreground">
-                  {candidate.code}
-                </span>
-                .
-              </p>
-            )}
 
             <ul className="mt-6 grid grid-cols-1 gap-3 border-t border-border pt-6 sm:grid-cols-2">
               {MEMBER_FEATURES.map((feature) => (
@@ -231,8 +211,8 @@ export default async function CheckoutPage() {
         <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
           Pay securely via Razorpay. We&apos;ll remind you 15 days before it
           ends, and you can renew once it does.{" "}
-          {isFresher(candidate)
-            ? "As an Emporium candidate, a placement fee equal to one month's salary still applies when you're placed, arranged with you directly by our placement team."
+          {paysPlacementFee(category)
+            ? `As ${category === "fresher" ? "an Emporium candidate" : "a candidate registered through a franchise partner"}, a placement fee equal to one month's salary still applies when you're placed, arranged with you directly by our placement team.`
             : "Membership is the only fee you pay JobClubb: there's no placement fee when you're hired."}
         </p>
       </main>

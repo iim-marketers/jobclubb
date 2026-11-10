@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   ChevronRight,
+  Store,
   Download,
   FileText,
   Mail,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 
 import {
+  CandidateFeeForm,
   CloseReplacementForm,
   LinkReplacementForm,
   PlacementActions,
@@ -21,12 +23,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  COMMISSION_STATE_BADGES,
+  COMMISSION_STATE_LABELS,
+} from "@/lib/franchise";
+import {
+  ADMIN_CATEGORY_BADGES,
+  ADMIN_CATEGORY_LABELS,
   ADMIN_PLACEMENT_LABELS,
   LEFT_REASONS,
   MAX_OFFER_FILES,
   REPLACEMENT_MONTHS,
-  candidateCategory,
   formatDateOnly,
+  paysPlacementFee,
   formatRupees,
   placementBadge,
   todayIst,
@@ -170,15 +178,21 @@ export default async function AdminPlacementPage({
   const fee = p.monthlySalary
     ? formatRupees(p.monthlySalary)
     : "one month's salary";
-  const feeNote = p.fresher
-    ? `Fresher Candidate (joined with an Emporium code). Contact them and collect their placement fee of ${fee} outside JobClubb before sending the offer letter. The company pays no recruitment fee.`
-    : `Experienced Candidate. The candidate pays no fee. Once they join, invoice the company a recruitment fee of ${fee} plus GST, due within 15 days of receipt.`;
+  const candidatePays = paysPlacementFee(p.category);
+  const feeNote =
+    p.category === "fresher"
+      ? `Fresher Candidate (joined with an Emporium code). Contact them and collect their placement fee of ${fee} outside JobClubb before sending the offer letter. The company pays no recruitment fee.`
+      : p.category === "franchise"
+        ? `Franchise Candidate (registered by ${p.franchise?.name ?? "a franchise partner"}). Contact them and collect their placement fee of ${fee} outside JobClubb before sending the offer letter, then record it below so the franchise gets its half. The company pays no recruitment fee, and is shown this candidate as Experienced.`
+        : `Experienced Candidate. The candidate pays no fee. Once they join, invoice the company a recruitment fee of ${fee} plus GST, due within 15 days of receipt.`;
+  const showFee =
+    candidatePays && !["withdrawn", "declined"].includes(p.status);
   const canUpload =
     p.status !== "withdrawn" && p.documents.length < MAX_OFFER_FILES;
 
   const terms = [
     ["Monthly gross", p.monthlySalary ? formatRupees(p.monthlySalary) : "—"],
-    ["Candidate", candidateCategory(p.fresher)],
+    ["Candidate", ADMIN_CATEGORY_LABELS[p.category]],
     ["Reply by", p.offerDeadline ? formatDateOnly(p.offerDeadline) : "—"],
     ["Joining date", p.joiningDate ? formatDateOnly(p.joiningDate) : "—"],
   ];
@@ -222,14 +236,9 @@ export default async function AdminPlacementPage({
                 {p.candidateName}
               </h1>
               <Badge
-                className={cn(
-                  "font-head font-bold",
-                  p.fresher
-                    ? "bg-violet-500/12 text-violet-700 dark:text-violet-300"
-                    : "bg-brand/10 text-brand",
-                )}
+                className={cn("font-head font-bold", ADMIN_CATEGORY_BADGES[p.category])}
               >
-                {candidateCategory(p.fresher)}
+                {ADMIN_CATEGORY_LABELS[p.category]}
               </Badge>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -240,7 +249,7 @@ export default async function AdminPlacementPage({
           <PlacementActions
             placementId={p.id}
             candidate={p.candidateName}
-            fresher={p.fresher}
+            candidatePays={candidatePays}
             monthlySalary={p.monthlySalary}
             can={can}
           />
@@ -412,6 +421,77 @@ export default async function AdminPlacementPage({
                 </Disclosure>
               ))}
           </Section>
+
+          {showFee && (
+            <Section title="Placement fee from the candidate">
+              <p className="mb-4 text-sm text-muted-foreground">{feeNote}</p>
+              {p.candidateFee ? (
+                <div className="space-y-4">
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Received</dt>
+                      <dd className="mt-1 font-head text-base font-bold">
+                        {formatRupees(p.candidateFee.amount)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">On</dt>
+                      <dd className="mt-1 font-head text-base font-bold">
+                        {formatDateOnly(p.candidateFee.receivedOn)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Reference</dt>
+                      <dd className="mt-1 truncate font-head text-base font-bold">
+                        {p.candidateFee.reference ?? "—"}
+                      </dd>
+                    </div>
+                    {p.category === "franchise" && (
+                      <div>
+                        <dt className="text-xs text-muted-foreground">Franchise commission</dt>
+                        <dd className="mt-1 flex flex-wrap items-center gap-1.5 font-head text-base font-bold">
+                          {p.commission ? (
+                            <>
+                              {formatRupees(p.commission.amount)}
+                              <Badge
+                                className={cn(
+                                  "font-head font-bold",
+                                  COMMISSION_STATE_BADGES[p.commission.state],
+                                )}
+                              >
+                                {COMMISSION_STATE_LABELS[p.commission.state]}
+                              </Badge>
+                            </>
+                          ) : (
+                            <span className="text-sm font-normal text-muted-foreground">
+                              None: outside the agreement term
+                            </span>
+                          )}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                  {p.commission?.state !== "paid" && p.commission?.state !== "reversed" && (
+                    <Disclosure label="Correct the amount">
+                      <CandidateFeeForm
+                        placementId={p.id}
+                        selectedAt={p.selectedAt}
+                        defaults={p.candidateFee}
+                        submitLabel="Save correction"
+                      />
+                    </Disclosure>
+                  )}
+                </div>
+              ) : (
+                <CandidateFeeForm
+                  placementId={p.id}
+                  selectedAt={p.selectedAt}
+                  defaults={{ amount: p.monthlySalary, receivedOn: null, reference: null }}
+                  submitLabel="Record fee received"
+                />
+              )}
+            </Section>
+          )}
         </Panel>
 
         <Panel>
@@ -424,6 +504,23 @@ export default async function AdminPlacementPage({
                 {p.candidatePhone}
               </ContactLine>
               <ContactLine icon={MapPin}>{p.candidateCity}</ContactLine>
+              {p.franchise && (
+                <li className="flex items-start gap-2.5">
+                  <Store className="mt-0.5 size-4 flex-none text-muted-foreground" />
+                  <span className="min-w-0">
+                    Registered by{" "}
+                    <Link
+                      href={`/admin/franchises/${p.franchise.id}`}
+                      className="font-medium text-brand hover:underline"
+                    >
+                      {p.franchise.name}
+                    </Link>{" "}
+                    <span className="font-mono text-xs text-muted-foreground">
+                      {p.franchise.code}
+                    </span>
+                  </span>
+                </li>
+              )}
             </ul>
           </Section>
 

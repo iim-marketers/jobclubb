@@ -31,6 +31,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { FRANCHISE_HOME, FRANCHISE_SIGN_OUT_DESCRIPTION } from "@/lib/franchise";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -49,7 +50,8 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export type SessionAccount =
   | { kind: "candidate"; firstName: string; lastName: string; email: string }
-  | { kind: "company"; name: string; email: string; logoUrl: string | null };
+  | { kind: "company"; name: string; email: string; logoUrl: string | null }
+  | { kind: "franchise"; name: string; email: string; logoUrl: null };
 
 export function MobileNav({
   links,
@@ -60,7 +62,12 @@ export function MobileNav({
   account: SessionAccount | null;
   alwaysVisible?: boolean;
 }) {
-  const home = account?.kind === "company" ? COMPANY_HOME : CANDIDATE_HOME;
+  const home =
+    account?.kind === "company"
+      ? COMPANY_HOME
+      : account?.kind === "franchise"
+        ? FRANCHISE_HOME
+        : CANDIDATE_HOME;
   return (
     <Sheet>
       <SheetTrigger
@@ -195,7 +202,9 @@ export function MobileNav({
                 description={
                   account.kind === "company"
                     ? COMPANY_SIGN_OUT_DESCRIPTION
-                    : undefined
+                    : account.kind === "franchise"
+                      ? FRANCHISE_SIGN_OUT_DESCRIPTION
+                      : undefined
                 }
                 render={
                   <Button variant="destructive" className="flex-1 font-head" />
@@ -251,15 +260,15 @@ function AccountSection({
   home: string;
 }) {
   const name =
-    account.kind === "company"
-      ? account.name
-      : `${account.firstName} ${account.lastName}`;
+    account.kind === "candidate"
+      ? `${account.firstName} ${account.lastName}`
+      : account.name;
 
   return (
     <div className="mb-6">
       <div className="jc-auth-panel relative isolate overflow-hidden rounded-2xl p-4 text-white">
         <div className="flex items-center gap-3">
-          {account.kind === "company" ? (
+          {account.kind !== "candidate" ? (
             <CompanyAvatar
               name={account.name}
               logoUrl={account.logoUrl}

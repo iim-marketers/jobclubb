@@ -1,134 +1,208 @@
-import {
-  BadgeIndianRupee,
-  LayoutDashboard,
-  Plus,
-  Settings,
-  Upload,
-  Users,
-} from "lucide-react";
+import Link from "next/link";
+import { BadgeIndianRupee, CalendarClock, ChevronRight, UserPlus, Users } from "lucide-react";
 
-import { DashboardShell, Panel, StatCard, StatusPill } from "@/components/dashboard-shell";
+import { CopyCode } from "@/components/copy-code";
 import { Button } from "@/components/ui/button";
+import {
+  COMMISSION_KIND_LABELS,
+  FRANCHISE_CANDIDATES,
+  FRANCHISE_EARNINGS,
+  FRANCHISE_REGISTER,
+  daysBetween,
+  lastDayOf,
+} from "@/lib/franchise";
+import { formatDateOnly, formatRupees, todayIst } from "@/lib/placements";
+import { cn } from "@/lib/utils";
+import { requireFranchise } from "@/server/franchises/current";
+import { listFranchiseCandidates } from "@/server/franchises/franchises";
+import { getLedger } from "@/server/franchises/ledger";
 
-export const metadata = { title: "Franchise dashboard — JobClubb" };
+const EXPIRY_WARNING_DAYS = 30;
 
-const NAV = [
-  { label: "Overview", href: "/franchise/dashboard", icon: LayoutDashboard, active: true },
-  { label: "My leads", href: "/franchise/dashboard/leads", icon: Users },
-  { label: "Earnings", href: "/franchise/dashboard/earnings", icon: BadgeIndianRupee },
-  { label: "Settings", href: "/franchise/dashboard/settings", icon: Settings },
-];
-
-const LEADS = [
-  { name: "Ananya Ghosh", phone: "+91 90xxx xx210", sector: "Airlines", payment: "Paid" as const, review: "Approved" as const, added: "2 days ago" },
-  { name: "Rahul Mehta", phone: "+91 98xxx xx884", sector: "Hotels", payment: "Paid" as const, review: "Approved" as const, added: "4 days ago" },
-  { name: "Sanjana Iyer", phone: "+91 76xxx xx339", sector: "Travel & Tourism", payment: "Unpaid" as const, review: "In review" as const, added: "5 days ago" },
-  { name: "Imran Sheikh", phone: "+91 88xxx xx017", sector: "Cruise Lines", payment: "Unpaid" as const, review: "In review" as const, added: "1 week ago" },
-  { name: "Divya Nair", phone: "+91 70xxx xx552", sector: "Hotels", payment: "Unpaid" as const, review: "Rejected" as const, added: "2 weeks ago" },
-];
-
-export default function FranchiseDashboard() {
+function Stat({ label, value, hint, tone }: { label: string; value: string | number; hint?: string; tone?: "good" | "warn" }) {
   return (
-    <DashboardShell
-      role="Franchise partner"
-      nav={NAV}
-      title="Kolkata South — Franchise"
-      subtitle="Track the leads you've sent and the placements they've converted into."
-      actions={
-        <Button className="bg-brand font-head text-brand-foreground hover:bg-brand-dark">
-          <Plus className="size-4" />
-          Add lead
-        </Button>
-      }
-    >
-      <div className="space-y-8">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Leads sent" value={48} tone="brand" />
-          <StatCard label="Leads placed" value={19} tone="good" hint="40% conversion" />
-          <StatCard label="In review" value={12} />
-          <StatCard label="Rejected" value={5} tone="warn" />
-        </div>
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p
+        className={cn(
+          "mt-1 font-head text-2xl font-extrabold tracking-tight",
+          tone === "good" && "text-good",
+          tone === "warn" && "text-amber-700 dark:text-amber-300",
+        )}
+      >
+        {value}
+      </p>
+      {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <StatCard label="Profit share earned" value="₹1,42,500" tone="good" hint="50% of placement profit" />
-          <StatCard label="Registrations collected" value="₹34,171" hint="₹1,199 × 29 leads" />
-          <StatCard label="Pending payout" value="₹18,900" tone="brand" />
-        </div>
+export default async function FranchiseOverviewPage() {
+  const franchise = await requireFranchise();
+  const [candidates, ledger] = await Promise.all([
+    listFranchiseCandidates(franchise.id),
+    getLedger(franchise.id),
+  ]);
+  const today = todayIst();
+  const lastDay = lastDayOf(franchise);
+  const daysLeft = daysBetween(today, lastDay);
+  const paid = candidates.filter((c) => c.membershipPaidAt).length;
+  const placed = candidates.filter((c) => c.placement === "joined").length;
 
-        <Panel
-          title="Upload leads"
-          description="Add leads individually or import a spreadsheet"
-        >
-          <div className="flex flex-col gap-4 rounded-2xl border border-dashed border-border bg-muted/40 p-7 text-center">
-            <Upload className="mx-auto size-6 text-brand" />
-            <div>
-              <p className="font-head font-bold tracking-tight">
-                Drop a CSV or click to upload
-              </p>
-              <p className="mx-auto mt-1.5 max-w-md text-sm leading-6 text-muted-foreground">
-                Include name, mobile, email, city and preferred sector. Leads can pay the
-                ₹1,199 registration immediately, or you can capture their details and
-                collect payment later.
-              </p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button variant="outline" className="font-head">
-                Choose file
-              </Button>
-              <Button variant="ghost" className="font-head">
-                Download template
-              </Button>
-            </div>
-          </div>
-        </Panel>
+  const banner =
+    franchise.status === "upcoming"
+      ? `Your agreement starts on ${formatDateOnly(franchise.startsOn)}. You can register candidates from then.`
+      : franchise.status === "terminated"
+        ? `Your franchise agreement was terminated, with ${formatDateOnly(lastDay)} as the last day. You can't register new candidates, but commission you've already earned will still be paid.`
+        : franchise.status === "expired"
+          ? `Your franchise agreement ended on ${formatDateOnly(lastDay)}. Contact JobClubb head office to renew. Commission you've already earned will still be paid.`
+          : daysLeft <= EXPIRY_WARNING_DAYS
+            ? `Your agreement ends on ${formatDateOnly(lastDay)} (${daysLeft} ${daysLeft === 1 ? "day" : "days"} left). Contact JobClubb head office about renewal: commission stops for payments after that date.`
+            : null;
 
-        <Panel
-          title="My leads"
-          description="Paid leads receive login credentials by email automatically"
-          actions={
-            <Button size="sm" variant="outline" className="font-head">
-              Export
-            </Button>
-          }
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs text-muted-foreground">
-                  <th className="pb-3 font-medium">Lead</th>
-                  <th className="pb-3 font-medium">Sector</th>
-                  <th className="pb-3 font-medium">Registration</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">Added</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {LEADS.map((lead) => (
-                  <tr key={lead.name}>
-                    <td className="py-3">
-                      <p className="font-head font-bold">{lead.name}</p>
-                      <p className="text-xs text-muted-foreground">{lead.phone}</p>
-                    </td>
-                    <td className="py-3 text-muted-foreground">{lead.sector}</td>
-                    <td className="py-3">
-                      <StatusPill status={lead.payment} />
-                    </td>
-                    <td className="py-3">
-                      <StatusPill status={lead.review} />
-                    </td>
-                    <td className="py-3 text-xs text-muted-foreground">{lead.added}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <p className="mt-4 text-xs leading-5 text-muted-foreground">
-            Unpaid leads may be contacted by head office and converted directly. If that
-            happens, the lead is removed from this dashboard.
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-head text-2xl font-extrabold tracking-tight">{franchise.name}</h1>
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            Franchise code <CopyCode code={franchise.code} />
           </p>
-        </Panel>
+        </div>
+        {franchise.status === "active" && (
+          <Button
+            className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+            nativeButton={false}
+            render={<Link href={FRANCHISE_REGISTER} />}
+          >
+            <UserPlus className="size-4" />
+            Register a candidate
+          </Button>
+        )}
       </div>
-    </DashboardShell>
+
+      {banner && (
+        <p
+          className={cn(
+            "flex items-start gap-2 rounded-2xl px-4 py-3 text-sm",
+            franchise.status === "active" || franchise.status === "upcoming"
+              ? "bg-amber-500/10 text-amber-800 dark:text-amber-300"
+              : "bg-destructive/10 text-destructive",
+          )}
+        >
+          <CalendarClock className="mt-0.5 size-4 flex-none" />
+          {banner}
+        </p>
+      )}
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="Candidates registered" value={candidates.length} />
+        <Stat label="Paid membership" value={paid} hint={candidates.length ? `${Math.round((paid / candidates.length) * 100)}% of registered` : undefined} />
+        <Stat label="Placed" value={placed} tone={placed ? "good" : undefined} />
+        <Stat
+          label="Commission to come"
+          value={formatRupees(ledger.totals.outstanding)}
+          hint={`${formatRupees(ledger.totals.paid)} paid so far`}
+          tone={ledger.totals.outstanding > 0 ? "warn" : undefined}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className="rounded-2xl border border-border bg-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+            <h2 className="flex items-center gap-2 font-head font-bold">
+              <Users className="size-4 text-brand" /> Latest candidates
+            </h2>
+            <Link href={FRANCHISE_CANDIDATES} className="flex items-center gap-0.5 font-head text-sm font-semibold text-brand hover:underline">
+              All <ChevronRight className="size-4" />
+            </Link>
+          </div>
+          {candidates.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+              No candidates yet.{" "}
+              {franchise.status === "active" && (
+                <Link href={FRANCHISE_REGISTER} className="font-semibold text-brand hover:underline">
+                  Register your first candidate
+                </Link>
+              )}
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {candidates.slice(0, 5).map((c) => (
+                <li key={c.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-head text-sm font-bold">{c.name}</p>
+                    <p className="text-xs text-muted-foreground">Registered {formatDateOnly(todayIst(new Date(c.createdAt)))}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "flex-none text-xs font-semibold",
+                      c.membershipPaidAt ? "text-good" : "text-amber-700 dark:text-amber-300",
+                    )}
+                  >
+                    {c.placement === "joined" ? "Placed" : c.membershipPaidAt ? "Paid" : "Not paid yet"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+            <h2 className="flex items-center gap-2 font-head font-bold">
+              <BadgeIndianRupee className="size-4 text-brand" /> Latest commission
+            </h2>
+            <Link href={FRANCHISE_EARNINGS} className="flex items-center gap-0.5 font-head text-sm font-semibold text-brand hover:underline">
+              Earnings <ChevronRight className="size-4" />
+            </Link>
+          </div>
+          {ledger.commissions.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Commission appears here as soon as one of your candidates pays.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {ledger.commissions.slice(0, 5).map((c) => (
+                <li key={c.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-head text-sm font-bold">{c.candidateName}</p>
+                    <p className="text-xs text-muted-foreground">{COMMISSION_KIND_LABELS[c.kind]}</p>
+                  </div>
+                  <span className={cn("flex-none font-head text-sm font-bold", c.amount < 0 && "text-destructive")}>
+                    {formatRupees(c.amount)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <section className="rounded-2xl border border-border bg-card p-5">
+        <h2 className="font-head font-bold">How you earn</h2>
+        <ul className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <li className="rounded-xl bg-muted/50 p-4">
+            <p className="font-head font-bold">₹749.50 per candidate</p>
+            <p className="mt-1 leading-6 text-muted-foreground">
+              Half of the ₹1,499 membership, when a candidate you registered pays for their first year.
+            </p>
+          </li>
+          <li className="rounded-xl bg-muted/50 p-4">
+            <p className="font-head font-bold">50% of the placement fee</p>
+            <p className="mt-1 leading-6 text-muted-foreground">
+              When they&apos;re placed and pay JobClubb one month&apos;s salary, you get half of what they pay.
+            </p>
+          </li>
+          <li className="rounded-xl bg-muted/50 p-4">
+            <p className="font-head font-bold">Paid in 2 working days</p>
+            <p className="mt-1 leading-6 text-muted-foreground">
+              By bank transfer after JobClubb receives the payment. Candidates always pay JobClubb directly,
+              never you.
+            </p>
+          </li>
+        </ul>
+      </section>
+    </div>
   );
 }

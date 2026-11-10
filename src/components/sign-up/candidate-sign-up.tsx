@@ -299,14 +299,14 @@ export function CandidateSignUp({
             <div>
               <Field
                 id="code"
-                label="Emporium, franchise, student or referral code"
+                label="Emporium, student or referral code"
                 placeholder="JC-STU-7F2A"
                 optional
                 defaultValue={initialCode}
                 hint={
                   checkable
                     ? undefined
-                    : "Have a code from your Emporium centre, a franchise partner, your college or a friend? Add it here."
+                    : "Have a code from your Emporium centre, your college or a friend? Add it here. Franchise partners register their candidates themselves."
                 }
                 error={
                   errors.code ??

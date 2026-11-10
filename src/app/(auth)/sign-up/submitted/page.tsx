@@ -18,6 +18,28 @@ export async function generateMetadata({
 }
 
 const CONTENT = {
+  franchiseConfirmed: {
+    icon: Store,
+    iconClass: "bg-good/15 text-good",
+    title: "Email confirmed: we're reviewing your application",
+    body: "Thanks for signing up as a JobClubb franchise partner. Our team will call or email you about the franchise agreement and fee.",
+    steps: [
+      "Sign the franchise agreement and pay the ₹3,00,000 + GST franchise fee",
+      "We approve your franchise and email you your franchise code",
+      "Sign in as a franchise and start registering candidates",
+    ],
+  },
+  franchise: {
+    icon: Store,
+    iconClass: "bg-good/15 text-good",
+    title: "Check your inbox to confirm your email",
+    body: "We've sent a confirmation link to your email. Once you've confirmed it, our team reviews your application and gets in touch about the franchise agreement.",
+    steps: [
+      "Click the confirmation link in the email from JobClubb",
+      "Sign the franchise agreement and pay the ₹3,00,000 + GST franchise fee",
+      "We approve your franchise and email you your code. Then sign in and start registering candidates",
+    ],
+  },
   email: {
     icon: MailCheck,
     iconClass: "bg-good/15 text-good",
@@ -29,32 +51,24 @@ const CONTENT = {
       "Sign in and post your first opening",
     ],
   },
-  franchise: {
-    icon: Store,
-    iconClass: "bg-good/15 text-good",
-    title: "Almost live — check your franchise inbox",
-    body: "We've sent an activation link to your franchise email ID. Head office will verify your business details alongside it.",
-    steps: [
-      "Click the activation link in your franchise inbox",
-      "Head office verifies your PAN and business details",
-      "Get your franchise code and start adding leads",
-    ],
-  },
 };
-
-const ROUTES = ["franchise", "email"] as const;
 
 export default async function SignUpSubmittedPage({
   searchParams,
 }: PageProps<"/sign-up/submitted">) {
-  const { route, membership } = await searchParams;
+  const { route, membership, confirmed } = await searchParams;
   const pendingEmail = (await cookies()).get(PENDING_EMAIL_COOKIE)?.value;
   if (route === "candidate")
     return (
       <CheckInbox email={pendingEmail} membershipIncluded={membership === "included"} />
     );
 
-  const content = CONTENT[ROUTES.find((r) => r === route) ?? "email"];
+  const franchise = route === "franchise";
+  const content = franchise
+    ? confirmed === "1"
+      ? CONTENT.franchiseConfirmed
+      : CONTENT.franchise
+    : CONTENT.email;
   const Icon = content.icon;
 
   return (
@@ -83,7 +97,7 @@ export default async function SignUpSubmittedPage({
           ))}
         </ol>
 
-        {route !== "franchise" && pendingEmail && (
+        {pendingEmail && confirmed !== "1" && (
           <ResendConfirmation email={pendingEmail} justSent className="mt-6" />
         )}
 
@@ -99,17 +113,9 @@ export default async function SignUpSubmittedPage({
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
             nativeButton={false}
-            render={
-              <Link
-                href={
-                  route === "franchise"
-                    ? "/sign-in?as=franchise"
-                    : "/sign-in?as=company"
-                }
-              />
-            }
+            render={<Link href={franchise ? "/franchise" : "/sign-in?as=company"} />}
           >
-            Go to sign in
+            {franchise ? "About the franchise program" : "Go to sign in"}
           </Button>
         </div>
       </div>

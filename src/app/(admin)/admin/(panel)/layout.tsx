@@ -8,6 +8,8 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/server/admin/session";
 import { countApplicationsToScreen } from "@/server/applications/screening";
 import { countPendingChanges } from "@/server/companies/change-requests";
+import { countPendingFranchises } from "@/server/franchises/franchises";
+import { countOutstandingPayouts } from "@/server/franchises/ledger";
 import { countReplacementsOwed } from "@/server/placements/placements";
 
 export const metadata: Metadata = {
@@ -24,6 +26,8 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
     replacementsOwed,
     changesToReview,
     applicationsToScreen,
+    pendingFranchises,
+    payoutsDue,
   ] = await Promise.all([
     cookies(),
     admin
@@ -33,6 +37,8 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
     countReplacementsOwed(),
     countPendingChanges(),
     countApplicationsToScreen(),
+    countPendingFranchises(),
+    countOutstandingPayouts(),
   ]);
 
   return (
@@ -43,6 +49,7 @@ export default async function AdminPanelLayout({ children }: LayoutProps<"/admin
           placementsToAction={(offersToRelease ?? 0) + replacementsOwed}
           changesToReview={changesToReview}
           applicationsToScreen={applicationsToScreen}
+          franchisesToAction={pendingFranchises + payoutsDue}
         />
         <SidebarInset className="min-w-0">
           <AdminHeader />

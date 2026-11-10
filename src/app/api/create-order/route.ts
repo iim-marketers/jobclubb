@@ -1,4 +1,4 @@
-import { isMembershipActive, planFor } from "@/lib/membership";
+import { CHECKOUT_PLAN, isMembershipActive } from "@/lib/membership";
 import { getCurrentCandidate } from "@/server/auth/current-candidate";
 import { createMembershipOrder } from "@/server/candidates/membership";
 import { RazorpayError } from "@/server/payments/razorpay";
@@ -16,7 +16,7 @@ export async function POST() {
   try {
     const order = await createMembershipOrder({
       ...candidate,
-      plan: planFor(candidate.code),
+      plan: CHECKOUT_PLAN,
     });
     if (!order)
       return Response.json(

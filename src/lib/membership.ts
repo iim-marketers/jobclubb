@@ -1,5 +1,5 @@
-import { isFranchiseCode } from "@/lib/sign-up-validation";
-
+// "franchise" was a cheaper plan for franchise-code sign-ups. It is no longer sold,
+// but invoices issued under it still need its name.
 export const PAID_PLANS = ["member", "franchise"] as const;
 export type PaidPlan = (typeof PAID_PLANS)[number];
 
@@ -12,7 +12,7 @@ export const PLAN_DETAILS: Record<
   { name: string; badge: string; price: string; amount: number }
 > = {
   member: { name: "JobClubb Membership", badge: "Member", price: "₹1,499", amount: 1499 },
-  franchise: { name: "Franchise Membership", badge: "Franchise", price: "₹1,199", amount: 1199 },
+  franchise: { name: "Franchise Membership", badge: "Member", price: "₹1,199", amount: 1199 },
   emporium: { name: "Emporium Membership", badge: "Emporium", price: "Included", amount: 0 },
 };
 
@@ -37,12 +37,9 @@ export function isMembershipPlan(value: unknown): value is MembershipPlan {
   return MEMBERSHIP_PLANS.includes(value as MembershipPlan);
 }
 
-// Candidates who signed up with a franchise partner's code pay the franchise
-// price; the database refuses that plan for anyone else. Emporium members renew
-// at the standard price.
-export function planFor(signUpCode: string | null): PaidPlan {
-  return signUpCode && isFranchiseCode(signUpCode) ? "franchise" : "member";
-}
+// Every candidate, including franchise candidates and renewing Emporium members,
+// pays the standard price.
+export const CHECKOUT_PLAN: PaidPlan = "member";
 
 export function isMembershipActive(expiresAt: string | null | undefined) {
   return !!expiresAt && new Date(expiresAt).getTime() > Date.now();

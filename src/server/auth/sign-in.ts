@@ -11,18 +11,33 @@ export type SignInResult =
   | { ok: true; user: User; session: Session }
   | { ok: false; errors: FieldErrors; unconfirmedEmail?: string };
 
-type AccountRole = "candidate" | "company";
+type AccountRole = "candidate" | "company" | "franchise";
 
-const ACCOUNT_TABLES = { candidate: "candidates", company: "companies" } as const;
+const ACCOUNT_TABLES = {
+  candidate: "candidates",
+  company: "companies",
+  franchise: "franchises",
+} as const;
+
+const ROLE_NAMES: Record<AccountRole, string> = {
+  candidate: "Candidate",
+  company: "Company",
+  franchise: "Franchise",
+};
 
 const NO_ACCOUNT_ERRORS: Record<AccountRole, string> = {
   candidate: "We couldn't find a candidate account with this email. Check the spelling, or create an account below.",
   company: "We couldn't find a company account with this email. Check the spelling, or register your company below.",
+  franchise: "We couldn't find a franchise account with this email. Check the spelling, or sign up as a franchise below.",
 };
 
-const OTHER_ROLE_ERRORS: Record<AccountRole, string> = {
-  candidate: "This email is registered as a company account. Choose Company above to sign in.",
-  company: "This email is registered as a candidate account. Choose Candidate above to sign in.",
+const otherRoleError = (role: AccountRole) =>
+  `This email is registered as a ${ROLE_NAMES[role].toLowerCase()} account. Choose ${ROLE_NAMES[role]} above to sign in.`;
+
+const FRANCHISE_STATUS_ERRORS: Record<string, string> = {
+  pending:
+    "Your franchise application is being reviewed. We'll email you as soon as it's approved, usually once the franchise agreement is signed.",
+  rejected: "We couldn't approve your franchise application. Contact support@jobclubb.com for help.",
 };
 
 const COMPANY_STATUS_ERRORS: Record<string, string> = {
@@ -82,6 +97,32 @@ export async function signInCompany(
   return result;
 }
 
+export async function signInFranchise(
+  supabase: SupabaseClient,
+  credentials: { email: string; password: string },
+): Promise<SignInResult> {
+  const result = await signInWithPassword(supabase, credentials, "franchise");
+  if (!result.ok) return result;
+
+  const { data: franchise } = await supabase
+    .from("franchises")
+    .select("status")
+    .eq("id", result.user.id)
+    .maybeSingle();
+
+  if (!franchise || franchise.status !== "approved") {
+    await supabase.auth.signOut();
+    return {
+      ok: false,
+      errors: franchise
+        ? { email: FRANCHISE_STATUS_ERRORS[franchise.status] ?? FRANCHISE_STATUS_ERRORS.pending }
+        : { role: "This account isn't a franchise account. Choose the right account type." },
+    };
+  }
+
+  return result;
+}
+
 async function signInWithPassword(
   supabase: SupabaseClient,
   { email, password }: { email: string; password: string },
@@ -109,19 +150,21 @@ async function signInWithPassword(
 
 async function invalidCredentials(email: string, role: AccountRole): Promise<SignInResult> {
   const admin = createAdminClient();
-  const otherRole: AccountRole = role === "candidate" ? "company" : "candidate";
-  const [own, other] = await Promise.all(
-    [role, otherRole].map((r) =>
+  const roles = Object.keys(ACCOUNT_TABLES) as AccountRole[];
+  const results = await Promise.all(
+    roles.map((r) =>
       admin.from(ACCOUNT_TABLES[r]).select("id").eq("email", email).limit(1).maybeSingle(),
     ),
   );
 
-  if (own.error || other.error) {
-    console.error("Sign-in account lookup failed", own.error ?? other.error);
+  const failed = results.find((r) => r.error);
+  if (failed) {
+    console.error("Sign-in account lookup failed", failed.error);
     return { ok: false, errors: { password: "Incorrect email or password." } };
   }
-  if (own.data)
+  const owner = roles.find((_, i) => results[i].data);
+  if (owner === role)
     return { ok: false, errors: { password: "Incorrect password. Try again, or reset it with Forgot password." } };
-  if (other.data) return { ok: false, errors: { role: OTHER_ROLE_ERRORS[role] } };
+  if (owner) return { ok: false, errors: { role: otherRoleError(owner) } };
   return { ok: false, errors: { email: NO_ACCOUNT_ERRORS[role] } };
 }

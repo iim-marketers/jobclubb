@@ -4,6 +4,14 @@ import { EMAIL_LOGO_CID, EMAIL_LOGO_PNG } from "@/lib/email/assets/logo";
 
 
 const COPY = {
+  franchise: {
+    preheader: "One click to confirm your email for your JobClubb franchise application.",
+    benefits: [
+      "We review your application and contact you about the franchise agreement",
+      "Once approved, you get your franchise code and dashboard",
+      "Register candidates at your outlet and earn on every registration and placement",
+    ],
+  },
   candidate: {
     preheader: "One click to activate your JobClubb account and start applying to verified openings.",
     benefits: [
