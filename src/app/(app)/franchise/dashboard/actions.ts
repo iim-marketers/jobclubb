@@ -7,12 +7,14 @@ import {
   FRANCHISE_CANDIDATES,
   FRANCHISE_REGISTER,
   FRANCHISE_SETTINGS,
+  validateBankDetails,
   validateFranchiseCandidate,
   validateOtp,
 } from "@/lib/franchise";
 import type { FieldErrors } from "@/lib/sign-up-validation";
 import { changeOwnPassword } from "@/server/auth/change-password";
 import { requireFranchise } from "@/server/franchises/current";
+import { addOwnBankDetails } from "@/server/franchises/franchises";
 import {
   resendCode,
   resendWelcome,
@@ -111,4 +113,26 @@ export async function changeFranchisePassword(
 ): Promise<SettingsActionState> {
   await requireFranchise(FRANCHISE_SETTINGS);
   return changeOwnPassword(formData);
+}
+
+export async function addBankDetails(
+  _prev: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const franchise = await requireFranchise(FRANCHISE_SETTINGS);
+  if (franchise.bankAccountNo)
+    return { error: "Your bank details are already saved. To change them, email support@jobclubb.com." };
+  const { values, errors } = validateBankDetails(formData);
+  if (Object.keys(errors).length > 0) return { errors };
+
+  try {
+    if (!(await addOwnBankDetails(franchise.id, values)))
+      return { error: "Your bank details are already saved. Refresh the page to see them." };
+  } catch (error) {
+    console.error("Saving franchise bank details failed", error);
+    return { error: FAILED };
+  }
+  revalidatePath("/franchise/dashboard", "layout");
+  revalidatePath("/admin", "layout");
+  return { ok: true };
 }

@@ -22,6 +22,7 @@ import {
   TermActions,
 } from "@/components/admin/franchise-admin";
 import { Badge } from "@/components/ui/badge";
+import { PayoutsTable } from "@/components/franchise/payouts-table";
 import { Button } from "@/components/ui/button";
 import {
   constitutionLabel,
@@ -299,31 +300,9 @@ export default async function AdminFranchisePage({
                   No payouts yet.
                 </p>
               ) : (
-                <ul className="mt-3 divide-y divide-border text-sm">
-                  {ledger.payouts.map((p) => (
-                    <li
-                      key={p.id}
-                      className="flex flex-wrap items-center justify-between gap-2 py-2.5"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium">
-                          {formatDateOnly(p.paidOn)}
-                        </p>
-                        <p className="truncate font-mono text-xs text-muted-foreground">
-                          {p.reference}
-                        </p>
-                        {p.note && (
-                          <p className="text-xs text-muted-foreground">
-                            {p.note}
-                          </p>
-                        )}
-                      </div>
-                      <span className="font-head font-bold">
-                        {formatRupees(p.amount)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-3">
+              <PayoutsTable payouts={ledger.payouts} showNotes />
+            </div>
               )}
             </section>
             <section className="rounded-2xl border border-border bg-card p-5">

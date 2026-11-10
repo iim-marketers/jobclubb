@@ -443,3 +443,24 @@ export async function countPendingFranchises() {
   }
   return count ?? 0;
 }
+
+// Only fills empty bank details: once set, only admin can change them.
+export async function addOwnBankDetails(
+  id: string,
+  bank: { bankAccountName: string; bankName: string; bankAccountNo: string; bankIfsc: string },
+) {
+  const { data, error } = await createAdminClient()
+    .from("franchises")
+    .update({
+      bank_account_name: bank.bankAccountName,
+      bank_name: bank.bankName,
+      bank_account_no: bank.bankAccountNo,
+      bank_ifsc: bank.bankIfsc,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .is("bank_account_no", null)
+    .select("id");
+  if (error) throw error;
+  return data.length > 0;
+}

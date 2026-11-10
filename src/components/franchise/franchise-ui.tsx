@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   ArrowLeft,
@@ -16,6 +22,7 @@ import {
 import { toast } from "sonner";
 
 import {
+  addBankDetails,
   resendCandidateCode,
   resendWelcomeEmail,
   startCandidateRegistration,
@@ -29,8 +36,19 @@ import {
   formatDate,
   industryName,
 } from "@/components/admin/data-table";
-import { FormStatus, SubmitButton, submitManually } from "@/components/candidate/settings-forms";
-import { Field, FieldError, SelectField, useFieldErrors } from "@/components/sign-up/fields";
+import type { SettingsActionState } from "@/app/(app)/candidate/dashboard/settings/actions";
+import { Panel } from "@/components/candidate/dashboard-ui";
+import {
+  FormStatus,
+  SubmitButton,
+  submitManually,
+} from "@/components/candidate/settings-forms";
+import {
+  Field,
+  FieldError,
+  SelectField,
+  useFieldErrors,
+} from "@/components/sign-up/fields";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -46,7 +64,10 @@ import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { FranchiseCandidate } from "@/server/franchises/franchises";
 
-const INDUSTRY_OPTIONS = INDUSTRIES.map((i) => ({ value: i.slug, label: i.name }));
+const INDUSTRY_OPTIONS = INDUSTRIES.map((i) => ({
+  value: i.slug,
+  label: i.name,
+}));
 const RESEND_COOLDOWN_SECONDS = 60;
 
 function Section({
@@ -78,12 +99,20 @@ function Section({
 
 type Registered = { candidateId: string; name: string };
 
-export function RegisterCandidateForm({ franchiseName }: { franchiseName: string }) {
-  const [state, formAction, pending] = useActionState<RegistrationState, FormData>(
-    startCandidateRegistration,
-    {},
+export function RegisterCandidateForm({
+  franchiseName,
+}: {
+  franchiseName: string;
+}) {
+  const [state, formAction, pending] = useActionState<
+    RegistrationState,
+    FormData
+  >(startCandidateRegistration, {});
+  const { errors, formError, clear, clearAll, onChange } = useFieldErrors(
+    state,
+    state.errors,
+    state.error,
   );
-  const { errors, formError, clear, clearAll, onChange } = useFieldErrors(state, state.errors, state.error);
   const [industry, setIndustry] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [dismissed, setDismissed] = useState<string | null>(null);
@@ -94,7 +123,9 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
   const hasErrors = Object.keys(errors).length > 0;
 
   const pendingRegistration =
-    state.pending && state.pending.registrationId !== dismissed ? state.pending : null;
+    state.pending && state.pending.registrationId !== dismissed
+      ? state.pending
+      : null;
 
   if (registered)
     return (
@@ -102,11 +133,14 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
         <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-good/12 text-good">
           <CircleCheck className="size-6" />
         </span>
-        <h2 className="mt-4 font-head text-xl font-extrabold tracking-tight">{registered.name} is registered</h2>
+        <h2 className="mt-4 font-head text-xl font-extrabold tracking-tight">
+          {registered.name} is registered
+        </h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-          Their email is verified and they&apos;re on your candidates list. We&apos;ve emailed them a link
-          to set their password. Next, they sign in and pay the ₹1,499 membership on JobClubb.com.
-          You earn half of it as soon as they pay.
+          Their email is verified and they&apos;re on your candidates list.
+          We&apos;ve emailed them a link to set their password. Next, they sign
+          in and pay the ₹1,499 membership on JobClubb.com. You earn half of it
+          as soon as they pay.
         </p>
         <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
           <Button
@@ -169,8 +203,24 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
           description="We'll email them a 6-digit code to confirm the email is theirs. Make sure they can open their inbox now."
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field id="firstName" label="First name" placeholder="e.g. Priya" autoComplete="off" required maxLength={80} error={errors.firstName} />
-            <Field id="lastName" label="Last name" placeholder="e.g. Sharma" autoComplete="off" required maxLength={80} error={errors.lastName} />
+            <Field
+              id="firstName"
+              label="First name"
+              placeholder="e.g. Priya"
+              autoComplete="off"
+              required
+              maxLength={80}
+              error={errors.firstName}
+            />
+            <Field
+              id="lastName"
+              label="Last name"
+              placeholder="e.g. Sharma"
+              autoComplete="off"
+              required
+              maxLength={80}
+              error={errors.lastName}
+            />
             <Field
               id="email"
               label="Candidate's email"
@@ -179,7 +229,6 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
               autoComplete="off"
               required
               error={errors.email}
-              className="sm:col-span-2"
             />
             <Field
               id="phone"
@@ -189,7 +238,6 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
               autoComplete="off"
               required
               error={errors.phone}
-              className="sm:col-span-2"
             />
           </div>
         </Section>
@@ -200,7 +248,15 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
           description="Used to match them with openings near them."
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field id="city" label="City" placeholder="e.g. Kolkata" autoComplete="off" required maxLength={80} error={errors.city} />
+            <Field
+              id="city"
+              label="City"
+              placeholder="e.g. Kolkata"
+              autoComplete="off"
+              required
+              maxLength={80}
+              error={errors.city}
+            />
             <Field
               id="pincode"
               label="Pincode"
@@ -243,9 +299,10 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
               className="mt-0.5"
             />
             <span className="leading-6">
-              The candidate is with me and agrees to share these details with {franchiseName} and
-              JobClubb to register and find a job. I haven&apos;t taken any payment from them: they pay
-              JobClubb directly.
+              The candidate is with me and agrees to share these details with{" "}
+              {franchiseName} and JobClubb to register and find a job. I
+              haven&apos;t taken any payment from them: they pay JobClubb
+              directly.
             </span>
           </label>
           <input type="hidden" name="consent" value={consent ? "yes" : ""} />
@@ -254,9 +311,17 @@ export function RegisterCandidateForm({ franchiseName }: { franchiseName: string
 
         <div className="flex flex-col-reverse gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           <FormStatus
-            error={restartError ?? formError ?? (hasErrors ? "Fix the highlighted fields and try again." : undefined)}
+            error={
+              restartError ??
+              formError ??
+              (hasErrors
+                ? "Fix the highlighted fields and try again."
+                : undefined)
+            }
           />
-          <SubmitButton pending={pending}>{pending ? "Sending code..." : "Send code to candidate"}</SubmitButton>
+          <SubmitButton pending={pending}>
+            {pending ? "Sending code..." : "Send code to candidate"}
+          </SubmitButton>
         </div>
       </form>
     </>
@@ -282,7 +347,11 @@ function VerifyCode({
     verifyCandidateCode.bind(null, registrationId),
     {},
   );
-  const { formError, clearAll, onChange } = useFieldErrors(state, {}, state.error);
+  const { formError, clearAll, onChange } = useFieldErrors(
+    state,
+    {},
+    state.error,
+  );
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const [resending, startResend] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -314,11 +383,16 @@ function VerifyCode({
           <MailCheck className="size-5" />
         </span>
         <div className="min-w-0">
-          <h2 className="font-head text-lg font-extrabold tracking-tight">Enter the code we emailed {name}</h2>
+          <h2 className="font-head text-lg font-extrabold tracking-tight">
+            Enter the code we emailed {name}
+          </h2>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            We sent a {OTP_LENGTH}-digit code to <span className="font-semibold break-all text-foreground">{email}</span>.
-            It expires in {OTP_TTL_MINUTES} minutes. Ask the candidate to check their spam folder if it
-            hasn&apos;t arrived.
+            We sent a {OTP_LENGTH}-digit code to{" "}
+            <span className="font-semibold break-all text-foreground">
+              {email}
+            </span>
+            . It expires in {OTP_TTL_MINUTES} minutes. Ask the candidate to
+            check their spam folder if it hasn&apos;t arrived.
           </p>
         </div>
       </div>
@@ -348,7 +422,9 @@ function VerifyCode({
         </div>
         <FormStatus error={formError} />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <SubmitButton pending={pending}>{pending ? "Verifying..." : "Verify and register"}</SubmitButton>
+          <SubmitButton pending={pending}>
+            {pending ? "Verifying..." : "Verify and register"}
+          </SubmitButton>
           <Button
             type="button"
             variant="ghost"
@@ -357,7 +433,8 @@ function VerifyCode({
             onClick={() =>
               startResend(async () => {
                 const result = await resendCandidateCode(registrationId);
-                if (result.restart && result.error) return onRestart(result.error);
+                if (result.restart && result.error)
+                  return onRestart(result.error);
                 if (result.error) {
                   toast.error(result.error);
                   return;
@@ -386,7 +463,10 @@ const PROGRESS: Partial<Record<PlacementStatus, string>> = {
   declined: "Declined offer",
 };
 
-const helper = createColumnHelper<typeof adminTableFeatures, FranchiseCandidate>();
+const helper = createColumnHelper<
+  typeof adminTableFeatures,
+  FranchiseCandidate
+>();
 
 const columns = helper.columns([
   helper.accessor("name", {
@@ -395,7 +475,9 @@ const columns = helper.columns([
     cell: ({ row }) => (
       <div className="min-w-40">
         <p className="font-head font-bold">{row.original.name}</p>
-        <p className="text-xs break-all text-muted-foreground">{row.original.email}</p>
+        <p className="text-xs break-all text-muted-foreground">
+          {row.original.email}
+        </p>
       </div>
     ),
   }),
@@ -403,13 +485,19 @@ const columns = helper.columns([
   helper.accessor("phone", {
     header: "Phone",
     enableSorting: false,
-    cell: ({ getValue }) => <span className="whitespace-nowrap text-muted-foreground">{getValue()}</span>,
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap text-muted-foreground">
+        {getValue()}
+      </span>
+    ),
   }),
   helper.accessor((c) => industryName(c.industry), {
     id: "industry",
     header: "Sector",
     sortFn: "text",
-    cell: ({ getValue }) => <span className="text-muted-foreground">{getValue()}</span>,
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">{getValue()}</span>
+    ),
   }),
   helper.accessor((c) => (c.membershipPaidAt ? 1 : 0), {
     id: "membership",
@@ -426,7 +514,11 @@ const columns = helper.columns([
               : "bg-amber-500/12 text-amber-700 dark:text-amber-300",
         )}
       >
-        {row.original.membershipActive ? "Paid" : row.original.membershipPaidAt ? "Expired" : "Not paid yet"}
+        {row.original.membershipActive
+          ? "Paid"
+          : row.original.membershipPaidAt
+            ? "Expired"
+            : "Not paid yet"}
       </Badge>
     ),
   }),
@@ -435,19 +527,24 @@ const columns = helper.columns([
     header: "Progress",
     sortFn: "text",
     cell: ({ row }) => {
-      const label = row.original.placement ? PROGRESS[row.original.placement] : null;
+      const label = row.original.placement
+        ? PROGRESS[row.original.placement]
+        : null;
       return label ? (
         <Badge
           className={cn(
             "font-head font-bold",
-            row.original.placement === "joined" ? "bg-good text-white" : "bg-brand/10 text-brand",
+            row.original.placement === "joined"
+              ? "bg-good text-white"
+              : "bg-brand/10 text-brand",
           )}
         >
           {label}
         </Badge>
       ) : (
         <span className="text-xs text-muted-foreground">
-          {row.original.applications} {row.original.applications === 1 ? "application" : "applications"}
+          {row.original.applications}{" "}
+          {row.original.applications === 1 ? "application" : "applications"}
         </span>
       );
     },
@@ -456,23 +553,27 @@ const columns = helper.columns([
     header: "Registered",
     sortFn: "basic",
     sortDescFirst: true,
-    cell: ({ getValue }) => <span className="whitespace-nowrap text-muted-foreground">{formatDate(getValue())}</span>,
+    cell: ({ getValue }) => (
+      <span className="whitespace-nowrap text-muted-foreground">
+        {formatDate(getValue())}
+      </span>
+    ),
   }),
   helper.display({
     id: "actions",
     header: "",
     cell: ({ row }) =>
-      row.original.membershipPaidAt ? null : <ResendWelcome candidateId={row.original.id} />,
+      row.original.membershipPaidAt ? null : (
+        <ResendWelcome candidateId={row.original.id} />
+      ),
   }),
 ]);
 
 function ResendWelcome({ candidateId }: { candidateId: string }) {
   const [pending, startTransition] = useTransition();
   return (
-    <Button
-      size="sm"
-      variant="ghost"
-      className="font-head whitespace-nowrap"
+    <button
+      type="button"
       disabled={pending}
       title="Email them a new link to set their password"
       onClick={() =>
@@ -482,14 +583,19 @@ function ResendWelcome({ candidateId }: { candidateId: string }) {
           else toast.success("Password email sent");
         })
       }
+      className="inline-flex items-center gap-1.5 font-head text-sm font-semibold whitespace-nowrap text-brand underline underline-offset-2 transition-colors hover:text-brand-dark disabled:pointer-events-none disabled:opacity-60"
     >
       {pending && <Loader2 className="size-3.5 animate-spin" />}
       Resend email
-    </Button>
+    </button>
   );
 }
 
-export function FranchiseCandidatesList({ candidates }: { candidates: FranchiseCandidate[] }) {
+export function FranchiseCandidatesList({
+  candidates,
+}: {
+  candidates: FranchiseCandidate[];
+}) {
   return (
     <DataTable
       data={candidates}
@@ -507,5 +613,103 @@ export function FranchiseCandidatesList({ candidates }: { candidates: FranchiseC
       }}
       emptyTitle="No candidates match"
     />
+  );
+}
+
+export function BankDetailsForm() {
+  const [state, formAction, pending] = useActionState<
+    SettingsActionState,
+    FormData
+  >(addBankDetails, {});
+  const { errors, formError, clearAll, onChange } = useFieldErrors(
+    state,
+    state.errors,
+    state.error,
+  );
+  const hasErrors = Object.keys(errors).length > 0;
+
+  useEffect(() => {
+    if (state.ok) toast.success("Bank details saved");
+  }, [state]);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        clearAll();
+        submitManually(formAction)(e);
+      }}
+      onChange={onChange}
+      noValidate
+    >
+      <Panel
+        title="Bank account for commission"
+        description="Where JobClubb transfers your commission. Add it once here; after that, changes go through support@jobclubb.com."
+        footer={
+          <>
+            <FormStatus
+              error={
+                formError ??
+                (hasErrors
+                  ? "Fix the highlighted fields and try again."
+                  : undefined)
+              }
+            />
+            <SubmitButton pending={pending}>
+              {pending ? "Saving..." : "Save bank details"}
+            </SubmitButton>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field
+            id="bankAccountName"
+            label="Account name"
+            placeholder="As it appears on the bank account"
+            required
+            maxLength={120}
+            error={errors.bankAccountName}
+          />
+          <Field
+            id="bankName"
+            label="Bank and branch"
+            placeholder="E.g., HDFC Bank, Salt Lake"
+            required
+            maxLength={120}
+            error={errors.bankName}
+          />
+          <Field
+            id="bankAccountNo"
+            label="Account number"
+            inputMode="numeric"
+            autoComplete="off"
+            required
+            maxLength={18}
+            error={errors.bankAccountNo}
+          />
+          <Field
+            id="confirmAccountNo"
+            label="Confirm account number"
+            inputMode="numeric"
+            autoComplete="off"
+            required
+            maxLength={18}
+            error={errors.confirmAccountNo}
+          />
+          <Field
+            id="bankIfsc"
+            label="IFSC"
+            placeholder="E.g., SBIN0001234"
+            required
+            maxLength={11}
+            error={errors.bankIfsc}
+            inputClassName="uppercase placeholder:normal-case"
+          />
+        </div>
+        <p className="mt-5 rounded-xl bg-amber-500/10 px-3 py-2.5 text-xs leading-5 text-amber-800 dark:text-amber-300">
+          Check these carefully before saving. You can&apos;t change them
+          yourself afterwards.
+        </p>
+      </Panel>
+    </form>
   );
 }

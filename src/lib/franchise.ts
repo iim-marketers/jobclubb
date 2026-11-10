@@ -222,14 +222,7 @@ export function validateFranchiseProfile(formData: FormData) {
     errors.areaSqft = `A franchise outlet must be at least ${MIN_AREA_SQFT} sq ft.`;
 
   const bankGiven = [values.bankAccountName, values.bankName, values.bankAccountNo, values.bankIfsc].some(Boolean);
-  if (bankGiven) {
-    if (!values.bankAccountName) errors.bankAccountName = "Enter the name on the account.";
-    else errors.bankAccountName = lengthError(values.bankAccountName, 120);
-    if (!values.bankName) errors.bankName = "Enter the bank and branch.";
-    else errors.bankName = lengthError(values.bankName, 120);
-    if (!ACCOUNT_PATTERN.test(values.bankAccountNo)) errors.bankAccountNo = "Enter the account number, 6 to 18 digits.";
-    if (!IFSC_PATTERN.test(values.bankIfsc)) errors.bankIfsc = "IFSC should be 11 characters, like SBIN0001234.";
-  }
+  if (bankGiven) Object.assign(errors, bankErrors(values));
 
   return {
     values: {
@@ -243,6 +236,33 @@ export function validateFranchiseProfile(formData: FormData) {
     },
     errors: cleanErrors(errors),
   };
+}
+
+type BankValues = { bankAccountName: string; bankName: string; bankAccountNo: string; bankIfsc: string };
+
+function bankErrors(values: BankValues): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!values.bankAccountName) errors.bankAccountName = "Enter the name on the account.";
+  else errors.bankAccountName = lengthError(values.bankAccountName, 120);
+  if (!values.bankName) errors.bankName = "Enter the bank and branch.";
+  else errors.bankName = lengthError(values.bankName, 120);
+  if (!ACCOUNT_PATTERN.test(values.bankAccountNo)) errors.bankAccountNo = "Enter the account number, 6 to 18 digits.";
+  if (!IFSC_PATTERN.test(values.bankIfsc)) errors.bankIfsc = "IFSC should be 11 characters, like SBIN0001234.";
+  return errors;
+}
+
+// The franchise adds its own bank details once; changes go through head office.
+export function validateBankDetails(formData: FormData) {
+  const values: BankValues = {
+    bankAccountName: oneLine(text(formData, "bankAccountName")),
+    bankName: oneLine(text(formData, "bankName")),
+    bankAccountNo: text(formData, "bankAccountNo").replace(/\s/g, ""),
+    bankIfsc: text(formData, "bankIfsc").toUpperCase(),
+  };
+  const errors = bankErrors(values);
+  if (!errors.bankAccountNo && text(formData, "confirmAccountNo").replace(/\s/g, "") !== values.bankAccountNo)
+    errors.confirmAccountNo = "Account numbers don't match.";
+  return { values, errors: cleanErrors(errors) };
 }
 
 export type FranchiseProfileInput = ReturnType<typeof validateFranchiseProfile>["values"];

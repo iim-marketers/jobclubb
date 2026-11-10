@@ -2,6 +2,7 @@ import { changeFranchisePassword } from "@/app/(app)/franchise/dashboard/actions
 import { Panel } from "@/components/candidate/dashboard-ui";
 import { PasswordForm } from "@/components/candidate/settings-forms";
 import { CopyCode } from "@/components/copy-code";
+import { BankDetailsForm } from "@/components/franchise/franchise-ui";
 import {
   FRANCHISE_SETTINGS,
   FRANCHISE_STATUS_LABELS,
@@ -61,8 +62,11 @@ export default async function FranchiseSettingsPage() {
         />
       </Panel>
 
-      <Panel title="Bank account for commission" description="Where JobClubb transfers your commission.">
-        {f.bankAccountNo && f.bankIfsc ? (
+      {f.bankAccountNo ? (
+        <Panel
+          title="Bank account for commission"
+          description="Where JobClubb transfers your commission. To change it, email support@jobclubb.com."
+        >
           <Details
             rows={[
               ["Account name", f.bankAccountName],
@@ -71,13 +75,10 @@ export default async function FranchiseSettingsPage() {
               ["IFSC", f.bankIfsc],
             ]}
           />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Not added yet. Email your bank details to support@jobclubb.com so JobClubb can pay your
-            commission.
-          </p>
-        )}
-      </Panel>
+        </Panel>
+      ) : (
+        <BankDetailsForm />
+      )}
 
       <PasswordForm
         action={changeFranchisePassword}
