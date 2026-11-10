@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, ClipboardList, Handshake, LogOut, School, Users } from "lucide-react";
+import { Building2, ClipboardList, Handshake, LogOut, School, Store, Users } from "lucide-react";
 
 import { adminSignOut } from "@/app/(admin)/admin/actions";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ export const ADMIN_NAV = [
   { label: "Applications", href: "/admin/applications", icon: ClipboardList },
   { label: "Placements", href: "/admin/placements", icon: Handshake },
   { label: "Emporium", href: "/admin/emporium", icon: School },
+  { label: "Franchises", href: "/admin/franchises", icon: Store },
 ] as const;
 
 export function AdminSidebar({
@@ -37,16 +38,19 @@ export function AdminSidebar({
   placementsToAction,
   changesToReview,
   applicationsToScreen,
+  franchisesToAction,
 }: {
   adminEmail: string;
   placementsToAction: number;
   changesToReview: number;
   applicationsToScreen: number;
+  franchisesToAction: number;
 }) {
   const badges: Record<string, number> = {
     "/admin/companies": changesToReview,
     "/admin/applications": applicationsToScreen,
     "/admin/placements": placementsToAction,
+    "/admin/franchises": franchisesToAction,
   };
   const pathname = usePathname();
 

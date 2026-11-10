@@ -1,20 +1,21 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { validateFranchise, type FieldErrors } from "@/lib/sign-up-validation";
+import type { FieldErrors } from "@/lib/sign-up-validation";
+import { PENDING_EMAIL_COOKIE } from "@/lib/supabase/session";
+import { registerFranchise as registerFranchiseAccount } from "@/server/franchises/register";
 
-export async function registerFranchise(
-  formData: FormData,
-): Promise<{ errors: FieldErrors }> {
-  const errors = validateFranchise(formData);
-  if (Object.keys(errors).length > 0) return { errors };
+export async function registerFranchise(formData: FormData): Promise<{ errors: FieldErrors }> {
+  const result = await registerFranchiseAccount(formData);
+  if (!result.ok) return { errors: result.errors };
 
-  // TODO: persist once the backend lands — check the email ID was actually
-  // issued by head office and not already activated, create the franchise
-  // account with a hashed password, generate its franchise code (SOP §3.1 lead
-  // attribution), record T&C version + consent timestamp (DPDP), and queue the
-  // business details (PAN / GSTIN) for head-office verification.
-
+  (await cookies()).set(PENDING_EMAIL_COOKIE, result.email, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24,
+  });
   redirect("/sign-up/submitted?route=franchise");
 }

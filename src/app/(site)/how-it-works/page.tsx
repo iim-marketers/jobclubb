@@ -112,8 +112,8 @@ export default async function HowItWorksPage() {
               ))}
             </ul>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Joining through a franchise partner? Use their code at sign-up so
-              they can support your placement.
+              Joining through a franchise partner? Visit their outlet: they
+              register you, and you confirm with a code we email you.
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-export const TERMS_VERSION = "2026.10.2";
+export const TERMS_VERSION = "2026.11.1";
 
 export const TERMS_SECTIONS = [
   {
@@ -14,12 +14,12 @@ export const TERMS_SECTIONS = [
     body: "Everything you give JobClubb, including your profile, resume, qualifications, experience and identity documents, must be true, complete and your own. Do not submit forged, altered or misleading documents, and tell us promptly if anything important changes. JobClubb may verify what you tell it, and employers may run their own background and document checks. Keep your login details secure; accounts are personal and may not be shared or transferred.",
   },
   {
-    heading: "4. Fresher and Experienced Candidates",
-    body: "What you pay depends on how you joined. You are a Fresher Candidate if you joined JobClubb with franchise partner's batch code. Every other candidate, who joins by paying for membership, is an Experienced Candidate. Your category is fixed when you sign up.",
+    heading: "4. Fresher, Franchise and Experienced Candidates",
+    body: "What you pay depends on how you joined. You are a Fresher Candidate if you joined JobClubb with the batch code of a JobClubb partner training institute. You are a Franchise Candidate if a JobClubb franchise partner registered you at their outlet. Every other candidate is an Experienced Candidate. Your category is fixed when you join.",
   },
   {
     heading: "5. Membership",
-    body: "Membership costs ₹1,499 a year, GST included, paid through our payment gateway. Fresher Candidates' first year of membership is included with their partner institute batch, and renews at the standard price. Membership lasts 365 days from activation and does not renew automatically; we remind you 15 days before it ends. It includes three guaranteed employer interviews, as described in section 12. Membership is not a guarantee of employment, and it is not refunded just because you are not selected; our Refund Policy explains when we do refund it. If you are not placed by the end of your membership, you may join a JobClubb training programme, which is charged separately. Your profile stays on JobClubb whether or not your membership is active.",
+    body: "Membership costs ₹1,499 a year, GST included, paid through our payment gateway. Fresher Candidates' first year of membership is included with their partner institute batch, and renews at the standard price. Franchise Candidates pay the same price, directly to JobClubb on JobClubb.com: never pay a franchise partner for membership. Membership lasts 365 days from activation and does not renew automatically; we remind you 15 days before it ends. It includes three guaranteed employer interviews, as described in section 12. Membership is not a guarantee of employment, and it is not refunded just because you are not selected; our Refund Policy explains when we do refund it. If you are not placed by the end of your membership, you may join a JobClubb training programme, which is charged separately. Your profile stays on JobClubb whether or not your membership is active.",
   },
   {
     heading: "6. Referral codes",
@@ -35,7 +35,7 @@ export const TERMS_SECTIONS = [
   },
   {
     heading: "9. Placement fee",
-    body: "Experienced Candidates pay JobClubb no placement fee and never pay JobClubb any part of their salary; JobClubb charges the employer its own recruitment fee, to which you have no claim. Fresher Candidates pay JobClubb a one-time placement consultancy fee equal to one month's salary, being the fixed monthly gross salary stated in the offer letter, with GST charged where it applies. The fee is not paid on JobClubb.com: once you are selected, JobClubb contacts you directly, confirms the amount and how to pay it (bank transfer, UPI or another method JobClubb names in writing), and sends you the offer letter after the fee is settled as agreed. Pay only using the payment details JobClubb's placement team gives you, and keep the receipt JobClubb issues. Once paid, the placement fee is non-refundable, including if you do not join or the employer later withdraws the offer, except that a duplicate payment is refunded.",
+    body: "Experienced Candidates pay JobClubb no placement fee and never pay JobClubb any part of their salary; JobClubb charges the employer its own recruitment fee, to which you have no claim. Fresher Candidates and Franchise Candidates pay JobClubb a one-time placement consultancy fee equal to one month's salary, being the fixed monthly gross salary stated in the offer letter, with GST charged where it applies. The fee is not paid on JobClubb.com: once you are selected, JobClubb contacts you directly, confirms the amount and how to pay it (bank transfer, UPI or another method JobClubb names in writing), and sends you the offer letter after the fee is settled as agreed. Pay only using the payment details JobClubb's placement team gives you, and keep the receipt JobClubb issues. Once paid, the placement fee is non-refundable, including if you do not join or the employer later withdraws the offer, except that a duplicate payment is refunded.",
   },
   {
     heading: "10. Your obligations",
@@ -55,7 +55,7 @@ export const TERMS_SECTIONS = [
   },
   {
     heading: "14. Personal data",
-    body: "We collect and process personal data in accordance with the Digital Personal Data Protection Act, 2023, and you consent to JobClubb sharing your professional information with employers for recruitment. We collect only what is necessary, keep recruitment records only as long as needed for business, accounting and legal purposes, and act on requests to correct or erase your data. You may withdraw consent at any time.",
+    body: "We collect and process personal data in accordance with the Digital Personal Data Protection Act, 2023, and you consent to JobClubb sharing your professional information with employers for recruitment. If a franchise partner registered you, they can see the details they entered for you, whether you have paid for membership, and how far you have got with your applications and placement, so they can support you. We collect only what is necessary, keep recruitment records only as long as needed for business, accounting and legal purposes, and act on requests to correct or erase your data. You may withdraw consent at any time.",
   },
   {
     heading: "15. Confidentiality and acceptable use",
@@ -114,7 +114,7 @@ export const EMPLOYER_TERMS_SECTIONS = [
   },
   {
     heading: "8. Fresher and Experienced Candidates",
-    body: "JobClubb shows on each candidate you select whether they are a Fresher Candidate, meaning they joined JobClubb through a JobClubb partner training institute, or an Experienced Candidate. There is no recruitment fee for a Fresher Candidate, unless you and JobClubb agree an administrative charge in writing. For each Experienced Candidate who joins you through JobClubb, you pay JobClubb a recruitment fee equal to one month's salary.",
+    body: "JobClubb shows on each candidate you select whether they are a Fresher Candidate, meaning they joined JobClubb through a JobClubb partner training institute, or an Experienced Candidate. There is no recruitment fee for a Fresher Candidate, unless you and JobClubb agree an administrative charge in writing. For each Experienced Candidate who joins you through JobClubb, you pay JobClubb a recruitment fee equal to one month's salary, unless JobClubb confirms that no recruitment fee applies to that candidate.",
   },
   {
     heading: "9. Recruitment fee",

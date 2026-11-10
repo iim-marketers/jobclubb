@@ -30,7 +30,7 @@ export async function sendConfirmationEmail(
     firstName?: string;
     password?: string;
     data?: Record<string, unknown>;
-    audience?: "candidate" | "company";
+    audience?: "candidate" | "company" | "franchise";
   },
 ): Promise<ConfirmationResult> {
   if (await isRateLimited(admin, email, "confirm_signup")) return { error: "rate_limited" };
@@ -75,16 +75,21 @@ export async function resendConfirmationEmail(email: string): Promise<{ error?: 
 
   // generateLink() on an unknown address would create a new account.
   const admin = createAdminClient();
-  const [{ data: candidate }, { data: company }] = await Promise.all([
+  const [{ data: candidate }, { data: company }, { data: franchise }] = await Promise.all([
     admin.from("candidates").select("first_name").eq("email", address).maybeSingle(),
     admin.from("companies").select("contact_name").eq("email", address).maybeSingle(),
+    admin.from("franchises").select("owner_name").eq("email", address).maybeSingle(),
   ]);
-  if (!candidate && !company) return { error: "We couldn't find a JobClubb account for that email." };
+  if (!candidate && !company && !franchise)
+    return { error: "We couldn't find a JobClubb account for that email." };
 
   const { error } = await sendConfirmationEmail(admin, {
     email: address,
-    firstName: candidate?.first_name ?? company?.contact_name.split(" ")[0],
-    audience: company ? "company" : "candidate",
+    firstName:
+      candidate?.first_name ??
+      company?.contact_name.split(" ")[0] ??
+      franchise?.owner_name.split(" ")[0],
+    audience: company ? "company" : franchise ? "franchise" : "candidate",
   });
 
   if (error === "rate_limited") return { error: "Please wait a minute before asking for another email." };
@@ -96,7 +101,7 @@ export async function resendConfirmationEmail(email: string): Promise<{ error?: 
 export async function isRateLimited(
   admin: SupabaseClient,
   email: string,
-  kind: "confirm_signup" | "reset_password",
+  kind: "confirm_signup" | "reset_password" | "franchise_otp",
 ) {
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { data, error } = await admin

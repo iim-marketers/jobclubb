@@ -1,9 +1,11 @@
 import "server-only";
 
 import { candidateLabel } from "@/lib/company-activity";
+import { commissionState, type CommissionState } from "@/lib/franchise";
 import {
-  isFresher,
+  categoryOf,
   qualifiesForReplacement,
+  type CandidateCategory,
   todayIst,
   type LeftReason,
   type Leaving,
@@ -133,7 +135,7 @@ function toSummary(row: BaseRow, candidate: string, replacementName: string | nu
     candidate,
     city: row.job_applications.city,
     status: row.status,
-    fresher: isFresher(row.category),
+    fresher: categoryOf(row.category) === "fresher",
     monthlySalary: row.monthly_salary,
     joiningDate: row.joining_date,
     offerDeadline: row.offer_deadline,
@@ -440,12 +442,31 @@ export type AdminPlacement = PlacementSummary & {
   propertyName: string | null;
   companyContact: { name: string; designation: string | null; email: string; phone: string };
   offerReceivedAt: string | null;
+  category: CandidateCategory;
+  franchise: { id: string; name: string; code: string } | null;
+  candidateFee: { amount: number; receivedOn: string; reference: string | null } | null;
+  commission: { amount: number; state: CommissionState } | null;
 };
 
-const ADMIN_COLUMNS = `${BASE_COLUMNS}, candidates (first_name, last_name, email, phone, city), companies (property_name, contact_name, designation, email, phone)`;
+const ADMIN_COLUMNS = `${BASE_COLUMNS}, candidate_fee_received, candidate_fee_received_on, candidate_fee_reference, candidates (first_name, last_name, email, phone, city, emporium_batch_id, franchise_id, franchises (id, name, code)), companies (property_name, contact_name, designation, email, phone), franchise_commissions!franchise_commissions_placement_id_fkey (amount, payout_id, reversed_at)`;
+
+type CommissionEmbed = { amount: number; payout_id: string | null; reversed_at: string | null };
 
 type AdminRow = BaseRow & {
-  candidates: { first_name: string; last_name: string; email: string; phone: string; city: string };
+  candidate_fee_received: number | null;
+  candidate_fee_received_on: string | null;
+  candidate_fee_reference: string | null;
+  candidates: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    city: string;
+    emporium_batch_id: string | null;
+    franchise_id: string | null;
+    franchises: { id: string; name: string; code: string } | null;
+  };
+  franchise_commissions: CommissionEmbed | CommissionEmbed[] | null;
   companies: {
     property_name: string | null;
     contact_name: string;
@@ -471,6 +492,25 @@ function toAdmin(row: AdminRow, replacementName: string | null): AdminPlacement 
       phone: row.companies.phone,
     },
     offerReceivedAt: row.offer_received_at,
+    category: categoryOf(row.candidates),
+    franchise: row.candidates.franchises,
+    candidateFee:
+      row.candidate_fee_received !== null && row.candidate_fee_received_on
+        ? {
+            amount: row.candidate_fee_received,
+            receivedOn: row.candidate_fee_received_on,
+            reference: row.candidate_fee_reference,
+          }
+        : null,
+    commission: commissionOf(one(row.franchise_commissions)),
+  };
+}
+
+function commissionOf(row: CommissionEmbed | null) {
+  if (!row) return null;
+  return {
+    amount: row.amount,
+    state: commissionState({ payoutId: row.payout_id, reversedAt: row.reversed_at }),
   };
 }
 

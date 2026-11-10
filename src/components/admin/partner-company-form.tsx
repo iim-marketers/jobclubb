@@ -273,7 +273,7 @@ function Section({
   );
 }
 
-function PasswordInput({
+export function PasswordInput({
   error,
   onEdit,
 }: {

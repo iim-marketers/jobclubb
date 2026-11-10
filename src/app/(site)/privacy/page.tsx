@@ -13,7 +13,7 @@ const SECTIONS: PolicySection[] = [
   },
   {
     heading: "2. What we collect",
-    body: "We collect the details you give us when you create an account or build a profile: your name, email address, phone number, education, work history, skills, photograph and resume. Employers additionally provide company and contact details. We also record basic technical information such as your IP address, browser type and the pages you visit, to keep the service secure and working.",
+    body: "We collect the details you give us when you create an account or build a profile: your name, email address, phone number, education, work history, skills, photograph and resume. Employers additionally provide company and contact details, and franchise partners provide their business, bank and contact details. If a franchise partner registers you, they enter your name, email, phone, city, pincode and preferred industry on your behalf, and you confirm your email with a code we send you. We also record basic technical information such as your IP address, browser type and the pages you visit, to keep the service secure and working.",
   },
   {
     heading: "3. Payments",
@@ -29,7 +29,7 @@ const SECTIONS: PolicySection[] = [
   },
   {
     heading: "6. Who we share data with",
-    body: "Apart from employers, we share data only with service providers that help us run JobClubb, such as our hosting, database, email and payment providers, and only to the extent they need it to provide their service. We may also disclose data where required by law.",
+    body: "If a JobClubb franchise partner registered you, they can see the details they entered, whether you have paid for membership, and how far you have got with applications and placement, so they can support you and so we can pay their commission. Apart from employers and that franchise partner, we share data only with service providers that help us run JobClubb, such as our hosting, database, email and payment providers, and only to the extent they need it to provide their service. We may also disclose data where required by law.",
   },
   {
     heading: "7. Cookies",

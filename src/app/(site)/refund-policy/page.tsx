@@ -26,7 +26,7 @@ const SECTIONS: PolicySection[] = [
   },
   {
     heading: "5. Placement fee",
-    body: "Only Fresher Candidates, who joined with a franchise partner's batch code, pay a placement fee; Experienced Candidates never do. The placement fee, equal to one month's salary, is not paid on JobClubb.com: JobClubb's placement team arranges it with you directly before sending your offer letter. Once paid, it is non-refundable in all cases, including if you do not join or the employer later withdraws the offer. If you paid it twice for the same offer, we refund the duplicate payment.",
+    body: "Only Fresher Candidates, who joined with a partner training institute's batch code, and Franchise Candidates, who were registered by a JobClubb franchise partner, pay a placement fee; Experienced Candidates never do. The placement fee, equal to one month's salary, is not paid on JobClubb.com: JobClubb's placement team arranges it with you directly before sending your offer letter. Once paid, it is non-refundable in all cases, including if you do not join or the employer later withdraws the offer. If you paid it twice for the same offer, we refund the duplicate payment.",
   },
   {
     heading: "6. How to request a refund",

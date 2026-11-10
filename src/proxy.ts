@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { authCookieOptions } from "@/lib/supabase/session";
 
-const PROTECTED = ["/candidate", "/company", "/onboarding"];
+const PROTECTED = ["/candidate", "/company", "/onboarding", "/franchise/dashboard"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -36,7 +36,11 @@ export async function proxy(request: NextRequest) {
   if (isProtected && !signedIn) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
-    const as = pathname.startsWith("/company") ? "&as=company" : "";
+    const as = pathname.startsWith("/company")
+      ? "&as=company"
+      : pathname.startsWith("/franchise")
+        ? "&as=franchise"
+        : "";
     url.search = `?next=${encodeURIComponent(pathname + search)}${as}`;
     const redirect = NextResponse.redirect(url);
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
@@ -45,11 +49,13 @@ export async function proxy(request: NextRequest) {
 
   const role = data?.claims.user_metadata?.role;
   const home =
-    role === "company" && isCandidateArea(pathname)
+    role === "company" && (isCandidateArea(pathname) || isFranchiseArea(pathname))
       ? "/company/dashboard"
-      : role === "candidate" && isCompanyArea(pathname)
+      : role === "candidate" && (isCompanyArea(pathname) || isFranchiseArea(pathname))
         ? "/candidate/dashboard"
-        : null;
+        : role === "franchise" && (isCandidateArea(pathname) || isCompanyArea(pathname))
+          ? "/franchise/dashboard"
+          : null;
   if (home) {
     const url = request.nextUrl.clone();
     url.pathname = home;
@@ -67,6 +73,7 @@ const under = (pathname: string, prefix: string) =>
 const isCandidateArea = (pathname: string) =>
   under(pathname, "/candidate") || under(pathname, "/onboarding");
 const isCompanyArea = (pathname: string) => under(pathname, "/company");
+const isFranchiseArea = (pathname: string) => under(pathname, "/franchise/dashboard");
 
 export const config = {
   matcher: [

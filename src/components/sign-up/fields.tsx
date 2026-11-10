@@ -61,7 +61,15 @@ export function Field({
   inputClassName?: string;
 } & Pick<
     React.ComponentProps<"input">,
-    "autoComplete" | "inputMode" | "maxLength" | "defaultValue" | "list" | "min"
+    | "autoComplete"
+    | "inputMode"
+    | "maxLength"
+    | "defaultValue"
+    | "list"
+    | "min"
+    | "max"
+    | "value"
+    | "onChange"
   >) {
   const { label, required, optional, hint, error, className, ...inputProps } = props;
   return (

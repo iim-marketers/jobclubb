@@ -17,9 +17,11 @@ import { Button } from "@/components/ui/button";
 export function ResetPassword({
   tokenHash,
   role,
+  welcome = false,
 }: {
   tokenHash: string;
   role: ResetRole;
+  welcome?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<ResetPasswordState, FormData>(
     resetPassword,
@@ -39,8 +41,9 @@ export function ResetPassword({
           This link has expired
         </h1>
         <p className="mt-2 leading-7 text-muted-foreground">
-          Password reset links work once and expire after 1 hour. Request a new
-          one and use the latest email we send you.
+          {welcome
+            ? "Links to set your password work once and expire after 1 hour. Request a new one with your email and use the latest email we send you."
+            : "Password reset links work once and expire after 1 hour. Request a new one and use the latest email we send you."}
         </p>
         <Button
           nativeButton={false}
@@ -60,11 +63,12 @@ export function ResetPassword({
     <AuthCard>
       <CardIcon icon={LockKeyhole} />
       <h1 className="mt-5 font-head text-2xl font-extrabold tracking-tight sm:text-3xl">
-        Choose a new password
+        {welcome ? "Set your password" : "Choose a new password"}
       </h1>
       <p className="mt-2 leading-7 text-muted-foreground">
-        You&apos;ll use it to sign in to your {role} account. We&apos;ll sign
-        you out on every other device.
+        {welcome
+          ? "Your JobClubb account is ready. Choose a password to sign in to it."
+          : `You'll use it to sign in to your ${role} account. We'll sign you out on every other device.`}
       </p>
 
       <form

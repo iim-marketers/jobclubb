@@ -16,9 +16,10 @@ export default async function AdminPlacementsPage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Every candidate a company has selected. Check the offer the company
-          uploads, confirm it with the candidate, collect a fresher&apos;s
-          placement fee outside JobClubb, then send them the offer letter.
-          Invoice the company for experienced candidates once they join.
+          uploads, confirm it with the candidate, collect the placement fee
+          from fresher and franchise candidates outside JobClubb, then send
+          them the offer letter. Invoice the company for experienced candidates
+          once they join.
         </p>
       </div>
       <PlacementsTable placements={placements} />

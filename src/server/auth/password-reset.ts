@@ -11,7 +11,7 @@ import { isRateLimited } from "@/server/auth/confirmation-email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export type ResetRole = "candidate" | "company";
+export type ResetRole = "candidate" | "company" | "franchise";
 
 async function findAccount(
   admin: ReturnType<typeof createAdminClient>,
@@ -30,6 +30,13 @@ async function findAccount(
     .eq("email", email)
     .maybeSingle();
   if (company) return { role: "company", firstName: company.contact_name.trim().split(/\s+/)[0] };
+
+  const { data: franchise } = await admin
+    .from("franchises")
+    .select("owner_name")
+    .eq("email", email)
+    .maybeSingle();
+  if (franchise) return { role: "franchise", firstName: franchise.owner_name.trim().split(/\s+/)[0] };
 
   return null;
 }

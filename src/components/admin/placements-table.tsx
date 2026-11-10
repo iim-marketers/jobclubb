@@ -12,6 +12,8 @@ import {
 import { FilterSelect } from "@/components/table-toolbar";
 import { Badge } from "@/components/ui/badge";
 import {
+  ADMIN_CATEGORY_BADGES,
+  ADMIN_CATEGORY_LABELS,
   ADMIN_PLACEMENT_LABELS,
   formatDateOnly,
   formatRupees,
@@ -52,7 +54,17 @@ const columns = helper.columns([
     sortFn: "text",
     cell: ({ row }) => (
       <div className="min-w-44">
-        <p className="font-head font-bold">{row.original.candidateName}</p>
+        <p className="flex flex-wrap items-center gap-1.5 font-head font-bold">
+          {row.original.candidateName}
+          <Badge
+            className={cn(
+              "font-head text-[10px] font-bold",
+              ADMIN_CATEGORY_BADGES[row.original.category],
+            )}
+          >
+            {ADMIN_CATEGORY_LABELS[row.original.category]}
+          </Badge>
+        </p>
         <p className="text-xs text-muted-foreground">
           <span className="font-mono">{row.original.ref}</span> ·{" "}
           {row.original.candidatePhone}

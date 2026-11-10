@@ -14,15 +14,43 @@ export type PlacementStatus = (typeof PLACEMENT_STATUSES)[number];
 
 export const PLACEMENT_EMAIL = "placement@jobclubb.com";
 
-export const isFresher = (candidate: { emporium_batch_id: string | null }) =>
-  candidate.emporium_batch_id !== null;
+export type CandidateCategory = "fresher" | "franchise" | "experienced";
 
+export const categoryOf = (candidate: {
+  emporium_batch_id: string | null;
+  franchise_id?: string | null;
+}): CandidateCategory =>
+  candidate.emporium_batch_id !== null
+    ? "fresher"
+    : candidate.franchise_id
+      ? "franchise"
+      : "experienced";
+
+// Freshers and franchise candidates pay JobClubb one month's salary on placement;
+// for experienced candidates the employer is charged instead.
+export const paysPlacementFee = (category: CandidateCategory) => category !== "experienced";
+
+export const ADMIN_CATEGORY_LABELS: Record<CandidateCategory, string> = {
+  fresher: "Fresher",
+  franchise: "Franchise",
+  experienced: "Experienced",
+};
+
+export const ADMIN_CATEGORY_BADGES: Record<CandidateCategory, string> = {
+  fresher: "bg-violet-500/12 text-violet-700 dark:text-violet-300",
+  franchise: "bg-amber-500/12 text-amber-700 dark:text-amber-300",
+  experienced: "bg-brand/10 text-brand",
+};
+
+// Companies only ever see Fresher or Experienced: franchise candidates show as Experienced.
 export const candidateCategory = (fresher: boolean) => (fresher ? "Fresher" : "Experienced");
 
-export const placementFeeNote = (fresher: boolean) =>
-  fresher
+export const placementFeeNote = (category: CandidateCategory) =>
+  category === "fresher"
     ? "As an Emporium candidate, you pay JobClubb a placement fee equal to one month's salary if you're placed. It isn't paid on JobClubb.com: our placement team arranges it with you before sending your offer letter."
-    : "No placement fee: as a paid member, you never pay JobClubb any part of your salary.";
+    : category === "franchise"
+      ? "As a candidate registered through a JobClubb franchise partner, you pay JobClubb a placement fee equal to one month's salary if you're placed. It isn't paid on JobClubb.com: our placement team arranges it with you before sending your offer letter."
+      : "No placement fee: as a paid member, you never pay JobClubb any part of your salary.";
 
 // Before the release the candidate must not learn they were selected.
 export const isReleased = (status: PlacementStatus) =>
