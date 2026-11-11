@@ -18,13 +18,16 @@ export default async function FranchiseCandidatesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-head text-2xl font-extrabold tracking-tight">Candidates</h1>
+          <h1 className="font-head text-2xl font-extrabold tracking-tight">
+            Candidates
+          </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Everyone you&apos;ve registered. If a candidate hasn&apos;t paid yet, check they&apos;ve set
-            their password: you can resend the email.
+            Everyone you&apos;ve registered. If a candidate hasn&apos;t paid
+            yet, check they&apos;ve set their password: you can resend the
+            email.
           </p>
         </div>
-        {canRegister && (
+        {/* {canRegister && (
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
             nativeButton={false}
@@ -33,7 +36,7 @@ export default async function FranchiseCandidatesPage() {
             <UserPlus className="size-4" />
             Register a candidate
           </Button>
-        )}
+        )} */}
       </div>
 
       {candidates.length === 0 ? (
