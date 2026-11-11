@@ -9,24 +9,21 @@ import { useFitToHeight } from "@/components/sign-up/use-fit-to-height";
 const AUDIENCES = [
   {
     id: "candidate",
-    label: "I'm looking for a job",
-    short: "Candidate",
+    label: "Candidate",
     href: "/sign-up",
     icon: User,
     disabled: false,
   },
   {
     id: "company",
-    label: "I'm hiring",
-    short: "Company",
+    label: "Company",
     href: "/sign-up/company",
     icon: Building2,
     disabled: false,
   },
   {
     id: "franchise",
-    label: "I'm a franchise",
-    short: "Franchise",
+    label: "Franchise",
     href: "/sign-up/franchise",
     icon: Store,
     disabled: false,
@@ -94,14 +91,13 @@ function AudienceSwitch({ active }: { active: Audience }) {
   return (
     <nav
       aria-label="Account type"
-      className="grid grid-cols-3 gap-1 rounded-2xl bg-white/8 p-1 ring-1 ring-white/12 backdrop-blur-sm"
+      className="grid grid-cols-3 gap-1 rounded-2xl bg-white/8 p-1.5 ring-1 ring-white/12 backdrop-blur-sm"
     >
-      {AUDIENCES.map(({ id, label, short, href, icon: Icon, disabled }) => {
+      {AUDIENCES.map(({ id, label, href, icon: Icon, disabled }) => {
         const content = (
           <>
-            <Icon className="size-4 flex-none" />
-            <span className="sm:hidden">{short}</span>
-            <span className="hidden sm:inline">{label}</span>
+            <Icon className="size-[18px] flex-none" strokeWidth={2} />
+            <span className="whitespace-nowrap">{label}</span>
           </>
         );
 
@@ -111,7 +107,7 @@ function AudienceSwitch({ active }: { active: Audience }) {
               key={id}
               aria-disabled="true"
               title="Coming soon"
-              className="flex cursor-not-allowed items-center justify-center gap-2 rounded-xl px-3 py-2.5 font-head text-sm font-semibold text-white/35"
+              className="flex cursor-not-allowed flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 font-head text-[13px] font-semibold text-white/35"
             >
               {content}
             </span>
@@ -123,7 +119,7 @@ function AudienceSwitch({ active }: { active: Audience }) {
             key={id}
             href={href}
             aria-current={id === active ? "page" : undefined}
-            className="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 font-head text-sm font-semibold text-white/70 transition-colors hover:text-white aria-[current=page]:bg-white aria-[current=page]:text-brand-surface-strong aria-[current=page]:shadow-sm"
+            className="flex flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 font-head text-[13px] font-semibold text-white/65 transition-colors hover:bg-white/6 hover:text-white aria-[current=page]:bg-white aria-[current=page]:text-brand-surface-strong aria-[current=page]:shadow-md aria-[current=page]:shadow-black/10"
           >
             {content}
           </Link>
