@@ -1321,8 +1321,8 @@ const franchiseColumns = franchiseHelper.columns([
     sortFn: "basic",
     cell: ({ row }) => (
       <span className="whitespace-nowrap text-muted-foreground">
-        {row.original.candidates}{" "}
-        <span className="text-xs">({row.original.paidCandidates} paid)</span>
+        {row.original.candidates}
+        {/* <span className="text-xs">({row.original.paidCandidates} paid)</span> */}
       </span>
     ),
   }),
@@ -1379,7 +1379,7 @@ export function FranchisesTable({
         code: "hidden",
         ownerName: "hidden",
         city: "hidden md:table-cell",
-        candidates: "hidden sm:table-cell",
+        candidates: "hidden sm:table-cell text-center",
       }}
       onRowClick={(f) => router.push(`/admin/franchises/${f.id}`)}
       emptyTitle="No franchises in this view"
