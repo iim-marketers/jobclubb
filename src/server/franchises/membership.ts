@@ -13,16 +13,14 @@ export type CollectableCandidate = {
   phone: string;
   city: string;
   pincode: string;
-  industry: string;
   membership_expires_at: string | null;
-  created_at: string;
 };
 
 export async function getFranchiseCandidate(franchiseId: string, candidateId: string) {
   if (!UUID.test(candidateId)) return null;
   const { data, error } = await createAdminClient()
     .from("candidates")
-    .select("id, first_name, last_name, email, phone, city, pincode, industry, membership_expires_at, created_at")
+    .select("id, first_name, last_name, email, phone, city, pincode, membership_expires_at")
     .eq("id", candidateId)
     .eq("franchise_id", franchiseId)
     .maybeSingle();

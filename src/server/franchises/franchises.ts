@@ -404,14 +404,20 @@ const PLACEMENT_RANK: PlacementStatus[] = [
   "withdrawn",
 ];
 
-export async function listFranchiseCandidates(franchiseId: string): Promise<FranchiseCandidate[]> {
-  const { data, error } = await createAdminClient()
+// Franchises only see candidates whose registration finished with a payment;
+// admin also sees abandoned, unpaid ones.
+export async function listFranchiseCandidates(
+  franchiseId: string,
+  { paidOnly = false }: { paidOnly?: boolean } = {},
+): Promise<FranchiseCandidate[]> {
+  let query = createAdminClient()
     .from("candidates")
     .select(
       "id, first_name, last_name, email, phone, city, industry, membership_paid_at, membership_expires_at, created_at, job_applications!job_applications_candidate_id_fkey (count), placements!placements_candidate_id_fkey (status)",
     )
-    .eq("franchise_id", franchiseId)
-    .order("created_at", { ascending: false });
+    .eq("franchise_id", franchiseId);
+  if (paidOnly) query = query.not("membership_paid_at", "is", null);
+  const { data, error } = await query.order("created_at", { ascending: false });
   if (error) throw error;
 
   return data.map((c) => {

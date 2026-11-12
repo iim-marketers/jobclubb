@@ -16,6 +16,8 @@ import { requireFranchise } from "@/server/franchises/current";
 import { addOwnBankDetails } from "@/server/franchises/franchises";
 import {
   completeRegistration,
+  discardCandidate,
+  discardPending,
   resendCode,
   startRegistration,
   verifyRegistration,
@@ -103,6 +105,27 @@ export async function setCandidatePassword(
     return { registered: result.candidate };
   } catch (error) {
     console.error("Completing franchise registration failed", error);
+    return { error: FAILED };
+  }
+}
+
+export async function discardRegistration(target: {
+  registrationId?: string;
+  candidateId?: string;
+}): Promise<{ error?: string }> {
+  const franchise = await requireFranchise(FRANCHISE_REGISTER);
+  try {
+    if (target.candidateId) {
+      if (!(await discardCandidate(franchise, target.candidateId)))
+        return { error: "This candidate has already paid, so their registration can't be discarded." };
+      revalidatePath("/franchise/dashboard", "layout");
+      revalidatePath("/admin", "layout");
+    } else if (target.registrationId) {
+      await discardPending(franchise, target.registrationId);
+    }
+    return {};
+  } catch (error) {
+    console.error("Discarding franchise registration failed", error);
     return { error: FAILED };
   }
 }

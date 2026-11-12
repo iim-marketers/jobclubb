@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 
-import { CHECKOUT_PLAN, PLAN_DETAILS, isMembershipActive } from "@/lib/membership";
+import { CHECKOUT_PLAN, PLAN_DETAILS } from "@/lib/membership";
 import { createMembershipOrder } from "@/server/candidates/membership";
 import { getCurrentFranchise } from "@/server/franchises/current";
 import { getFranchiseCandidate } from "@/server/franchises/membership";
@@ -26,10 +26,10 @@ export async function POST(request: Request) {
         { error: "This candidate isn't on your list. Refresh to see the latest." },
         { status: 404 },
       );
-    if (isMembershipActive(candidate.membership_expires_at)) {
+    if (candidate.membership_expires_at) {
       revalidatePath("/franchise/dashboard", "layout");
       return Response.json(
-        { error: `${candidate.first_name}'s membership is already active.` },
+        { error: `${candidate.first_name}'s membership is already paid.` },
         { status: 409 },
       );
     }

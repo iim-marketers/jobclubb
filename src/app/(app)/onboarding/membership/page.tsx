@@ -209,8 +209,8 @@ export default async function CheckoutPage() {
             {franchise ? (
               <div className="mt-auto pt-5">
                 <div className="rounded-2xl bg-brand/8 p-4 text-sm">
-                  <p className="flex items-center gap-2 font-head font-bold">
-                    <Store className="size-4 text-brand" />
+                  <p className="flex items-start gap-2 font-head leading-6 font-bold">
+                    <Store className="mt-1 size-4 flex-none text-brand" />
                     Pay at {franchise.name}
                   </p>
                   <p className="mt-2 flex items-start gap-2 leading-6 text-muted-foreground">
@@ -246,12 +246,9 @@ export default async function CheckoutPage() {
           </aside>
         </div>
 
-        <p className="mt-5 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
+        <p className="mt-4 flex max-w-4xl items-start gap-2 text-sm leading-6 text-muted-foreground">
           Pay securely via Razorpay. We&apos;ll remind you 15 days before it
-          ends, and you can renew once it does.{" "}
-          {paysPlacementFee(category)
-            ? `As ${category === "fresher" ? "an Emporium candidate" : "a candidate registered through a franchise partner"}, a placement fee equal to one month's salary still applies when you're placed, arranged with you directly by our placement team.`
-            : "Membership is the only fee you pay JobClubb: there's no placement fee when you're hired."}
+          ends, and you can renew once it does.
         </p>
       </main>
     </div>

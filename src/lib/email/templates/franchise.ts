@@ -64,13 +64,13 @@ export function franchiseWelcomeEmail({
 }) {
   return renderEmail({
     subject: "Welcome to JobClubb: your account is ready",
-    preheader: `${franchiseName} has registered you. Sign in with your email and the password you chose.`,
+    preheader: `${franchiseName} has registered you and your membership is active. Sign in with your email and the password you chose.`,
     eyebrow: "Welcome to JobClubb",
     heading: `Welcome, ${firstName}`,
     greeting: `Dear ${firstName},`,
     paragraphs: [
       `${franchiseName} has registered you on JobClubb, and your account is ready. Sign in with this email address and the password you chose at their outlet.`,
-      `Your membership (₹1,499 a year, GST included) is paid through ${franchiseName}. We email you the receipt as soon as it's paid, and your membership starts right away.`,
+      "Your membership is active for a year: apply for jobs, build your ATS-ready resume and get your guaranteed interviews. Your receipt is in a separate email.",
     ],
     details: [{ label: "Your sign-in email", value: email }],
     cta: { label: "Sign in to JobClubb", url: signInUrl },

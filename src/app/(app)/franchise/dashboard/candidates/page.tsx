@@ -11,7 +11,9 @@ export const metadata = { title: "Candidates — JobClubb franchise" };
 
 export default async function FranchiseCandidatesPage() {
   const franchise = await requireFranchise(FRANCHISE_CANDIDATES);
-  const candidates = await listFranchiseCandidates(franchise.id);
+  const candidates = await listFranchiseCandidates(franchise.id, {
+    paidOnly: true,
+  });
   const canRegister = franchise.status === "active";
 
   return (
@@ -22,8 +24,8 @@ export default async function FranchiseCandidatesPage() {
             Candidates
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Everyone you&apos;ve registered. Collect the membership for anyone
-            who hasn&apos;t paid yet when they&apos;re with you.
+            Everyone you&apos;ve registered, with their membership and how far
+            they&apos;ve got with jobs.
           </p>
         </div>
         {/* {canRegister && (
@@ -62,7 +64,6 @@ export default async function FranchiseCandidatesPage() {
       ) : (
         <FranchiseCandidatesList
           candidates={candidates}
-          canCollect={canRegister}
         />
       )}
     </div>

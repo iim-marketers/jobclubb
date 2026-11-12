@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
-import { after } from "next/server";
 
 import { sendEmail } from "@/lib/email/mailer";
 import { franchiseOtpEmail, franchiseWelcomeEmail } from "@/lib/email/templates/franchise";
@@ -53,6 +52,30 @@ async function emailTaken(email: string) {
   return results.some((r) => r.data);
 }
 
+// An account the franchise created but never paid for is an abandoned
+// registration: the franchise can discard it, and registering the same email
+// again replaces it.
+async function abandonedCandidate(franchiseId: string, match: { email: string } | { id: string }) {
+  const admin = createAdminClient();
+  const query = admin.from("candidates").select("id, membership_paid_at").eq("franchise_id", franchiseId);
+  const { data, error } = await ("id" in match ? query.eq("id", match.id) : query.eq("email", match.email)).maybeSingle();
+  if (error) throw error;
+  if (!data || data.membership_paid_at) return null;
+
+  const { count, error: paidError } = await admin
+    .from("membership_payments")
+    .select("order_id", { count: "exact", head: true })
+    .eq("candidate_id", data.id)
+    .eq("status", "paid");
+  if (paidError) throw paidError;
+  return count ? null : (data.id as string);
+}
+
+async function deleteCandidateAccount(candidateId: string) {
+  const { error } = await createAdminClient().auth.admin.deleteUser(candidateId);
+  if (error) throw error;
+}
+
 async function sendCode(
   franchise: CurrentFranchise,
   details: FranchiseCandidateInput,
@@ -83,7 +106,8 @@ export async function startRegistration(
   if (franchise.status !== "active") return { ok: false, error: INACTIVE };
 
   const admin = createAdminClient();
-  if (await emailTaken(details.email))
+  const abandoned = await abandonedCandidate(franchise.id, { email: details.email });
+  if (!abandoned && (await emailTaken(details.email)))
     return {
       ok: false,
       errors: {
@@ -249,6 +273,14 @@ export async function completeRegistration(
     return { ok: false, error: "This candidate has just been registered. Check your candidates list.", restart: true };
 
   const details = pending.details;
+  try {
+    const abandoned = await abandonedCandidate(franchise.id, { email: pending.email });
+    if (abandoned) await deleteCandidateAccount(abandoned);
+  } catch (error) {
+    await restorePending(pending);
+    throw error;
+  }
+
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email: pending.email,
     password,
@@ -292,7 +324,6 @@ export async function completeRegistration(
   }
 
   await admin.from("franchise_registrations").delete().eq("email", pending.email);
-  after(() => sendWelcome(pending.email, details.firstName, franchise.name));
   return {
     ok: true,
     candidate: {
@@ -311,7 +342,26 @@ async function restorePending(pending: PendingRow) {
   if (error) console.error("Restoring franchise registration failed", error);
 }
 
-async function sendWelcome(email: string, firstName: string, franchiseName: string) {
+export async function discardPending(franchise: CurrentFranchise, registrationId: string) {
+  if (!UUID.test(registrationId)) return;
+  const { error } = await createAdminClient()
+    .from("franchise_registrations")
+    .delete()
+    .eq("id", registrationId)
+    .eq("franchise_id", franchise.id);
+  if (error) throw error;
+}
+
+export async function discardCandidate(franchise: CurrentFranchise, candidateId: string) {
+  if (!UUID.test(candidateId)) return false;
+  const abandoned = await abandonedCandidate(franchise.id, { id: candidateId });
+  if (!abandoned) return false;
+  await deleteCandidateAccount(abandoned);
+  return true;
+}
+
+// Sent once the first membership is paid, which is when registration is complete.
+export async function sendWelcome(email: string, firstName: string, franchiseName: string) {
   try {
     await sendEmail({
       to: email,

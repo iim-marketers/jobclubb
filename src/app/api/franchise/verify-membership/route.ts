@@ -1,8 +1,10 @@
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { confirmMembershipPayment } from "@/server/candidates/membership";
 import { getCurrentFranchise } from "@/server/franchises/current";
 import { getFranchiseCandidate } from "@/server/franchises/membership";
+import { sendWelcome } from "@/server/franchises/registration";
 import { isValidPaymentSignature } from "@/server/payments/razorpay";
 
 export async function POST(request: Request) {
@@ -42,6 +44,9 @@ export async function POST(request: Request) {
       { error: "The payment went through but we couldn't activate the membership. Please contact us." },
       { status: 500 },
     );
+
+  if (!candidate.membership_expires_at)
+    after(() => sendWelcome(candidate.email, candidate.first_name, franchise.name));
 
   revalidatePath("/franchise/dashboard", "layout");
   revalidatePath("/admin", "layout");
