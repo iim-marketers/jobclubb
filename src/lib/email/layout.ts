@@ -8,23 +8,69 @@ export const escape = (value: string) =>
 
 export type EmailDetail = { label: string; value: string; href?: string };
 
+export type EmailText = string | (string | { label: string; href: string })[];
+
 export type EmailContent = {
   subject: string;
   preheader: string;
   eyebrow: string;
   heading: string;
   greeting: string;
-  paragraphs: string[];
+  paragraphs: EmailText[];
+  code?: { label: string; value: string; note?: string };
   details?: EmailDetail[];
-  closing?: string[];
+  closing?: EmailText[];
   cta?: { label: string; url: string };
+  fineprint?: EmailText[];
   footer: string;
 };
 
 const SIGN_OFF = ["Regards,", "Team JobClubb"];
 
-const paragraph = (text: string) =>
-  `<p style="margin:0 0 16px; font-size:15px; line-height:1.6; color:#4a5a63;">${escape(text)}</p>`;
+const LINK_STYLE = "color:#00789f; text-decoration:underline;";
+
+const richText = (text: EmailText) =>
+  typeof text === "string"
+    ? escape(text)
+    : text
+        .map((part) =>
+          typeof part === "string"
+            ? escape(part)
+            : `<a href="${escape(part.href)}" target="_blank" style="${LINK_STYLE}">${escape(part.label)}</a>`,
+        )
+        .join("");
+
+const plainText = (text: EmailText) =>
+  typeof text === "string"
+    ? text
+    : text.map((part) => (typeof part === "string" ? part : `${part.label} (${part.href})`)).join("");
+
+const paragraph = (text: EmailText) =>
+  `<p style="margin:0 0 16px; font-size:15px; line-height:1.6; color:#4a5a63;">${richText(text)}</p>`;
+
+function codeBox({ label, value, note }: { label: string; value: string; note?: string }) {
+  return `<tr>
+                  <td class="px" style="padding:4px 40px 24px; font-family:Arial, Helvetica, sans-serif;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f8fa; border:1px solid #d6e8ee; border-radius:16px;">
+                      <tr>
+                        <td align="center" style="padding:24px 16px;">
+                          <p style="margin:0 0 10px; font-size:12px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:#6b7a82;">
+                            ${escape(label)}
+                          </p>
+                          <p class="code" style="margin:0; padding-left:12px; font-size:38px; line-height:1.15; font-weight:800; letter-spacing:12px; color:#0f1d24;">
+                            ${escape(value)}
+                          </p>
+                          ${
+                            note
+                              ? `<p style="margin:12px 0 0; font-size:13px; line-height:1.5; color:#6b7a82;">${escape(note)}</p>`
+                              : ""
+                          }
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`;
+}
 
 function detailsTable(details: EmailDetail[]) {
   const rows = details
@@ -74,19 +120,33 @@ function ctaButton({ label, url }: { label: string; url: string }) {
 }
 
 export function renderEmail(content: EmailContent) {
-  const { subject, preheader, eyebrow, heading, greeting, paragraphs, details, closing = [], cta, footer } =
-    content;
+  const {
+    subject,
+    preheader,
+    eyebrow,
+    heading,
+    greeting,
+    paragraphs,
+    code,
+    details,
+    closing = [],
+    cta,
+    fineprint = [],
+    footer,
+  } = content;
   const site = escape(SITE_URL);
 
   const text = [
     greeting,
     "",
-    ...paragraphs.flatMap((p) => [p, ""]),
+    ...paragraphs.flatMap((p) => [plainText(p), ""]),
+    ...(code ? [`${code.label}: ${code.value}`, ...(code.note ? [code.note] : []), ""] : []),
     ...(details?.length ? [...details.map((d) => `${d.label}: ${d.value}`), ""] : []),
-    ...closing.flatMap((p) => [p, ""]),
+    ...closing.flatMap((p) => [plainText(p), ""]),
     ...(cta ? [`${cta.label}:`, cta.url, ""] : []),
     ...SIGN_OFF,
     "",
+    ...fineprint.flatMap((p) => [plainText(p), ""]),
     "---",
     footer,
   ].join("\n");
@@ -105,6 +165,7 @@ export function renderEmail(content: EmailContent) {
       .pt { padding-top: 32px !important; }
       .h1 { font-size: 22px !important; }
       .btn { display: block !important; padding: 14px 20px !important; }
+      .code { font-size: 30px !important; letter-spacing: 8px !important; padding-left: 8px !important; }
     }
   </style>
 </head>
@@ -146,6 +207,7 @@ export function renderEmail(content: EmailContent) {
                     ${paragraphs.map(paragraph).join("\n                    ")}
                   </td>
                 </tr>
+                ${code ? codeBox(code) : ""}
                 ${details?.length ? detailsTable(details) : ""}
                 ${
                   closing.length
@@ -158,12 +220,32 @@ export function renderEmail(content: EmailContent) {
                 }
                 ${cta ? ctaButton(cta) : ""}
                 <tr>
-                  <td class="px" style="padding:0 40px 40px; font-family:Arial, Helvetica, sans-serif;">
+                  <td class="px" style="padding:0 40px ${fineprint.length ? 28 : 40}px; font-family:Arial, Helvetica, sans-serif;">
                     <p style="margin:0; font-size:15px; line-height:1.6; color:#4a5a63;">
                       ${SIGN_OFF.map(escape).join("<br>")}
                     </p>
                   </td>
                 </tr>
+                ${
+                  fineprint.length
+                    ? `<tr>
+                  <td class="px" style="padding:0 40px 36px; font-family:Arial, Helvetica, sans-serif;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding-top:20px; border-top:1px solid #e3eaee;">
+                          ${fineprint
+                            .map(
+                              (p) =>
+                                `<p style="margin:0 0 8px; font-size:12px; line-height:1.6; color:#8a979e;">${richText(p)}</p>`,
+                            )
+                            .join("\n                          ")}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`
+                    : ""
+                }
               </table>
             </td>
           </tr>
