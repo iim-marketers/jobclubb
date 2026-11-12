@@ -52,8 +52,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   FRANCHISE_CANDIDATES,
   OTP_LENGTH,
@@ -352,9 +350,12 @@ function VerifyCode({
     {},
     state.error,
   );
+  const [code, setCode] = useState("");
   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const [resending, startResend] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const autoSubmitted = useRef("");
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -365,9 +366,17 @@ function VerifyCode({
   useEffect(() => {
     if (state.registered) onRegistered(state.registered);
     else if (state.restart && state.error) onRestart(state.error);
+    else if (state.error) inputRef.current?.select();
   }, [state, onRegistered, onRestart]);
 
   useEffect(() => inputRef.current?.focus(), []);
+
+  useEffect(() => {
+    if (code.length !== OTP_LENGTH || pending || autoSubmitted.current === code)
+      return;
+    autoSubmitted.current = code;
+    formRef.current?.requestSubmit();
+  }, [code, pending]);
 
   return (
     <section className="rounded-3xl border border-border bg-card p-5 sm:p-8">
@@ -378,78 +387,169 @@ function VerifyCode({
       >
         <ArrowLeft className="size-4" /> Change details
       </button>
-      <div className="mt-5 flex items-start gap-3">
-        <span className="flex size-11 flex-none items-center justify-center rounded-xl bg-brand/10 text-brand">
-          <MailCheck className="size-5" />
-        </span>
-        <div className="min-w-0">
-          <h2 className="font-head text-lg font-extrabold tracking-tight">
-            Enter the code we emailed {name}
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            We sent a {OTP_LENGTH}-digit code to{" "}
-            <span className="font-semibold break-all text-foreground">
-              {email}
-            </span>
-            . It expires in {OTP_TTL_MINUTES} minutes. Ask the candidate to
-            check their spam folder if it hasn&apos;t arrived.
-          </p>
-        </div>
-      </div>
 
-      <form
-        onSubmit={(e) => {
-          clearAll();
-          submitManually(formAction)(e);
-        }}
-        onChange={onChange}
-        noValidate
-        className="mt-6 space-y-4"
-      >
-        <div className="max-w-xs space-y-2">
-          <Label htmlFor="code">Verification code</Label>
-          <Input
-            ref={inputRef}
-            id="code"
-            name="code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={OTP_LENGTH}
-            placeholder="••••••"
-            aria-invalid={!!formError}
-            className="h-12 bg-card text-center font-mono text-xl tracking-[0.5em]"
+      <div className="mx-auto mt-4 flex max-w-sm flex-col items-center text-center sm:mt-2">
+        <span className="flex size-14 items-center justify-center rounded-2xl bg-brand/10 text-brand ring-8 ring-brand/5">
+          <MailCheck className="size-6" />
+        </span>
+        <h2 className="mt-5 font-head text-xl font-extrabold tracking-tight">
+          Check {name}&apos;s inbox
+        </h2>
+        <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+          Enter the {OTP_LENGTH}-digit code we sent to
+        </p>
+        <p className="mt-1 max-w-full rounded-full bg-muted px-3 py-1 text-sm font-semibold break-all text-foreground">
+          {email}
+        </p>
+
+        <form
+          ref={formRef}
+          onSubmit={(e) => {
+            clearAll();
+            submitManually(formAction)(e);
+          }}
+          onChange={onChange}
+          noValidate
+          className="mt-7 w-full"
+        >
+          <OtpInput
+            inputRef={inputRef}
+            value={code}
+            onValueChange={setCode}
+            invalid={!!formError}
+            disabled={pending}
           />
-        </div>
-        <FormStatus error={formError} />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <SubmitButton pending={pending}>
-            {pending ? "Verifying..." : "Verify and register"}
-          </SubmitButton>
+          <div className="mt-3 flex justify-center text-center">
+            <FormStatus error={formError} />
+          </div>
           <Button
-            type="button"
-            variant="ghost"
-            className="font-head"
-            disabled={cooldown > 0 || resending || pending}
-            onClick={() =>
-              startResend(async () => {
-                const result = await resendCandidateCode(registrationId);
-                if (result.restart && result.error)
-                  return onRestart(result.error);
-                if (result.error) {
-                  toast.error(result.error);
-                  return;
-                }
-                toast.success("New code sent");
-                setCooldown(RESEND_COOLDOWN_SECONDS);
-              })
-            }
+            type="submit"
+            disabled={pending || code.length < OTP_LENGTH}
+            className="mt-2 h-11 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
           >
-            {resending && <Loader2 className="size-4 animate-spin" />}
-            {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}
+            {pending && <Loader2 className="size-4 animate-spin" />}
+            {pending ? "Verifying..." : "Verify and register"}
           </Button>
-        </div>
-      </form>
+        </form>
+
+        <p className="mt-5 text-sm text-muted-foreground">
+          Didn&apos;t get it?{" "}
+          {cooldown > 0 ? (
+            <span className="font-medium tabular-nums">
+              Resend in 0:{String(cooldown).padStart(2, "0")}
+            </span>
+          ) : (
+            <button
+              type="button"
+              disabled={resending || pending}
+              onClick={() =>
+                startResend(async () => {
+                  const result = await resendCandidateCode(registrationId);
+                  if (result.restart && result.error)
+                    return onRestart(result.error);
+                  if (result.error) {
+                    toast.error(result.error);
+                    return;
+                  }
+                  toast.success("New code sent");
+                  setCode("");
+                  autoSubmitted.current = "";
+                  setCooldown(RESEND_COOLDOWN_SECONDS);
+                  inputRef.current?.focus();
+                })
+              }
+              className="inline-flex items-center gap-1 font-head font-semibold text-brand underline-offset-2 hover:underline disabled:pointer-events-none disabled:opacity-60"
+            >
+              {resending && <Loader2 className="size-3.5 animate-spin" />}
+              Resend code
+            </button>
+          )}
+        </p>
+
+        <p className="mt-6 w-full border-t border-border pt-4 text-xs leading-5 text-muted-foreground">
+          The code expires in {OTP_TTL_MINUTES} minutes. If it hasn&apos;t
+          arrived, ask {name} to check their spam folder.
+        </p>
+      </div>
     </section>
+  );
+}
+
+function OtpInput({
+  inputRef,
+  value,
+  onValueChange,
+  invalid,
+  disabled,
+}: {
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  value: string;
+  onValueChange: (value: string) => void;
+  invalid: boolean;
+  disabled: boolean;
+}) {
+  const [focused, setFocused] = useState(false);
+  const activeIndex = Math.min(value.length, OTP_LENGTH - 1);
+  const caretToEnd = (e: React.SyntheticEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    if (
+      input.selectionStart === 0 &&
+      input.selectionEnd === input.value.length &&
+      input.value
+    )
+      return;
+    input.setSelectionRange(input.value.length, input.value.length);
+  };
+
+  return (
+    <div className="relative mx-auto grid w-full max-w-[22rem] grid-cols-6 gap-2">
+      {Array.from({ length: OTP_LENGTH }, (_, i) => {
+        const char = value[i];
+        const active = focused && i === activeIndex;
+        return (
+          <div
+            key={i}
+            aria-hidden="true"
+            className={cn(
+              "flex h-14 items-center justify-center rounded-xl border bg-background font-mono text-2xl font-semibold transition-all",
+              char ? "border-foreground/25" : "border-input",
+              active && "border-brand ring-3 ring-brand/20",
+              invalid && "border-destructive bg-destructive/5 text-destructive",
+              invalid && active && "ring-destructive/20",
+              disabled && "opacity-60",
+            )}
+          >
+            {char ??
+              (active && (
+                <span className="h-6 w-px animate-pulse bg-foreground" />
+              ))}
+          </div>
+        );
+      })}
+      <input
+        ref={inputRef}
+        id="code"
+        name="code"
+        aria-label="Verification code"
+        aria-invalid={invalid}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        autoComplete="one-time-code"
+        maxLength={OTP_LENGTH}
+        value={value}
+        disabled={disabled}
+        onChange={(e) =>
+          onValueChange(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH))
+        }
+        onFocus={(e) => {
+          setFocused(true);
+          caretToEnd(e);
+        }}
+        onBlur={() => setFocused(false)}
+        onClick={caretToEnd}
+        className="absolute inset-0 size-full cursor-text bg-transparent text-base text-transparent caret-transparent outline-none selection:bg-transparent disabled:cursor-not-allowed"
+      />
+    </div>
   );
 }
 

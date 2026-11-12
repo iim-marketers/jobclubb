@@ -23,12 +23,27 @@ export function franchiseOtpEmail({
     subject: `${code} is your JobClubb verification code`,
     preheader: `${franchiseName} is registering you on JobClubb. Share this code with them to confirm.`,
     eyebrow: "Verify your email",
-    heading: code,
-    greeting: `Dear ${firstName},`,
+    heading: "Confirm your JobClubb account",
+    greeting: `Hi ${firstName},`,
     paragraphs: [
-      `JobClubb franchise partner ${franchiseName} is creating your JobClubb candidate account. To confirm this is your email, give them the 6-digit code above, or type it in yourself on their screen.`,
-      `By sharing the code, you agree to JobClubb's Terms & Conditions (${termsUrl}) and Privacy Policy (${privacyUrl}), and to ${franchiseName} and JobClubb using the details you gave them to register you and help you find a job.`,
-      `The code expires in ${minutes} minutes. If you didn't ask anyone to register you, ignore this email and no account will be created.`,
+      `${franchiseName}, a JobClubb franchise partner, is creating your candidate account. To confirm this email is yours, share this code with them or type it in on their screen.`,
+    ],
+    code: {
+      label: "Your verification code",
+      value: code,
+      note: `Expires in ${minutes} minutes`,
+    },
+    closing: [
+      "Didn't ask anyone to register you? Ignore this email and no account will be created.",
+    ],
+    fineprint: [
+      [
+        "By sharing this code, you agree to JobClubb's ",
+        { label: "Terms & Conditions", href: termsUrl },
+        " and ",
+        { label: "Privacy Policy", href: privacyUrl },
+        `, and to ${franchiseName} and JobClubb using the details you gave them to register you and help you find a job.`,
+      ],
     ],
     footer: "You're receiving this because a JobClubb franchise partner entered this email address to register you.",
   });
