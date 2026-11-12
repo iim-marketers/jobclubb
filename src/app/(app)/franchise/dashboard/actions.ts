@@ -4,22 +4,24 @@ import { revalidatePath } from "next/cache";
 
 import type { SettingsActionState } from "@/app/(app)/candidate/dashboard/settings/actions";
 import {
-  FRANCHISE_CANDIDATES,
   FRANCHISE_REGISTER,
   FRANCHISE_SETTINGS,
   validateBankDetails,
   validateFranchiseCandidate,
   validateOtp,
 } from "@/lib/franchise";
-import type { FieldErrors } from "@/lib/sign-up-validation";
+import { validateNewPassword, type FieldErrors } from "@/lib/sign-up-validation";
 import { changeOwnPassword } from "@/server/auth/change-password";
 import { requireFranchise } from "@/server/franchises/current";
 import { addOwnBankDetails } from "@/server/franchises/franchises";
 import {
+  completeRegistration,
+  discardCandidate,
+  discardPending,
   resendCode,
-  resendWelcome,
   startRegistration,
   verifyRegistration,
+  type RegisteredCandidate,
 } from "@/server/franchises/registration";
 
 const FAILED = "Something went wrong. Please try again.";
@@ -57,7 +59,7 @@ export async function startCandidateRegistration(
 export type VerifyState = {
   error?: string;
   restart?: boolean;
-  registered?: { candidateId: string; name: string };
+  verified?: boolean;
 };
 
 export async function verifyCandidateCode(
@@ -72,11 +74,58 @@ export async function verifyCandidateCode(
   try {
     const result = await verifyRegistration(franchise, registrationId, code);
     if (!result.ok) return { error: result.error, restart: result.restart };
-    revalidatePath("/franchise/dashboard", "layout");
-    revalidatePath("/admin", "layout");
-    return { registered: { candidateId: result.candidateId, name: result.name } };
+    return { verified: true };
   } catch (error) {
     console.error("Verifying franchise registration failed", error);
+    return { error: FAILED };
+  }
+}
+
+export type PasswordState = {
+  errors?: FieldErrors;
+  error?: string;
+  restart?: boolean;
+  registered?: RegisteredCandidate;
+};
+
+export async function setCandidatePassword(
+  registrationId: string,
+  _prev: PasswordState,
+  formData: FormData,
+): Promise<PasswordState> {
+  const franchise = await requireFranchise(FRANCHISE_REGISTER);
+  const errors = validateNewPassword(formData);
+  if (Object.keys(errors).length > 0) return { errors };
+
+  try {
+    const result = await completeRegistration(franchise, registrationId, String(formData.get("password")));
+    if (!result.ok) return { errors: result.errors, error: result.error, restart: result.restart };
+    revalidatePath("/franchise/dashboard", "layout");
+    revalidatePath("/admin", "layout");
+    return { registered: result.candidate };
+  } catch (error) {
+    console.error("Completing franchise registration failed", error);
+    return { error: FAILED };
+  }
+}
+
+export async function discardRegistration(target: {
+  registrationId?: string;
+  candidateId?: string;
+}): Promise<{ error?: string }> {
+  const franchise = await requireFranchise(FRANCHISE_REGISTER);
+  try {
+    if (target.candidateId) {
+      if (!(await discardCandidate(franchise, target.candidateId)))
+        return { error: "This candidate has already paid, so their registration can't be discarded." };
+      revalidatePath("/franchise/dashboard", "layout");
+      revalidatePath("/admin", "layout");
+    } else if (target.registrationId) {
+      await discardPending(franchise, target.registrationId);
+    }
+    return {};
+  } catch (error) {
+    console.error("Discarding franchise registration failed", error);
     return { error: FAILED };
   }
 }
@@ -90,19 +139,6 @@ export async function resendCandidateCode(
     return result.ok ? {} : { error: result.error, restart: result.restart };
   } catch (error) {
     console.error("Resending franchise registration code failed", error);
-    return { error: FAILED };
-  }
-}
-
-export async function resendWelcomeEmail(candidateId: string): Promise<{ error?: string }> {
-  const franchise = await requireFranchise(FRANCHISE_CANDIDATES);
-  try {
-    const result = await resendWelcome(franchise, candidateId);
-    if (result === "rate_limited") return { error: "An email was sent moments ago. Wait a minute before sending another." };
-    if (!result) return { error: "This candidate isn't on your list. Refresh to see the latest." };
-    return {};
-  } catch (error) {
-    console.error("Resending franchise welcome email failed", error);
     return { error: FAILED };
   }
 }

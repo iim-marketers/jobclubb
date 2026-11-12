@@ -56,13 +56,13 @@ function Stat({
 export default async function FranchiseOverviewPage() {
   const franchise = await requireFranchise();
   const [candidates, ledger] = await Promise.all([
-    listFranchiseCandidates(franchise.id),
+    listFranchiseCandidates(franchise.id, { paidOnly: true }),
     getLedger(franchise.id),
   ]);
   const today = todayIst();
   const lastDay = lastDayOf(franchise);
   const daysLeft = daysBetween(today, lastDay);
-  const paid = candidates.filter((c) => c.membershipPaidAt).length;
+  const active = candidates.filter((c) => c.membershipActive).length;
   const placed = candidates.filter((c) => c.placement === "joined").length;
 
   const banner =
@@ -116,11 +116,11 @@ export default async function FranchiseOverviewPage() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Candidates registered" value={candidates.length} />
         <Stat
-          label="Paid membership"
-          value={paid}
+          label="Active memberships"
+          value={active}
           hint={
-            candidates.length
-              ? `${Math.round((paid / candidates.length) * 100)}% of registered`
+            candidates.length > active
+              ? `${candidates.length - active} expired`
               : undefined
           }
         />
@@ -164,7 +164,7 @@ export default async function FranchiseOverviewPage() {
             </p>
           ) : (
             <ul className="divide-y divide-border">
-              {candidates.slice(0, 5).map((c) => (
+              {candidates.slice(0, 3).map((c) => (
                 <li
                   key={c.id}
                   className="flex items-center justify-between gap-3 px-5 py-3"
@@ -181,16 +181,16 @@ export default async function FranchiseOverviewPage() {
                   <span
                     className={cn(
                       "flex-none text-xs font-semibold",
-                      c.membershipPaidAt
+                      c.membershipActive || c.placement === "joined"
                         ? "text-good"
-                        : "text-amber-700 dark:text-amber-300",
+                        : "text-muted-foreground",
                     )}
                   >
                     {c.placement === "joined"
                       ? "Placed"
-                      : c.membershipPaidAt
+                      : c.membershipActive
                         ? "Paid"
-                        : "Not paid yet"}
+                        : "Expired"}
                   </span>
                 </li>
               ))}
@@ -217,7 +217,7 @@ export default async function FranchiseOverviewPage() {
             </p>
           ) : (
             <ul className="divide-y divide-border">
-              {ledger.commissions.slice(0, 5).map((c) => (
+              {ledger.commissions.slice(0, 3).map((c) => (
                 <li
                   key={c.id}
                   className="flex items-center justify-between gap-3 px-5 py-3"
@@ -265,8 +265,8 @@ export default async function FranchiseOverviewPage() {
           <li className="rounded-xl bg-muted/50 p-4">
             <p className="font-head font-bold">Paid in 2 working days</p>
             <p className="mt-1 leading-6 text-muted-foreground">
-              By bank transfer after JobClubb receives the payment. Candidates
-              always pay JobClubb directly, never you.
+              By bank transfer, once a membership is paid from your dashboard
+              or JobClubb receives a placement fee.
             </p>
           </li>
         </ul>

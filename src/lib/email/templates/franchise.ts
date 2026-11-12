@@ -52,29 +52,29 @@ export function franchiseOtpEmail({
 export function franchiseWelcomeEmail({
   firstName,
   franchiseName,
-  setPasswordUrl,
+  email,
+  signInUrl,
   forgotPasswordUrl,
 }: {
   firstName: string;
   franchiseName: string;
-  setPasswordUrl: string;
+  email: string;
+  signInUrl: string;
   forgotPasswordUrl: string;
 }) {
   return renderEmail({
-    subject: "Your JobClubb account is ready: set your password",
-    preheader: "Choose a password to sign in, then complete your membership to start applying.",
+    subject: "Welcome to JobClubb: your account is ready",
+    preheader: `${franchiseName} has registered you and your membership is active. Sign in with your email and the password you chose.`,
     eyebrow: "Welcome to JobClubb",
     heading: `Welcome, ${firstName}`,
     greeting: `Dear ${firstName},`,
     paragraphs: [
-      `${franchiseName} has registered you on JobClubb, and your email is verified.`,
-      "Choose a password to sign in. Then complete your membership (₹1,499 a year, GST included) to apply for jobs, build your ATS-ready resume and get your guaranteed interviews.",
-      "Pay only on JobClubb.com. Never pay the franchise partner or anyone else in cash or to a personal account.",
+      `${franchiseName} has registered you on JobClubb, and your account is ready. Sign in with this email address and the password you chose at their outlet.`,
+      "Your membership is active for a year: apply for jobs, build your ATS-ready resume and get your guaranteed interviews. Your receipt is in a separate email.",
     ],
-    cta: { label: "Set my password", url: setPasswordUrl },
-    closing: [
-      `For your security, this link works once and expires soon. If it has expired, get a new one from ${forgotPasswordUrl}.`,
-    ],
+    details: [{ label: "Your sign-in email", value: email }],
+    cta: { label: "Sign in to JobClubb", url: signInUrl },
+    closing: [`Forgot your password? Choose a new one at ${forgotPasswordUrl}.`],
     footer: "You're receiving this because a JobClubb franchise partner registered this email address.",
   });
 }
@@ -132,7 +132,7 @@ export function franchiseApprovedEmail({
     greeting: `Dear ${ownerName},`,
     paragraphs: [
       `${name} is now an approved JobClubb franchise partner. Sign in with the email and password you chose to open your dashboard.`,
-      "Register candidates who visit your outlet from the dashboard: they confirm with a code we email them, and pay JobClubb directly. You earn half of their first membership fee and half of their placement fee.",
+      "Register candidates who visit your outlet from the dashboard: they confirm with a code we email them, choose a password, and pay the membership to JobClubb online from your dashboard. You earn half of their first membership fee and half of their placement fee.",
     ],
     details: [
       { label: "Franchise code", value: code },

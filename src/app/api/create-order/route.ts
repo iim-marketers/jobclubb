@@ -1,6 +1,7 @@
 import { CHECKOUT_PLAN, isMembershipActive } from "@/lib/membership";
 import { getCurrentCandidate } from "@/server/auth/current-candidate";
 import { createMembershipOrder } from "@/server/candidates/membership";
+import { franchiseCollecting } from "@/server/franchises/membership";
 import { RazorpayError } from "@/server/payments/razorpay";
 
 export async function POST() {
@@ -14,6 +15,13 @@ export async function POST() {
     );
 
   try {
+    const franchise = await franchiseCollecting(candidate);
+    if (franchise)
+      return Response.json(
+        { error: `${franchise.name} collects your membership at their outlet. Visit them to complete it.` },
+        { status: 403 },
+      );
+
     const order = await createMembershipOrder({
       ...candidate,
       plan: CHECKOUT_PLAN,
