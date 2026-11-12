@@ -10,6 +10,7 @@ import {
   COMPANY_JOBS,
   COMPANY_NAV,
 } from "@/components/company/nav";
+import { FRANCHISE_NAV } from "@/components/franchise/nav";
 import { MobileNav } from "@/components/mobile-nav";
 import { ScrollFlag } from "@/components/scroll-flag";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,10 @@ const COMPANY_NAV_LINKS = COMPANY_NAV[0].items
   .filter((item) => item.href !== COMPANY_HOME)
   .map(({ label, href }) => ({ label, href }));
 
+const FRANCHISE_NAV_LINKS = FRANCHISE_NAV[0].items
+  .filter((item) => item.href !== FRANCHISE_HOME)
+  .map(({ label, href }) => ({ label, href }));
+
 export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const candidate = await getCandidateSession();
   const company = candidate ? null : await getCompanySession();
@@ -57,7 +62,9 @@ export async function SiteHeader({ search }: { search?: React.ReactNode }) {
   const lapsed = view?.kind === "unpaid" && !!(await getLapsedAccess());
   const links = company
     ? COMPANY_NAV_LINKS
-    : view?.kind === "member" || lapsed
+    : franchise
+      ? FRANCHISE_NAV_LINKS
+      : view?.kind === "member" || lapsed
       ? memberNavLinks(lapsed)
       : NAV_LINKS;
 

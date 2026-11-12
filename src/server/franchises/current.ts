@@ -38,6 +38,10 @@ export const getFranchiseSession = cache(async () => {
 
 export type CurrentFranchise = NonNullable<Awaited<ReturnType<typeof getCurrentFranchise>>>;
 
+export async function redirectIfFranchise() {
+  if (await getCurrentFranchise()) redirect(FRANCHISE_HOME);
+}
+
 export async function requireFranchise(returnTo: string = FRANCHISE_HOME) {
   const franchise = await getCurrentFranchise();
   if (!franchise) redirect(`/sign-in?as=franchise&next=${encodeURIComponent(returnTo)}`);

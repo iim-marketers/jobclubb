@@ -4,50 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import {
-  BadgeIndianRupee,
-  CircleHelp,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Settings,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { CircleHelp, LogOut, Menu, UserPlus } from "lucide-react";
 
 import { CompanyAvatar } from "@/components/company-avatar";
+import { FRANCHISE_NAV } from "@/components/franchise/nav";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
-  FRANCHISE_CANDIDATES,
-  FRANCHISE_EARNINGS,
   FRANCHISE_HOME,
   FRANCHISE_REGISTER,
-  FRANCHISE_SETTINGS,
   FRANCHISE_SIGN_OUT_DESCRIPTION,
   FRANCHISE_STATUS_LABELS,
   type FranchiseStatus,
 } from "@/lib/franchise";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  {
-    title: "Franchise",
-    items: [
-      { label: "Overview", href: FRANCHISE_HOME, icon: LayoutDashboard },
-      { label: "Candidates", href: FRANCHISE_CANDIDATES, icon: Users },
-      { label: "Register a candidate", href: FRANCHISE_REGISTER, icon: UserPlus },
-      { label: "Earnings", href: FRANCHISE_EARNINGS, icon: BadgeIndianRupee },
-    ],
-  },
-  {
-    title: "Account",
-    items: [{ label: "Settings", href: FRANCHISE_SETTINGS, icon: Settings }],
-  },
-];
-
-const ITEMS = NAV.flatMap((g) => g.items);
+const ITEMS = FRANCHISE_NAV.flatMap((g) => g.items);
 
 // The most specific match wins, so /candidates/new highlights "Register a candidate".
 function activeHref(pathname: string) {
@@ -192,7 +165,7 @@ function SidebarContent({
       </div>
 
       <nav aria-label="Dashboard" className="min-h-0 flex-1 overflow-y-auto px-3 pt-4 pb-6">
-        {NAV.map((group) => (
+        {FRANCHISE_NAV.map((group) => (
           <div key={group.title} className="mb-6 last:mb-0">
             <p className="px-3 pb-2 font-head text-[10px] font-bold tracking-[0.16em] text-white/45 uppercase">
               {group.title}

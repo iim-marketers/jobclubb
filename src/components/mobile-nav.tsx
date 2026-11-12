@@ -22,6 +22,7 @@ import { CANDIDATE_HOME, CANDIDATE_NAV } from "@/components/candidate/nav";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { COMPANY_SIGN_OUT_DESCRIPTION } from "@/components/company/company-sidebar";
 import { COMPANY_HOME, COMPANY_NAV } from "@/components/company/nav";
+import { FRANCHISE_NAV } from "@/components/franchise/nav";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +43,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "/franchise": Store,
   "/about": Info,
   ...Object.fromEntries(
-    [...CANDIDATE_NAV, ...COMPANY_NAV]
+    [...CANDIDATE_NAV, ...COMPANY_NAV, ...FRANCHISE_NAV]
       .flatMap((g) => g.items)
       .map((i) => [i.href, i.icon]),
   ),

@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, LayoutDashboard } from "lucide-react";
 
 import { PageHeader, Section, SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
+import { FRANCHISE_HOME } from "@/lib/franchise";
+import { getCandidateSession } from "@/server/auth/current-candidate";
+import { getCompanySession } from "@/server/auth/current-company";
+import { getFranchiseSession } from "@/server/franchises/current";
 
 export const metadata = {
   title: "Franchise — JobClubb",
@@ -83,7 +87,18 @@ const TIER_TRENDS = [
   "These markets remain largely untapped, with awareness of aviation steadily rising",
 ];
 
-export default function FranchisePage() {
+export default async function FranchisePage() {
+  const [franchise, candidate, company] = await Promise.all([
+    getFranchiseSession(),
+    getCandidateSession(),
+    getCompanySession(),
+  ]);
+  const cta = franchise
+    ? { label: "Go to your dashboard", href: FRANCHISE_HOME }
+    : candidate || company
+      ? null
+      : { label: "Become a partner", href: "/sign-up/franchise" };
+
   return (
     <>
       <PageHeader
@@ -91,13 +106,16 @@ export default function FranchisePage() {
         title="Join our franchise program"
         description="Become our partner and build a successful job placement & recruitment business in your area - with a proven model, full training, and lifelong support."
       >
-        <Button
-          className="mt-7 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-          nativeButton={false}
-          render={<Link href="/sign-up/franchise" />}
-        >
-          Become a partner
-        </Button>
+        {cta && (
+          <Button
+            className="mt-7 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+            nativeButton={false}
+            render={<Link href={cta.href} />}
+          >
+            {franchise && <LayoutDashboard className="size-4" />}
+            {cta.label}
+          </Button>
+        )}
       </PageHeader>
 
       <Section>

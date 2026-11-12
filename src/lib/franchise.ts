@@ -1,6 +1,6 @@
 import { locationPrefix } from "@/lib/emporium";
 import { pincodeState } from "@/lib/gst";
-import { addDays, parseRupees, todayIst } from "@/lib/placements";
+import { addDays, formatDateOnly, parseRupees, todayIst } from "@/lib/placements";
 import { GSTIN_PATTERN, type FieldErrors, type SignUpStep } from "@/lib/sign-up-validation";
 import { INDUSTRIES } from "@/lib/taxonomy";
 
@@ -73,6 +73,25 @@ export const FRANCHISE_STATUS_BADGES: Record<FranchiseStatus, string> = {
   expired: "bg-muted text-muted-foreground",
   terminated: "bg-destructive/10 text-destructive",
 };
+
+const EXPIRY_WARNING_DAYS = 30;
+
+export function franchiseNotice(
+  franchise: FranchiseTerm & { status: FranchiseStatus },
+  today = todayIst(),
+) {
+  const lastDay = lastDayOf(franchise);
+  const daysLeft = daysBetween(today, lastDay);
+  if (franchise.status === "upcoming")
+    return `Your agreement starts on ${formatDateOnly(franchise.startsOn)}. You can register candidates from then.`;
+  if (franchise.status === "terminated")
+    return `Your franchise agreement was terminated, with ${formatDateOnly(lastDay)} as the last day. You can't register new candidates, but commission you've already earned will still be paid.`;
+  if (franchise.status === "expired")
+    return `Your franchise agreement ended on ${formatDateOnly(lastDay)}. Contact JobClubb head office to renew. Commission you've already earned will still be paid.`;
+  if (daysLeft <= EXPIRY_WARNING_DAYS)
+    return `Your agreement ends on ${formatDateOnly(lastDay)} (${daysLeft} ${daysLeft === 1 ? "day" : "days"} left). Contact JobClubb head office about renewal: commission stops for payments after that date.`;
+  return null;
+}
 
 export const defaultEndsOn = (startsOn: string) => {
   const [y, m, d] = startsOn.split("-").map(Number);
