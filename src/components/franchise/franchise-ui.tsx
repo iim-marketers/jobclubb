@@ -661,9 +661,6 @@ function PaymentStep({
 type DiscardTarget = { registrationId: string } | { candidateId: string };
 type LeaveNav = { kind: "back" } | { kind: "href"; href: string };
 
-// While a registration is half done, browser back and in-site links ask before
-// leaving: back is caught with an extra history entry, links with a capturing
-// click listener. Returns a release that stops guarding without touching history.
 function useLeaveGuard(active: boolean, onAttempt: (nav: LeaveNav) => void) {
   const attempt = useEffectEvent(onAttempt);
   const release = useRef(() => {});
@@ -673,8 +670,7 @@ function useLeaveGuard(active: boolean, onAttempt: (nav: LeaveNav) => void) {
     window.history.pushState({ leaveGuard: true }, "");
 
     const onPopState = () => {
-      // Landing back on the guard entry means something above it (like the
-      // Razorpay modal) handled its own back press.
+      // Razorpay's modal pushes its own entry, so its back press lands on ours.
       if (window.history.state?.leaveGuard) return;
       window.history.pushState({ leaveGuard: true }, "");
       attempt({ kind: "back" });
@@ -811,8 +807,7 @@ function LeaveDialog({
                     router.push(nav.href);
                     return;
                   }
-                  // Skips the guard entry and the page itself. If there's no
-                  // earlier page in this tab, nothing happens, so fall back.
+                  // go(-2) is a no-op when there's no earlier page in the tab.
                   window.history.go(-2);
                   fallback.current = setTimeout(
                     () => router.replace(FRANCHISE_CANDIDATES),

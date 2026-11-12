@@ -404,8 +404,6 @@ const PLACEMENT_RANK: PlacementStatus[] = [
   "withdrawn",
 ];
 
-// Franchises only see candidates whose registration finished with a payment;
-// admin also sees abandoned, unpaid ones.
 export async function listFranchiseCandidates(
   franchiseId: string,
   { paidOnly = false }: { paidOnly?: boolean } = {},

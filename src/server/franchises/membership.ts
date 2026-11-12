@@ -30,9 +30,6 @@ export async function getFranchiseCandidate(franchiseId: string, candidateId: st
 
 export type CollectingFranchise = { name: string; phone: string; outletAddress: string };
 
-// A franchise candidate's first membership is collected by their franchise, on
-// its dashboard, while the agreement is in force. Renewals, and candidates of a
-// franchise whose agreement has ended, pay on their own.
 export async function franchiseCollecting(candidate: {
   franchise_id: string | null;
   membership_expires_at: string | null;

@@ -52,9 +52,6 @@ async function emailTaken(email: string) {
   return results.some((r) => r.data);
 }
 
-// An account the franchise created but never paid for is an abandoned
-// registration: the franchise can discard it, and registering the same email
-// again replaces it.
 async function abandonedCandidate(franchiseId: string, match: { email: string } | { id: string }) {
   const admin = createAdminClient();
   const query = admin.from("candidates").select("id, membership_paid_at").eq("franchise_id", franchiseId);
@@ -335,8 +332,6 @@ export async function completeRegistration(
   };
 }
 
-// Lets the franchise retry the password step after a failure instead of
-// verifying the email all over again.
 async function restorePending(pending: PendingRow) {
   const { error } = await createAdminClient().from("franchise_registrations").insert(pending);
   if (error) console.error("Restoring franchise registration failed", error);
@@ -360,7 +355,6 @@ export async function discardCandidate(franchise: CurrentFranchise, candidateId:
   return true;
 }
 
-// Sent once the first membership is paid, which is when registration is complete.
 export async function sendWelcome(email: string, firstName: string, franchiseName: string) {
   try {
     await sendEmail({
