@@ -265,8 +265,8 @@ export default async function FranchiseOverviewPage() {
           <li className="rounded-xl bg-muted/50 p-4">
             <p className="font-head font-bold">Paid in 2 working days</p>
             <p className="mt-1 leading-6 text-muted-foreground">
-              By bank transfer after JobClubb receives the payment. Candidates
-              always pay JobClubb directly, never you.
+              By bank transfer, once a membership is paid from your dashboard
+              or JobClubb receives a placement fee.
             </p>
           </li>
         </ul>

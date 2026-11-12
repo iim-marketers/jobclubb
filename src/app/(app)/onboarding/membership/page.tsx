@@ -1,7 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, CalendarCheck, Check, LogOut, RotateCcw } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarCheck,
+  Check,
+  LogOut,
+  MapPin,
+  Phone,
+  RotateCcw,
+  Store,
+} from "lucide-react";
 
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { MembershipCheckout } from "@/components/membership-checkout";
@@ -19,6 +28,7 @@ import {
   getLapsedAccessUntil,
   requireCandidate,
 } from "@/server/auth/current-candidate";
+import { franchiseCollecting } from "@/server/franchises/membership";
 
 const formatDate = (d: Date) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -46,9 +56,10 @@ export default async function CheckoutPage() {
   const category = categoryOf(candidate);
   const expiresAt = candidate.membership_expires_at as string | null;
   const renewal = !!expiresAt;
-  const accessUntil = expiresAt
-    ? await getLapsedAccessUntil(candidate.id, expiresAt)
-    : null;
+  const [accessUntil, franchise] = await Promise.all([
+    expiresAt ? getLapsedAccessUntil(candidate.id, expiresAt) : null,
+    franchiseCollecting(candidate),
+  ]);
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col bg-linear-to-b from-muted/70 to-background">
@@ -128,8 +139,9 @@ export default async function CheckoutPage() {
               One last step, {candidate.first_name}
             </h1>
             <p className="mt-3 text-muted-foreground">
-              Activate your membership to see full job details, apply to
-              employers and get your guaranteed interviews.
+              {franchise
+                ? `${franchise.name} collects your membership at their outlet. Once it's paid, you can see full job details, apply to employers and get your guaranteed interviews.`
+                : "Activate your membership to see full job details, apply to employers and get your guaranteed interviews."}
             </p>
           </div>
         )}
@@ -194,17 +206,43 @@ export default async function CheckoutPage() {
               </div>
             </dl>
 
-            <div className="mt-auto pt-5">
-              <MembershipCheckout
-                label={`${renewal ? "Renew for" : "Pay"} ${details.price}`}
-                planName={details.name}
-                prefill={{
-                  name: `${candidate.first_name} ${candidate.last_name}`,
-                  email: candidate.email,
-                  contact: candidate.phone,
-                }}
-              />
-            </div>
+            {franchise ? (
+              <div className="mt-auto pt-5">
+                <div className="rounded-2xl bg-brand/8 p-4 text-sm">
+                  <p className="flex items-center gap-2 font-head font-bold">
+                    <Store className="size-4 text-brand" />
+                    Pay at {franchise.name}
+                  </p>
+                  <p className="mt-2 flex items-start gap-2 leading-6 text-muted-foreground">
+                    <MapPin className="mt-1 size-3.5 flex-none" />
+                    {franchise.outletAddress}
+                  </p>
+                  <a
+                    href={`tel:${franchise.phone}`}
+                    className="mt-1 flex items-center gap-2 font-semibold text-brand hover:underline"
+                  >
+                    <Phone className="size-3.5 flex-none" />
+                    {franchise.phone}
+                  </a>
+                </div>
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                  They pay it to JobClubb online for you, and we email you the
+                  receipt.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-auto pt-5">
+                <MembershipCheckout
+                  label={`${renewal ? "Renew for" : "Pay"} ${details.price}`}
+                  planName={details.name}
+                  prefill={{
+                    name: `${candidate.first_name} ${candidate.last_name}`,
+                    email: candidate.email,
+                    contact: candidate.phone,
+                  }}
+                />
+              </div>
+            )}
           </aside>
         </div>
 

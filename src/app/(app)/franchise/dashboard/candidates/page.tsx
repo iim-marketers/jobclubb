@@ -22,9 +22,8 @@ export default async function FranchiseCandidatesPage() {
             Candidates
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Everyone you&apos;ve registered. If a candidate hasn&apos;t paid
-            yet, check they&apos;ve set their password: you can resend the
-            email.
+            Everyone you&apos;ve registered. Collect the membership for anyone
+            who hasn&apos;t paid yet when they&apos;re with you.
           </p>
         </div>
         {/* {canRegister && (
@@ -47,7 +46,7 @@ export default async function FranchiseCandidatesPage() {
           <p className="mt-4 font-head font-bold">No candidates yet</p>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
             {canRegister
-              ? "Register candidates who visit your outlet. They confirm with a code we email them, then pay JobClubb directly."
+              ? "Register candidates who visit your outlet. They confirm with a code we email them, choose a password, and pay the membership to JobClubb here."
               : "You can't register candidates while your agreement isn't active."}
           </p>
           {canRegister && (
@@ -61,7 +60,10 @@ export default async function FranchiseCandidatesPage() {
           )}
         </div>
       ) : (
-        <FranchiseCandidatesList candidates={candidates} />
+        <FranchiseCandidatesList
+          candidates={candidates}
+          canCollect={canRegister}
+        />
       )}
     </div>
   );

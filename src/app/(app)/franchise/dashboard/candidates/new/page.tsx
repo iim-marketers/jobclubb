@@ -16,7 +16,7 @@ export default async function RegisterCandidatePage() {
   const franchise = await requireFranchise(FRANCHISE_REGISTER);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <Link
           href={FRANCHISE_CANDIDATES}
@@ -29,8 +29,8 @@ export default async function RegisterCandidatePage() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Fill in their details with them. We email them a code to confirm their
-          email, and their account is created once you enter it. Each person can
-          only be registered once.
+          email, they choose a password to create their account, and then you
+          collect the membership. Each person can only be registered once.
         </p>
       </div>
 

@@ -11,9 +11,24 @@ export const PLAN_DETAILS: Record<
   MembershipPlan,
   { name: string; badge: string; price: string; amount: number }
 > = {
-  member: { name: "JobClubb Membership", badge: "Member", price: "₹1,499", amount: 1499 },
-  franchise: { name: "Franchise Membership", badge: "Member", price: "₹1,199", amount: 1199 },
-  emporium: { name: "Emporium Membership", badge: "Emporium", price: "Included", amount: 0 },
+  member: {
+    name: "JobClubb Membership",
+    badge: "Member",
+    price: "₹1,499",
+    amount: 1499,
+  },
+  franchise: {
+    name: "Franchise Membership",
+    badge: "Member",
+    price: "₹1,199",
+    amount: 1199,
+  },
+  emporium: {
+    name: "Emporium Membership",
+    badge: "Emporium",
+    price: "Included",
+    amount: 0,
+  },
 };
 
 export const MEMBERSHIP_DAYS = 365;
@@ -29,7 +44,7 @@ export const MEMBER_FEATURES = [
   "Unlimited one-click apply",
   "3 guaranteed employer interviews",
   "AI-built, ATS-approved resume",
-  "Upskilling & certification access",
+  // "Upskilling & certification access",
   "Priority support till you're hired",
 ];
 

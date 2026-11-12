@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useActionState,
   useEffect,
@@ -11,8 +12,11 @@ import {
 import { createColumnHelper } from "@tanstack/react-table";
 import {
   ArrowLeft,
+  BadgeIndianRupee,
   CircleCheck,
+  KeyRound,
   Loader2,
+  LockKeyhole,
   MailCheck,
   MapPin,
   ShieldCheck,
@@ -24,9 +28,10 @@ import { toast } from "sonner";
 import {
   addBankDetails,
   resendCandidateCode,
-  resendWelcomeEmail,
+  setCandidatePassword,
   startCandidateRegistration,
   verifyCandidateCode,
+  type PasswordState,
   type RegistrationState,
   type VerifyState,
 } from "@/app/(app)/franchise/dashboard/actions";
@@ -43,9 +48,11 @@ import {
   SubmitButton,
   submitManually,
 } from "@/components/candidate/settings-forms";
+import { RazorpayCheckout } from "@/components/razorpay-checkout";
 import {
   Field,
   FieldError,
+  PasswordField,
   SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
@@ -57,10 +64,12 @@ import {
   OTP_LENGTH,
   OTP_TTL_MINUTES,
 } from "@/lib/franchise";
-import type { PlacementStatus } from "@/lib/placements";
+import { CHECKOUT_PLAN, PLAN_DETAILS } from "@/lib/membership";
+import { formatRupees, type PlacementStatus } from "@/lib/placements";
 import { INDUSTRIES } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { FranchiseCandidate } from "@/server/franchises/franchises";
+import type { RegisteredCandidate } from "@/server/franchises/registration";
 
 const INDUSTRY_OPTIONS = INDUSTRIES.map((i) => ({
   value: i.slug,
@@ -95,8 +104,6 @@ function Section({
   );
 }
 
-type Registered = { candidateId: string; name: string };
-
 export function RegisterCandidateForm({
   franchiseName,
 }: {
@@ -115,7 +122,10 @@ export function RegisterCandidateForm({
   const [consent, setConsent] = useState(false);
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [restartError, setRestartError] = useState<string | null>(null);
-  const [registered, setRegistered] = useState<Registered | null>(null);
+  const [verified, setVerified] = useState<string | null>(null);
+  const [registered, setRegistered] = useState<RegisteredCandidate | null>(
+    null,
+  );
   const [instance, setInstance] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
   const hasErrors = Object.keys(errors).length > 0;
@@ -127,60 +137,50 @@ export function RegisterCandidateForm({
 
   if (registered)
     return (
-      <div className="rounded-3xl border border-border bg-card p-6 text-center sm:p-10">
-        <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-good/12 text-good">
-          <CircleCheck className="size-6" />
-        </span>
-        <h2 className="mt-4 font-head text-xl font-extrabold tracking-tight">
-          {registered.name} is registered
-        </h2>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-          Their email is verified and they&apos;re on your candidates list.
-          We&apos;ve emailed them a link to set their password. Next, they sign
-          in and pay the ₹1,499 membership on JobClubb.com. You earn half of it
-          as soon as they pay.
-        </p>
-        <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
-          <Button
-            variant="outline"
-            className="font-head"
-            nativeButton={false}
-            render={<Link href={FRANCHISE_CANDIDATES} />}
-          >
-            View candidates
-          </Button>
-          <Button
-            className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-            onClick={() => {
-              setRegistered(null);
-              setDismissed(state.pending?.registrationId ?? null);
-              setIndustry(null);
-              setConsent(false);
-              setInstance((n) => n + 1);
-            }}
-          >
-            Register another candidate
-          </Button>
-        </div>
-      </div>
+      <RegisteredStep
+        candidate={registered}
+        onRegisterAnother={() => {
+          setRegistered(null);
+          setDismissed(state.pending?.registrationId ?? null);
+          setIndustry(null);
+          setConsent(false);
+          setInstance((n) => n + 1);
+        }}
+      />
     );
+
+  const restart = (registrationId: string, message: string) => {
+    setDismissed(registrationId);
+    setRestartError(message);
+  };
 
   return (
     <>
-      {pendingRegistration && (
-        <VerifyCode
-          key={pendingRegistration.registrationId}
-          registrationId={pendingRegistration.registrationId}
-          email={pendingRegistration.email}
-          name={pendingRegistration.name}
-          onBack={() => setDismissed(pendingRegistration.registrationId)}
-          onRestart={(message) => {
-            setDismissed(pendingRegistration.registrationId);
-            setRestartError(message);
-          }}
-          onRegistered={setRegistered}
-        />
-      )}
+      {pendingRegistration &&
+        (verified === pendingRegistration.registrationId ? (
+          <SetPassword
+            key={pendingRegistration.registrationId}
+            registrationId={pendingRegistration.registrationId}
+            email={pendingRegistration.email}
+            name={pendingRegistration.name}
+            onRestart={(message) =>
+              restart(pendingRegistration.registrationId, message)
+            }
+            onRegistered={setRegistered}
+          />
+        ) : (
+          <VerifyCode
+            key={pendingRegistration.registrationId}
+            registrationId={pendingRegistration.registrationId}
+            email={pendingRegistration.email}
+            name={pendingRegistration.name}
+            onBack={() => setDismissed(pendingRegistration.registrationId)}
+            onRestart={(message) =>
+              restart(pendingRegistration.registrationId, message)
+            }
+            onVerified={() => setVerified(pendingRegistration.registrationId)}
+          />
+        ))}
 
       <form
         key={instance}
@@ -298,9 +298,7 @@ export function RegisterCandidateForm({
             />
             <span className="leading-6">
               The candidate is with me and agrees to share these details with{" "}
-              {franchiseName} and JobClubb to register and find a job. I
-              haven&apos;t taken any payment from them: they pay JobClubb
-              directly.
+              {franchiseName} and JobClubb to register and find a job.
             </span>
           </label>
           <input type="hidden" name="consent" value={consent ? "yes" : ""} />
@@ -332,14 +330,14 @@ function VerifyCode({
   name,
   onBack,
   onRestart,
-  onRegistered,
+  onVerified,
 }: {
   registrationId: string;
   email: string;
   name: string;
   onBack: () => void;
   onRestart: (message: string) => void;
-  onRegistered: (registered: Registered) => void;
+  onVerified: () => void;
 }) {
   const [state, formAction, pending] = useActionState<VerifyState, FormData>(
     verifyCandidateCode.bind(null, registrationId),
@@ -364,10 +362,10 @@ function VerifyCode({
   }, [cooldown]);
 
   useEffect(() => {
-    if (state.registered) onRegistered(state.registered);
+    if (state.verified) onVerified();
     else if (state.restart && state.error) onRestart(state.error);
     else if (state.error) inputRef.current?.select();
-  }, [state, onRegistered, onRestart]);
+  }, [state, onVerified, onRestart]);
 
   useEffect(() => inputRef.current?.focus(), []);
 
@@ -428,7 +426,7 @@ function VerifyCode({
             className="mt-2 h-11 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
           >
             {pending && <Loader2 className="size-4 animate-spin" />}
-            {pending ? "Verifying..." : "Verify and register"}
+            {pending ? "Verifying..." : "Verify email"}
           </Button>
         </form>
 
@@ -472,6 +470,260 @@ function VerifyCode({
         </p>
       </div>
     </section>
+  );
+}
+
+function SetPassword({
+  registrationId,
+  email,
+  name,
+  onRestart,
+  onRegistered,
+}: {
+  registrationId: string;
+  email: string;
+  name: string;
+  onRestart: (message: string) => void;
+  onRegistered: (candidate: RegisteredCandidate) => void;
+}) {
+  const [state, formAction, pending] = useActionState<PasswordState, FormData>(
+    setCandidatePassword.bind(null, registrationId),
+    {},
+  );
+  const { errors, formError, clearAll, onChange } = useFieldErrors(
+    state,
+    state.errors,
+    state.error,
+  );
+
+  useEffect(() => {
+    if (state.registered) onRegistered(state.registered);
+    else if (state.restart && state.error) onRestart(state.error);
+  }, [state, onRegistered, onRestart]);
+
+  return (
+    <section className="rounded-3xl border border-border bg-card p-5 sm:p-8">
+      <div className="mx-auto flex max-w-sm flex-col items-center text-center">
+        <span className="flex size-14 items-center justify-center rounded-2xl bg-brand/10 text-brand ring-8 ring-brand/5">
+          <KeyRound className="size-6" />
+        </span>
+        <h2 className="mt-5 font-head text-xl font-extrabold tracking-tight">
+          Choose a password for {name}
+        </h2>
+        {/* <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+          Their email is confirmed.
+        </p> */}
+
+        <form
+          onSubmit={(e) => {
+            clearAll();
+            submitManually(formAction)(e);
+          }}
+          onChange={onChange}
+          noValidate
+          className="mt-7 w-full space-y-5 text-left"
+        >
+          <PasswordField
+            id="password"
+            label="Password"
+            hint="At least 8 characters."
+            placeholder="••••••••"
+            autoComplete="off"
+            error={errors.password}
+          />
+          <PasswordField
+            id="confirmPassword"
+            label="Confirm password"
+            placeholder="••••••••"
+            autoComplete="off"
+            error={errors.confirmPassword}
+          />
+          {/* <div className="flex justify-center text-center">
+            <FormStatus error={formError} />
+          </div> */}
+          <Button
+            type="submit"
+            disabled={pending}
+            className="h-11 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+          >
+            {pending && <Loader2 className="size-4 animate-spin" />}
+            {pending ? "Creating account..." : "Create account"}
+          </Button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+function RegisteredStep({
+  candidate,
+  onRegisterAnother,
+}: {
+  candidate: RegisteredCandidate;
+  onRegisterAnother: () => void;
+}) {
+  const [paid, setPaid] = useState(false);
+  const firstName = candidate.name.split(" ")[0];
+
+  return (
+    <div className="rounded-3xl border border-border bg-card p-6 sm:p-10">
+      <div className="text-center">
+        <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-good/12 text-good">
+          <CircleCheck className="size-6" />
+        </span>
+        <h2 className="mt-4 font-head text-xl font-extrabold tracking-tight">
+          {paid
+            ? `${candidate.name} is a JobClubb member`
+            : `${candidate.name} is registered`}
+        </h2>
+        {/* <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+          {paid
+            ? `Their membership is active and we've emailed them the receipt. ${firstName} can now sign in, apply for jobs and build their resume. Your commission is on your Earnings page.`
+            : `Their account is ready and we've emailed them a welcome. Now pay the ${PLAN_DETAILS[CHECKOUT_PLAN].price} membership online, with your own UPI or card or theirs. You earn half as soon as it's paid.`}
+        </p> */}
+      </div>
+
+      {!paid && (
+        <div className="mx-auto mt-6 max-w-sm">
+          <CollectMembership
+            candidate={candidate}
+            commission
+            onPaid={() => setPaid(true)}
+          />
+        </div>
+      )}
+
+      <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+        <Button
+          variant="outline"
+          className="font-head"
+          nativeButton={false}
+          render={<Link href={FRANCHISE_CANDIDATES} />}
+        >
+          {paid ? "View candidates" : "Pay later"}
+        </Button>
+        <Button
+          variant={paid ? "default" : "ghost"}
+          className={cn(
+            "font-head",
+            paid && "bg-brand text-brand-foreground hover:bg-brand-dark",
+          )}
+          onClick={onRegisterAnother}
+        >
+          Register another candidate
+        </Button>
+      </div>
+      {!paid && (
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          To pay later, use Collect membership on their row in your candidates
+          list.
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function CollectMembership({
+  candidate,
+  commission,
+  onPaid,
+}: {
+  candidate: Pick<RegisteredCandidate, "id" | "name" | "email" | "phone">;
+  commission: boolean;
+  onPaid?: () => void;
+}) {
+  const router = useRouter();
+  const plan = PLAN_DETAILS[CHECKOUT_PLAN];
+  const query = `candidate=${encodeURIComponent(candidate.id)}`;
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-border bg-card text-left shadow-sm">
+      <div className="relative overflow-hidden bg-linear-to-br from-brand-surface to-brand-surface-strong px-4 py-5 text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-14 -right-14 size-36 rounded-full bg-white/10 blur-2xl"
+        />
+        <p className="font-head text-sm font-semibold text-white/80">
+          {plan.name}
+        </p>
+        <p className="mt-1 flex items-baseline gap-1.5">
+          <span className="font-head text-4xl font-extrabold tracking-tight">
+            {plan.price}
+          </span>
+          <span className="text-sm text-white/75">/ year</span>
+        </p>
+        <p className="mt-1 text-xs text-white/75">
+          GST included · Valid for 1 year from payment
+        </p>
+      </div>
+
+      <div className="space-y-4 p-4">
+        <dl className="space-y-2.5 text-sm">
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Billed to</dt>
+            <dd className="min-w-0 truncate text-right font-medium">
+              {candidate.name}
+            </dd>
+          </div>
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">Receipt to</dt>
+            <dd className="min-w-0 truncate text-right font-medium">
+              {candidate.email}
+            </dd>
+          </div>
+        </dl>
+
+        {/* {commission && (
+          <p className="flex items-center justify-between gap-3 rounded-xl bg-good/10 px-3.5 py-2.5 text-sm">
+            <span className="flex items-center gap-2 font-medium text-good">
+              <BadgeIndianRupee className="size-4" />
+              You earn
+            </span>
+            <span className="font-head font-extrabold text-good">
+              {formatRupees((plan.amount * 100) / 2)}
+            </span>
+          </p>
+        )} */}
+
+        <RazorpayCheckout<{
+          invoice_number: string;
+          paid_at: string;
+          expires_at: string;
+        }>
+          label={`Pay ${plan.price}`}
+          description={plan.name}
+          prefill={{
+            name: candidate.name,
+            email: candidate.email,
+            contact: candidate.phone,
+          }}
+          orderUrl={`/api/franchise/membership-order?${query}`}
+          verifyUrl={`/api/franchise/verify-membership?${query}`}
+          copy={{
+            item: { label: "Candidate", value: candidate.name },
+            successAction: "Done",
+            retryHint:
+              "The payment went through. Retry to activate the membership.",
+          }}
+          successMessage={(r) =>
+            `${candidate.name}'s membership is active until ${formatDate(r.expires_at)}.`
+          }
+          onSuccessAction={() => {
+            if (onPaid) onPaid();
+            else router.push(FRANCHISE_CANDIDATES);
+            router.refresh();
+          }}
+          className="h-12"
+        />
+
+        <div className="-mx-4 px-4 flex flex-col items-center gap-2 border-t border-border pt-4">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <LockKeyhole className="size-3.5" />
+            Secure payment by Razorpay
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -663,43 +915,30 @@ const columns = helper.columns([
     id: "actions",
     header: "",
     cell: ({ row }) =>
-      row.original.membershipPaidAt ? null : (
-        <ResendWelcome candidateId={row.original.id} />
+      row.original.membershipActive ? null : (
+        <Link
+          href={`${FRANCHISE_CANDIDATES}/${row.original.id}/membership`}
+          className="inline-flex items-center gap-1.5 font-head text-sm font-semibold whitespace-nowrap text-brand underline underline-offset-2 transition-colors hover:text-brand-dark"
+        >
+          Collect membership
+        </Link>
       ),
   }),
 ]);
 
-function ResendWelcome({ candidateId }: { candidateId: string }) {
-  const [pending, startTransition] = useTransition();
-  return (
-    <button
-      type="button"
-      disabled={pending}
-      title="Email them a new link to set their password"
-      onClick={() =>
-        startTransition(async () => {
-          const { error } = await resendWelcomeEmail(candidateId);
-          if (error) toast.error(error);
-          else toast.success("Password email sent");
-        })
-      }
-      className="inline-flex items-center gap-1.5 font-head text-sm font-semibold whitespace-nowrap text-brand underline underline-offset-2 transition-colors hover:text-brand-dark disabled:pointer-events-none disabled:opacity-60"
-    >
-      {pending && <Loader2 className="size-3.5 animate-spin" />}
-      Resend email
-    </button>
-  );
-}
+const columnsWithoutActions = columns.filter((c) => c.id !== "actions");
 
 export function FranchiseCandidatesList({
   candidates,
+  canCollect,
 }: {
   candidates: FranchiseCandidate[];
+  canCollect: boolean;
 }) {
   return (
     <DataTable
       data={candidates}
-      columns={columns}
+      columns={canCollect ? columns : columnsWithoutActions}
       getRowId={(c) => c.id}
       searchable={["name", "email", "phone", "industry"]}
       searchPlaceholder="Search name, email or phone"
