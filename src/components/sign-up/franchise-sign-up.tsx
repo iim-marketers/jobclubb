@@ -31,7 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CONSTITUTIONS, FRANCHISE_SIGN_UP_STEPS } from "@/lib/franchise";
-// import { validateFranchiseSignUp } from "@/lib/franchise";
+import { validateFranchiseSignUp } from "@/lib/franchise";
 
 const STEPS = FRANCHISE_SIGN_UP_STEPS;
 
@@ -77,8 +77,8 @@ export function FranchiseSignUp() {
     formProps,
   } = useStepForm({
     steps: STEPS,
-    // validate: validateFranchiseSignUp,
-    validate: () => ({}),
+    validate: validateFranchiseSignUp,
+    // validate: () => ({}),
     action: registerFranchise,
   });
   const [constitution, setConstitution] = useState<string | null>(null);
