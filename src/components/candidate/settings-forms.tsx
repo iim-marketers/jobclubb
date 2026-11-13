@@ -77,8 +77,6 @@ export function FormStatus({
 }) {
   const shown = useRef<string | undefined>(undefined);
   useEffect(() => {
-    // Toast only when an error appears, not when it swaps to another message
-    // as fields are cleared; forms call clearAll on submit so repeats re-toast.
     if (error && !shown.current) toast.error(error);
     shown.current = error;
   }, [error]);
