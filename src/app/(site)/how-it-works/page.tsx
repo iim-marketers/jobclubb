@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SOURCING_CHANNELS } from "@/lib/taxonomy";
 import { getCandidateSession } from "@/server/auth/current-candidate";
 import { getCompanySession } from "@/server/auth/current-company";
+import { getFranchiseSession } from "@/server/franchises/current";
 
 export const metadata = {
   title: "How it works — JobClubb",
@@ -37,8 +38,12 @@ const STEPS = [
 ];
 
 export default async function HowItWorksPage() {
-  const signedIn =
-    !!(await getCandidateSession()) || !!(await getCompanySession());
+  const sessions = await Promise.all([
+    getCandidateSession(),
+    getCompanySession(),
+    getFranchiseSession(),
+  ]);
+  const signedIn = sessions.some(Boolean);
 
   return (
     <>

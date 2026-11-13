@@ -14,16 +14,13 @@ import {
   FRANCHISE_CANDIDATES,
   FRANCHISE_EARNINGS,
   FRANCHISE_REGISTER,
-  daysBetween,
-  lastDayOf,
+  franchiseNotice,
 } from "@/lib/franchise";
 import { formatDateOnly, formatRupees, todayIst } from "@/lib/placements";
 import { cn } from "@/lib/utils";
 import { requireFranchise } from "@/server/franchises/current";
 import { listFranchiseCandidates } from "@/server/franchises/franchises";
 import { getLedger } from "@/server/franchises/ledger";
-
-const EXPIRY_WARNING_DAYS = 30;
 
 function Stat({
   label,
@@ -59,22 +56,9 @@ export default async function FranchiseOverviewPage() {
     listFranchiseCandidates(franchise.id, { paidOnly: true }),
     getLedger(franchise.id),
   ]);
-  const today = todayIst();
-  const lastDay = lastDayOf(franchise);
-  const daysLeft = daysBetween(today, lastDay);
   const active = candidates.filter((c) => c.membershipActive).length;
   const placed = candidates.filter((c) => c.placement === "joined").length;
-
-  const banner =
-    franchise.status === "upcoming"
-      ? `Your agreement starts on ${formatDateOnly(franchise.startsOn)}. You can register candidates from then.`
-      : franchise.status === "terminated"
-        ? `Your franchise agreement was terminated, with ${formatDateOnly(lastDay)} as the last day. You can't register new candidates, but commission you've already earned will still be paid.`
-        : franchise.status === "expired"
-          ? `Your franchise agreement ended on ${formatDateOnly(lastDay)}. Contact JobClubb head office to renew. Commission you've already earned will still be paid.`
-          : daysLeft <= EXPIRY_WARNING_DAYS
-            ? `Your agreement ends on ${formatDateOnly(lastDay)} (${daysLeft} ${daysLeft === 1 ? "day" : "days"} left). Contact JobClubb head office about renewal: commission stops for payments after that date.`
-            : null;
+  const banner = franchiseNotice(franchise);
 
   return (
     <div className="space-y-6">

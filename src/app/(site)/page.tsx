@@ -1,5 +1,6 @@
 import { MemberHome } from "@/components/candidate/member-home";
 import { CompanyHome } from "@/components/company/company-home";
+import { FranchiseHome } from "@/components/franchise/franchise-home";
 import { About } from "@/components/home/about";
 import { ClosingCta } from "@/components/home/closing-cta";
 import { EmployerShowcase } from "@/components/home/employer-showcase";
@@ -14,6 +15,10 @@ import {
   getMembershipView,
 } from "@/server/auth/current-candidate";
 import { getCurrentCompany } from "@/server/auth/current-company";
+import {
+  getCurrentFranchise,
+  getFranchiseSession,
+} from "@/server/franchises/current";
 import { listJobs } from "@/server/jobs/listings";
 
 export const metadata = {
@@ -23,6 +28,11 @@ export const metadata = {
 export default async function Home() {
   const company = await getCurrentCompany();
   if (company) return <CompanyHome company={company} />;
+
+  const franchise = (await getFranchiseSession())
+    ? await getCurrentFranchise()
+    : null;
+  if (franchise) return <FranchiseHome franchise={franchise} />;
 
   const [view, jobs] = await Promise.all([getMembershipView(), listJobs()]);
   if (
