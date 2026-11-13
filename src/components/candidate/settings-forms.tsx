@@ -75,13 +75,18 @@ export function FormStatus({
   error?: string;
   pending?: string;
 }) {
+  const shown = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (error && !shown.current) toast.error(error);
+    shown.current = error;
+  }, [error]);
+
   return (
-    <p role="status" className="min-h-5 text-sm">
-      {error ? (
-        <span className="text-destructive">{error}</span>
-      ) : pending ? (
-        <span className="text-muted-foreground">{pending}</span>
-      ) : null}
+    <p
+      role="status"
+      className="text-sm text-muted-foreground empty:hidden sm:empty:block"
+    >
+      {pending}
     </p>
   );
 }

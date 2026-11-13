@@ -343,7 +343,7 @@ export function RegisterCandidateForm({
           <FieldError message={errors.consent} />
         </Section>
 
-        <div className="flex flex-col-reverse gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <FormStatus
             error={
               restartError ??
@@ -353,7 +353,7 @@ export function RegisterCandidateForm({
                 : undefined)
             }
           />
-          <SubmitButton pending={pending}>
+          <SubmitButton pending={pending} disabled={pending || !consent}>
             {pending ? "Sending code..." : "Send code to candidate"}
           </SubmitButton>
         </div>
