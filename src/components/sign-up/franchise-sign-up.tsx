@@ -39,25 +39,34 @@ function AddressField({
   id,
   label,
   error,
+  copyOf,
 }: {
   id: string;
   label: string;
   error?: string;
+  copyOf?: string;
 }) {
+  const copying = copyOf !== undefined;
   return (
     <div className="space-y-2 sm:col-span-2">
       <Label htmlFor={id}>
         {label}
         <span className="text-destructive">*</span>
       </Label>
+      {/* Remount on toggle so React never flips this textarea between controlled and uncontrolled. */}
       <Textarea
+        key={copying ? "copy" : "own"}
         id={id}
         name={id}
         rows={2}
         maxLength={300}
+        value={copyOf}
+        readOnly={copying}
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
-        className="max-h-40 overflow-y-auto bg-card"
+        className={`max-h-40 overflow-y-auto ${
+          copying ? "bg-muted text-muted-foreground" : "bg-card"
+        }`}
       />
       <FieldError id={`${id}-error`} message={error} />
     </div>
@@ -83,6 +92,7 @@ export function FranchiseSignUp() {
   });
   const [constitution, setConstitution] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
+  const [outletSameAsRegistered, setOutletSameAsRegistered] = useState(false);
 
   return (
     <SignUpLayout
@@ -130,18 +140,10 @@ export function FranchiseSignUp() {
                 icon: MailCheck,
                 text: "Confirm your email, then we review your application",
               },
-              // {
-              //   icon: ClipboardCheck,
-              //   text: "Sign the franchise agreement and pay the ₹3,00,000 + GST franchise fee",
-              // },
               {
                 icon: Store,
                 text: "Get your franchise code and dashboard once approved",
               },
-              // {
-              //   icon: BadgeIndianRupee,
-              //   text: "Commission paid within two working days of each payment",
-              // },
             ]}
           />
         </>
@@ -226,10 +228,30 @@ export function FranchiseSignUp() {
               error={errors.name}
               className="sm:col-span-2"
             />
+            <div className="space-y-2 sm:col-span-2">
+              <p className="text-sm font-medium">
+                Is your outlet at your registered address?
+              </p>
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground">
+                <Checkbox
+                  checked={outletSameAsRegistered}
+                  onCheckedChange={(checked) => {
+                    setOutletSameAsRegistered(checked);
+                    clearError("outletAddress");
+                  }}
+                />
+                Yes, use the same address
+              </label>
+            </div>
             <AddressField
               id="outletAddress"
               label="Outlet address"
               error={errors.outletAddress}
+              copyOf={
+                outletSameAsRegistered
+                  ? (values.registeredAddress ?? "")
+                  : undefined
+              }
             />
             <Field
               id="city"

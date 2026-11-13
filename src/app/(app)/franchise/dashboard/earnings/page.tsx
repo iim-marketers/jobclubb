@@ -64,9 +64,9 @@ export default async function FranchiseEarningsPage() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
           { label: "Total earned", value: ledger.totals.earned },
-          { label: "Paid to you", value: ledger.totals.paid },
+          { label: "Received", value: ledger.totals.paid },
           {
-            label: overdue ? "To come · overdue" : "To come",
+            label: overdue ? "Pending · overdue" : "Pending",
             value: ledger.totals.outstanding,
             warn: ledger.totals.outstanding > 0,
           },
