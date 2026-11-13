@@ -130,18 +130,18 @@ export function FranchiseSignUp() {
                 icon: MailCheck,
                 text: "Confirm your email, then we review your application",
               },
-              {
-                icon: ClipboardCheck,
-                text: "Sign the franchise agreement and pay the ₹3,00,000 + GST franchise fee",
-              },
+              // {
+              //   icon: ClipboardCheck,
+              //   text: "Sign the franchise agreement and pay the ₹3,00,000 + GST franchise fee",
+              // },
               {
                 icon: Store,
                 text: "Get your franchise code and dashboard once approved",
               },
-              {
-                icon: BadgeIndianRupee,
-                text: "Commission paid within two working days of each payment",
-              },
+              // {
+              //   icon: BadgeIndianRupee,
+              //   text: "Commission paid within two working days of each payment",
+              // },
             ]}
           />
         </>
