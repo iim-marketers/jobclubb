@@ -152,27 +152,6 @@ export default async function FranchisePage() {
               </div>
             </div>
           </div>
-          {/* 
-          <div className="grid grid-cols-1 gap-px border-t border-border bg-border sm:grid-cols-3">
-            {REVENUE_STREAMS.map((stream) => (
-              <div
-                key={stream.label}
-                className="flex items-start gap-3 bg-card p-5 sm:block sm:p-6"
-              >
-                <span className="flex size-9 flex-none items-center justify-center rounded-xl bg-brand/10 text-brand">
-                  <stream.icon className="size-4.5" />
-                </span>
-                <div className="sm:mt-3">
-                  <h3 className="font-head text-sm font-bold tracking-tight">
-                    {stream.label}
-                  </h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    {stream.detail}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div> */}
         </div>
       </Section>
 

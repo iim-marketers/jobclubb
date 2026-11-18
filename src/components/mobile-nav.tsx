@@ -157,29 +157,6 @@ export function MobileNav({
             })}
           </ul>
 
-          {/* {!candidate && (
-            <div className="mt-5 overflow-hidden rounded-2xl bg-linear-to-br from-brand-surface to-brand-surface-strong p-5 text-white">
-              <p className="font-head text-sm font-bold tracking-tight">
-                Unlock the full job board
-              </p>
-              <p className="mt-1 text-xs leading-5 text-white/75">
-                One-click apply, guaranteed interviews and upskilling included.
-              </p>
-              <SheetClose
-                nativeButton={false}
-                render={
-                  <Button
-                    size="sm"
-                    className="mt-4 w-full bg-white font-head text-brand hover:bg-white/90"
-                    nativeButton={false}
-                    render={<Link href="/membership" />}
-                  >
-                    Become a Member
-                  </Button>
-                }
-              />
-            </div>
-          )} */}
         </nav>
 
         <div className="border-t border-border px-5 py-4">
@@ -304,33 +281,6 @@ function AccountSection({
         />
       </div>
 
-      {/* <ul className="mt-3 grid grid-cols-2 gap-2">
-        {SHORTCUTS.map(({ label, href, icon: Icon, badge }) => (
-          <li key={href}>
-            <SheetClose
-              nativeButton={false}
-              render={
-                <Link
-                  href={href}
-                  className="group relative flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 transition-colors hover:border-brand/40 hover:bg-muted"
-                >
-                  <span className="flex size-8 items-center justify-center rounded-lg bg-brand/10 text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground">
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="font-head text-sm font-semibold">
-                    {label}
-                  </span>
-                  {badge ? (
-                    <span className="absolute top-3 right-3 min-w-5 rounded-full bg-brand px-1.5 py-0.5 text-center text-[10px] leading-none font-bold text-brand-foreground">
-                      {badge}
-                    </span>
-                  ) : null}
-                </Link>
-              }
-            />
-          </li>
-        ))}
-      </ul> */}
     </div>
   );
 }

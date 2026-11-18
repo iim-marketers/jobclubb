@@ -29,7 +29,6 @@ import {
   adminTableFeatures,
   DataTable,
   formatDate,
-  industryName,
 } from "@/components/admin/data-table";
 import { PasswordInput } from "@/components/admin/partner-company-form";
 import { CommissionsTable } from "@/components/franchise/commissions-table";
@@ -76,6 +75,7 @@ import {
   placementBadge,
   todayIst,
 } from "@/lib/placements";
+import { industryNames } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type {
   ApprovedFranchise,
@@ -1169,7 +1169,7 @@ const candidateColumns = candidateHelper.columns([
       </span>
     ),
   }),
-  candidateHelper.accessor((c) => industryName(c.industry), {
+  candidateHelper.accessor((c) => industryNames(c.industries).join(", "), {
     id: "industry",
     header: "Sector",
     sortFn: "text",
@@ -1322,7 +1322,6 @@ const franchiseColumns = franchiseHelper.columns([
     cell: ({ row }) => (
       <span className="whitespace-nowrap text-muted-foreground">
         {row.original.candidates}
-        {/* <span className="text-xs">({row.original.paidCandidates} paid)</span> */}
       </span>
     ),
   }),

@@ -19,7 +19,7 @@ import { CopyCode } from "@/components/copy-code";
 import { RecruiterBoard } from "@/components/recruiter-board";
 import { SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { industryName } from "@/lib/company-jobs";
+import { industryNames } from "@/lib/taxonomy";
 import {
   COMMISSION_KIND_LABELS,
   COMMISSION_STATE_BADGES,
@@ -357,7 +357,7 @@ function CandidateCard({ candidate: c }: { candidate: FranchiseCandidate }) {
             {c.name}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            {industryName(c.industry)}
+            {industryNames(c.industries).join(", ")}
           </p>
         </div>
         <span

@@ -72,7 +72,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <NextTopLoader color="var(--brand)" height={3} showSpinner={false} />
         {children}
-        <Toaster position="bottom-right" />
+        <Toaster position="bottom-right" closeButton />
         <CookieConsent />
       </body>
     </html>

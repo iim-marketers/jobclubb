@@ -24,7 +24,7 @@ import { SaveJobButton } from "@/components/save-job-button";
 import { Button } from "@/components/ui/button";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH } from "@/lib/membership";
-import { categoryOf, placementFeeNote, type CandidateCategory } from "@/lib/placements";
+import { categoryOf, type CandidateCategory } from "@/lib/placements";
 import { toRichTextHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import {
@@ -118,14 +118,6 @@ export default async function JobDetailPage({
                 One click sends your resume to the employer. Track every step
                 from your dashboard.
               </p>
-              {/* {access.member && (
-                <p className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
-                  {placementFeeNote(category)}{" "}
-                  <Link href="/terms" className="underline underline-offset-2">
-                    Terms
-                  </Link>
-                </p>
-              )} */}
             </div>
             <PrivacyNote />
           </aside>
@@ -281,15 +273,6 @@ function JobBody({ job, category }: { job: JobListing; category: CandidateCatego
           </ul>
         </Section>
       )}
-      {/* <div className="space-y-3 p-5 sm:p-6 lg:hidden">
-        <p className="text-xs leading-5 text-muted-foreground">
-          {placementFeeNote(category)}{" "}
-          <Link href="/terms" className="underline underline-offset-2">
-            Terms
-          </Link>
-        </p>
-        <PrivacyNote />
-      </div> */}
     </div>
   );
 }
@@ -453,7 +436,6 @@ function Fact({
   return (
     <div className="min-w-0">
       <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        {/* <Icon className="size-3.5" /> */}
         {label}
       </dt>
       <dd className="mt-1 font-head text-sm font-bold tracking-tight">

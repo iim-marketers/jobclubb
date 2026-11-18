@@ -83,11 +83,6 @@ export function RichTextEditor({
     },
   });
 
-  const characters = useEditorState({
-    editor,
-    selector: ({ editor }) => editor?.storage.characterCount.characters() ?? 0,
-  });
-
   return (
     <div
       aria-invalid={invalid}
@@ -100,9 +95,6 @@ export function RichTextEditor({
         className="max-h-96 overflow-y-auto"
       />
       <input type="hidden" name={name} value={html} />
-      {/* <p className="border-t border-border px-3 py-1.5 text-right text-xs text-muted-foreground tabular-nums">
-        {(characters ?? 0).toLocaleString("en-IN")} / {maxLength.toLocaleString("en-IN")}
-      </p> */}
     </div>
   );
 }

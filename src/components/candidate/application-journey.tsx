@@ -146,9 +146,6 @@ export function ApplicationJourney({
                         .join(" ")
                     : "New roles are added every day"}
                 </p>
-                {/* <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-                  More applications mean more chances at a shortlist.
-                </p> */}
               </div>
               <Button
                 size="sm"

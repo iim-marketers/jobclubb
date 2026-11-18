@@ -289,7 +289,7 @@ export async function completeRegistration(
       phone: details.phone,
       city: details.city,
       pincode: details.pincode,
-      industry: details.industry,
+      industries: details.industries,
       source: FRANCHISE_SOURCE,
       terms_version: TERMS_VERSION,
     },

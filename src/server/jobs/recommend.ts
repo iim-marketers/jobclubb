@@ -100,18 +100,19 @@ function nearness(
 export function recommendJobs(
   jobs: JobListing[],
   profile: {
-    sector?: string;
+    sectors?: string[];
     city?: string | null;
     pincode?: string | null;
     roles?: string[] | null;
   },
 ): JobPicks {
   const roles = (profile.roles ?? []).flatMap((r) => r?.trim().toLowerCase() || []);
+  const sectors = profile.sectors ?? [];
   const scored = jobs.map((job) => {
     const title = `${job.role} ${job.designation}`.toLowerCase();
     const reasons: string[] = [];
     let score = 0;
-    if (!!profile.sector && job.industry === profile.sector) {
+    if (sectors.includes(job.industry)) {
       score += 4;
       reasons.push("Your sector");
     }
@@ -137,7 +138,7 @@ export function recommendJobs(
   return {
     matched: ranked.some((r) => r.score > 0),
     nearby: items.some((r) => r.near),
-    matches: jobs.filter((job) => job.industry === profile.sector).length,
+    matches: jobs.filter((job) => sectors.includes(job.industry)).length,
     items,
   };
 }

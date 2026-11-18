@@ -8,7 +8,6 @@ import {
   adminTableFeatures,
   DataTable,
   formatDate,
-  industryName,
 } from "@/components/admin/data-table";
 import { FilterSelect } from "@/components/table-toolbar";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +17,7 @@ import {
   ADMIN_CATEGORY_LABELS,
   type CandidateCategory,
 } from "@/lib/placements";
+import { industryNames } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 
 export type AdminCandidate = {
@@ -26,7 +26,7 @@ export type AdminCandidate = {
   email: string;
   phone: string;
   city: string;
-  industry: string;
+  industries: string[];
   plan: MembershipPlan | null;
   membershipExpiresAt: string | null;
   emailVerified: boolean;
@@ -85,7 +85,7 @@ const columns = helper.columns([
     sortFn: "text",
     cell: ({ getValue }) => <span className="text-muted-foreground">{getValue()}</span>,
   }),
-  helper.accessor((c) => industryName(c.industry), {
+  helper.accessor((c) => industryNames(c.industries).join(", "), {
     id: "industry",
     header: "Sector",
     sortFn: "text",

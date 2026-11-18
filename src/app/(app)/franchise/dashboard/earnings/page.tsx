@@ -41,9 +41,8 @@ export default async function FranchiseEarningsPage() {
           Earnings
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          You earn half of what each candidate you registered pays JobClubb:
-          their first membership fee and their placement fee. JobClubb pays
-          within two working days of receiving it.
+          Earn 50% of your candidates&apos; first membership and placement
+          fees, credited within 2 working days.
         </p>
       </div>
 
@@ -111,12 +110,18 @@ export default async function FranchiseEarningsPage() {
         <section className="rounded-2xl border border-border bg-card p-4">
           <h2 className="font-head text-sm font-bold">Monthly statements</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Candidate-wise fees and commission. If anything looks wrong, tell
-            support@jobclubb.com within {STATEMENT_DISPUTE_DAYS} days.
+            Fees and commission per candidate. Report errors to{" "}
+            <a
+              href="mailto:support@jobclubb.com"
+              className="font-medium text-brand hover:underline"
+            >
+              support@jobclubb.com
+            </a>{" "}
+            within {STATEMENT_DISPUTE_DAYS} days.
           </p>
           {months.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">
-              Your first statement appears once you earn commission.
+              No statements yet.
             </p>
           ) : (
             <ul className="mt-3 flex flex-wrap gap-2">

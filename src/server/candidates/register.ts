@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import {
   isEmporiumCode,
   isStudentCode,
+  readIndustries,
   validateCandidate,
   type FieldErrors,
 } from "@/lib/sign-up-validation";
@@ -63,7 +64,7 @@ export async function registerCandidate(formData: FormData): Promise<RegisterCan
       phone: text(formData, "phone"),
       city: text(formData, "city"),
       pincode: text(formData, "pincode"),
-      industry: text(formData, "industry"),
+      industries: readIndustries(formData),
       source: text(formData, "source"),
       code,
       terms_version: TERMS_VERSION,

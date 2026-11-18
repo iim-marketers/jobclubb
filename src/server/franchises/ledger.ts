@@ -192,7 +192,6 @@ export async function createPayout(
   };
 }
 
-// Clause 10.2: candidate-wise fees received and commission, for one month.
 export function statementCsv(
   franchise: { name: string; code: string },
   month: string,

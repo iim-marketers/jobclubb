@@ -7,7 +7,6 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
-  Inbox,
 } from "lucide-react";
 import {
   columnFilteringFeature,

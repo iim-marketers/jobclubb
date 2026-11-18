@@ -43,7 +43,6 @@ import {
   adminTableFeatures,
   DataTable,
   formatDate,
-  industryName,
 } from "@/components/admin/data-table";
 import type { SettingsActionState } from "@/app/(app)/candidate/dashboard/settings/actions";
 import { Panel } from "@/components/candidate/dashboard-ui";
@@ -56,8 +55,8 @@ import { RazorpayCheckout } from "@/components/razorpay-checkout";
 import {
   Field,
   FieldError,
+  MultiSelectField,
   PasswordField,
-  SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
 import { Badge } from "@/components/ui/badge";
@@ -69,16 +68,12 @@ import {
   OTP_TTL_MINUTES,
 } from "@/lib/franchise";
 import { CHECKOUT_PLAN, PLAN_DETAILS } from "@/lib/membership";
-import { formatRupees, type PlacementStatus } from "@/lib/placements";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import { type PlacementStatus } from "@/lib/placements";
+import { INDUSTRY_OPTIONS, industryNames } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import type { FranchiseCandidate } from "@/server/franchises/franchises";
 import type { RegisteredCandidate } from "@/server/franchises/registration";
 
-const INDUSTRY_OPTIONS = INDUSTRIES.map((i) => ({
-  value: i.slug,
-  label: i.name,
-}));
 const RESEND_COOLDOWN_SECONDS = 60;
 
 function Section({
@@ -122,7 +117,7 @@ export function RegisterCandidateForm({
     state.errors,
     state.error,
   );
-  const [industry, setIndustry] = useState<string | null>(null);
+  const [industries, setIndustries] = useState<string[]>([]);
   const [consent, setConsent] = useState(false);
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [restartError, setRestartError] = useState<string | null>(null);
@@ -159,7 +154,7 @@ export function RegisterCandidateForm({
     setVerified(null);
     setRestartError(null);
     setDismissed(state.pending?.registrationId ?? null);
-    setIndustry(null);
+    setIndustries([]);
     setConsent(false);
     setInstance((n) => n + 1);
   };
@@ -303,18 +298,18 @@ export function RegisterCandidateForm({
               required
               error={errors.pincode}
             />
-            <SelectField
-              id="industry"
-              label="Preferred industry"
-              placeholder="Choose an industry"
+            <MultiSelectField
+              id="industries"
+              label="Preferred industries"
               options={INDUSTRY_OPTIONS}
-              value={industry}
+              value={industries}
               onValueChange={(v) => {
-                setIndustry(v);
-                clear("industry");
+                setIndustries(v);
+                clear("industries");
               }}
               required
-              error={errors.industry}
+              hint="Pick all that interest them."
+              error={errors.industries}
               className="sm:col-span-2"
             />
           </div>
@@ -325,14 +320,15 @@ export function RegisterCandidateForm({
           title="Consent"
           description="Clause 8.4 of your agreement: tell the candidate why we collect their details before you submit them."
         >
-          <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+          <label className="flex cursor-pointer items-start gap-1.5 text-sm">
             <Checkbox
               checked={consent}
               onCheckedChange={(checked) => {
                 setConsent(checked);
                 clear("consent");
               }}
-              className="mt-0.5"
+              className="mt-1
+              "
             />
             <span className="leading-6">
               The candidate is with me and agrees to share these details with{" "}
@@ -519,7 +515,7 @@ function SetPassword({
     setCandidatePassword.bind(null, registrationId),
     {},
   );
-  const { errors, formError, clearAll, onChange } = useFieldErrors(
+  const { errors, clearAll, onChange } = useFieldErrors(
     state,
     state.errors,
     state.error,
@@ -539,9 +535,6 @@ function SetPassword({
         <h2 className="mt-5 font-head text-xl font-extrabold tracking-tight">
           Choose a password for {name}
         </h2>
-        {/* <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
-          Their email is confirmed.
-        </p> */}
 
         <form
           onSubmit={(e) => {
@@ -567,9 +560,6 @@ function SetPassword({
             autoComplete="off"
             error={errors.confirmPassword}
           />
-          {/* <div className="flex justify-center text-center">
-            <FormStatus error={formError} />
-          </div> */}
           <Button
             type="submit"
             disabled={pending}
@@ -876,18 +866,6 @@ function CollectMembership({
           </div>
         </dl>
 
-        {/* {commission && (
-          <p className="flex items-center justify-between gap-3 rounded-xl bg-good/10 px-3.5 py-2.5 text-sm">
-            <span className="flex items-center gap-2 font-medium text-good">
-              <BadgeIndianRupee className="size-4" />
-              You earn
-            </span>
-            <span className="font-head font-extrabold text-good">
-              {formatRupees((plan.amount * 100) / 2)}
-            </span>
-          </p>
-        )} */}
-
         <RazorpayCheckout<{
           invoice_number: string;
           paid_at: string;
@@ -1045,7 +1023,7 @@ const columns = helper.columns([
       </span>
     ),
   }),
-  helper.accessor((c) => industryName(c.industry), {
+  helper.accessor((c) => industryNames(c.industries).join(", "), {
     id: "industry",
     header: "Sector",
     sortFn: "text",

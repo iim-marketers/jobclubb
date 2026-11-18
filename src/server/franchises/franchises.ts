@@ -279,7 +279,6 @@ export async function createFranchise(
   }
 }
 
-// Approval happens once the agreement is signed; it sets the Schedule A terms and the code.
 export async function approveFranchise(
   id: string,
   terms: FranchiseTermsInput & { name: string },
@@ -384,7 +383,7 @@ export type FranchiseCandidate = {
   email: string;
   phone: string;
   city: string;
-  industry: string;
+  industries: string[];
   membershipPaidAt: string | null;
   membershipActive: boolean;
   applications: number;
@@ -411,7 +410,7 @@ export async function listFranchiseCandidates(
   let query = createAdminClient()
     .from("candidates")
     .select(
-      "id, first_name, last_name, email, phone, city, industry, membership_paid_at, membership_expires_at, created_at, job_applications!job_applications_candidate_id_fkey (count), placements!placements_candidate_id_fkey (status)",
+      "id, first_name, last_name, email, phone, city, industries, membership_paid_at, membership_expires_at, created_at, job_applications!job_applications_candidate_id_fkey (count), placements!placements_candidate_id_fkey (status)",
     )
     .eq("franchise_id", franchiseId);
   if (paidOnly) query = query.not("membership_paid_at", "is", null);
@@ -426,7 +425,7 @@ export async function listFranchiseCandidates(
       email: c.email,
       phone: c.phone,
       city: c.city,
-      industry: c.industry,
+      industries: c.industries,
       membershipPaidAt: c.membership_paid_at,
       membershipActive: isMembershipActive(c.membership_expires_at),
       applications: (c.job_applications as { count: number }[])[0]?.count ?? 0,

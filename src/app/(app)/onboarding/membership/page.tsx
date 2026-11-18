@@ -22,7 +22,6 @@ import {
   isMembershipActive,
   CHECKOUT_PLAN,
 } from "@/lib/membership";
-import { categoryOf, paysPlacementFee } from "@/lib/placements";
 import {
   getCurrentCandidate,
   getLapsedAccessUntil,
@@ -53,7 +52,6 @@ export default async function CheckoutPage() {
     redirect("/candidate/dashboard");
 
   const details = PLAN_DETAILS[CHECKOUT_PLAN];
-  const category = categoryOf(candidate);
   const expiresAt = candidate.membership_expires_at as string | null;
   const renewal = !!expiresAt;
   const [accessUntil, franchise] = await Promise.all([

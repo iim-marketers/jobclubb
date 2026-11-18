@@ -5,14 +5,11 @@ import {
   BadgeCheck,
   BriefcaseBusiness,
   CircleAlert,
-  Eye,
   FileText,
   LayoutDashboard,
   MapPin,
   Search,
-  Send,
   Sparkles,
-  Star,
 } from "lucide-react";
 
 import { CandidateAvatar } from "@/components/candidate/candidate-avatar";
@@ -33,7 +30,7 @@ import { greeting } from "@/lib/greeting";
 import type { JobListing } from "@/lib/jobs-data";
 import { CHECKOUT_PATH, PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
 import { stageBadge } from "@/lib/status-badge";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import { INDUSTRIES, industryNames } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
@@ -60,12 +57,13 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
     getHireBrands(),
   ]);
 
-  const sector = INDUSTRIES.find((v) => v.slug === candidate.industry)?.name;
+  const sectors = industryNames(candidate.industries);
+  const sector = sectors.join(", ") || undefined;
   const roles: string[] = candidate.preferred_roles ?? [];
   const applied = new Set(applications.map((a) => a.job.slug));
   const picks = recommendJobs(
     jobs.filter((job) => !applied.has(job.slug)),
-    { sector, city: candidate.city, pincode: candidate.pincode, roles },
+    { sectors, city: candidate.city, pincode: candidate.pincode, roles },
   );
 
   return (
@@ -73,11 +71,6 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
       <section className="jc-auth-panel relative isolate px-4 pt-8 pb-12 text-white sm:px-6 md:py-14">
         <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="min-w-0">
-            {/* <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/85 ring-1 ring-white/15">
-              <span className="size-1.5 animate-pulse rounded-full bg-brand-accent" />
-              {jobs.length} live {jobs.length === 1 ? "opening" : "openings"}{" "}
-              from verified employers
-            </span> */}
             <h1 className="font-head text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl">
               {greeting(new Date())},{" "}
               <span className="text-brand-accent">{candidate.first_name}</span>
@@ -163,7 +156,9 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
                   : "Latest jobs on JobClubb"
               }
               href={
-                sector ? `/jobs?sector=${encodeURIComponent(sector)}` : "/jobs"
+                sectors.length > 0
+                  ? `/jobs?${new URLSearchParams(sectors.map((s) => ["sector", s]))}`
+                  : "/jobs"
               }
               linkLabel="See all jobs"
             />
@@ -206,7 +201,7 @@ export async function MemberHome({ jobs }: { jobs: JobListing[] }) {
         </section>
       )}
 
-      <SectorGrid jobs={jobs} sector={sector} />
+      <SectorGrid jobs={jobs} mine={sectors} />
 
       {brands.length > 0 && (
         <section className="px-4 py-12 sm:px-6 md:py-16">
@@ -459,7 +454,7 @@ function ApplicationCard({ application: a }: { application: Application }) {
   );
 }
 
-function SectorGrid({ jobs, sector }: { jobs: JobListing[]; sector?: string }) {
+function SectorGrid({ jobs, mine }: { jobs: JobListing[]; mine: string[] }) {
   const sectors = INDUSTRIES.map((industry) => ({
     name: industry.name,
     count: jobs.filter((job) => job.industry === industry.name).length,
@@ -484,7 +479,7 @@ function SectorGrid({ jobs, sector }: { jobs: JobListing[]; sector?: string }) {
                 href={`/jobs?sector=${encodeURIComponent(name)}`}
                 className={cn(
                   "group flex h-full items-center justify-between gap-3 rounded-2xl border bg-background p-4 transition-colors hover:border-brand/40",
-                  name === sector ? "border-brand/40" : "border-border",
+                  mine.includes(name) ? "border-brand/40" : "border-border",
                 )}
               >
                 <span className="min-w-0">
@@ -493,7 +488,7 @@ function SectorGrid({ jobs, sector }: { jobs: JobListing[]; sector?: string }) {
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {count} open {count === 1 ? "role" : "roles"}
-                    {name === sector && " · Your sector"}
+                    {mine.includes(name) && " · Your sector"}
                   </span>
                 </span>
                 <span className="hidden size-8 flex-none items-center justify-center rounded-full bg-muted text-brand sm:flex transition-colors group-hover:bg-brand group-hover:text-brand-foreground">

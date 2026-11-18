@@ -23,8 +23,8 @@ import { Panel } from "@/components/candidate/dashboard-ui";
 import {
   Field,
   FieldError,
+  MultiSelectField,
   PasswordField,
-  SelectField,
   useFieldErrors,
 } from "@/components/sign-up/fields";
 import { Button } from "@/components/ui/button";
@@ -32,13 +32,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MAX_PREFERRED_ROLES } from "@/lib/sign-up-validation";
 import { toSquarePhoto } from "@/lib/square-photo";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import { INDUSTRY_OPTIONS, industryRoles } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
-
-const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({
-  value: v.slug,
-  label: v.name,
-}));
 
 export type ProfileDefaults = {
   firstName: string;
@@ -47,7 +42,7 @@ export type ProfileDefaults = {
   phone: string;
   city: string;
   pincode: string;
-  industry: string;
+  industries: string[];
   roles: string[];
 };
 
@@ -55,7 +50,7 @@ type ProfileKey = Exclude<keyof ProfileDefaults, "email">;
 
 const SECTION_KEYS = {
   personal: ["firstName", "lastName", "phone"],
-  preferences: ["city", "pincode", "industry", "roles"],
+  preferences: ["city", "pincode", "industries", "roles"],
 } satisfies Record<string, ProfileKey[]>;
 
 export function submitManually(
@@ -397,9 +392,9 @@ export function PersonalDetailsForm({
 
 export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
   const [initial] = useState(defaults);
-  const [industry, setIndustry] = useState(initial.industry);
+  const [industries, setIndustries] = useState(initial.industries);
   const [roles, setRoles] = useState(initial.roles);
-  const options = INDUSTRIES.find((v) => v.slug === industry)?.roles ?? [];
+  const options = industryRoles(industries);
   const full = roles.length >= MAX_PREFERRED_ROLES;
 
   return (
@@ -407,26 +402,25 @@ export function PreferencesForm({ defaults }: { defaults: ProfileDefaults }) {
       section="preferences"
       defaults={defaults}
       title="Job preferences"
-      description="We match you to roles in this industry near this location."
+      description="We match you to roles in these industries near this location."
       successMessage="Job preferences saved"
     >
       {(errors, markDirty) => (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <SelectField
-            id="industry"
-            label="Industry"
+          <MultiSelectField
+            id="industries"
+            label="Industries"
             className="sm:col-span-2"
             options={INDUSTRY_OPTIONS}
-            value={industry}
+            value={industries}
             onValueChange={(v) => {
-              if (!v) return;
-              const next = INDUSTRIES.find((i) => i.slug === v)?.roles ?? [];
-              setIndustry(v);
+              const next = industryRoles(v);
+              setIndustries(v);
               setRoles((r) => r.filter((role) => next.includes(role)));
-              markDirty("industry");
+              markDirty("industries");
               markDirty("roles");
             }}
-            error={errors.industry}
+            error={errors.industries}
           />
           <fieldset className="space-y-2 sm:col-span-2">
             <legend className="text-sm font-medium">

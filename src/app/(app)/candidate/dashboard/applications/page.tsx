@@ -11,8 +11,7 @@ import { ApplicationsTable } from "@/components/candidate/applications-table";
 import { DashboardHeader, StatTile } from "@/components/candidate/dashboard-ui";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
-import { REFERRED_STAGE, STAGES } from "@/lib/candidate-activity";
-import { cn } from "@/lib/utils";
+import { REFERRED_STAGE } from "@/lib/candidate-activity";
 import { listCandidateApplications } from "@/server/applications/candidate";
 import { requireMember } from "@/server/auth/current-candidate";
 
@@ -26,9 +25,6 @@ export default async function ApplicationsPage() {
 
   const active = applications.filter((a) => a.status === "active");
   const interviewing = active.filter((a) => a.stage >= 3).length;
-  const pipeline = STAGES.map(
-    (_, i) => active.filter((a) => a.stage >= i).length,
-  );
 
   return (
     <div className="space-y-6">

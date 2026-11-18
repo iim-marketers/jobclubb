@@ -162,11 +162,6 @@ export const HOW_IT_WORKS = [
     title: "Apply & get screened",
     body: "Apply in one click to roles that suit your skills. JobClubb screens and interviews you first, then refers shortlisted candidates to the employer. Members enjoy guaranteed interviews with hiring employers.",
   },
-  // {
-  //   step: "03",
-  //   title: "Upskill & prepare",
-  //   body: "Boost your resume and interview performance with our upskilling programs - from interview coaching to certification courses.",
-  // },
   {
     step: "03",
     title: "Get your dream job",

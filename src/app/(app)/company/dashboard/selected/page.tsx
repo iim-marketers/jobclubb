@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Handshake, RefreshCw, UserRoundCheck } from "lucide-react";
+import { RefreshCw, UserRoundCheck } from "lucide-react";
 
 import {
   DashboardHeader,
@@ -184,18 +184,6 @@ export default async function SelectedPage() {
         </div>
       )}
 
-      {/* <p className="flex items-start gap-2 rounded-2xl bg-muted/50 p-3 text-xs leading-5 text-muted-foreground">
-        <Handshake className="mt-0.5 size-3.5 flex-none" />
-        JobClubb confirms your offer with the selected candidate and sends them
-        your offer letter. There&apos;s no recruitment fee for Fresher
-        Candidates. For each Experienced Candidate who joins, JobClubb invoices
-        a recruitment fee of one month&apos;s salary plus GST, payable within 15
-        days. Under our{" "}
-        <Link href="/employer-terms" className="underline underline-offset-2 hover:text-foreground">
-          terms
-        </Link>
-        , offers to candidates found on JobClubb go through JobClubb.
-      </p> */}
     </div>
   );
 }

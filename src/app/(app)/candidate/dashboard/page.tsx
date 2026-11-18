@@ -23,11 +23,6 @@ import { JobPicksList, NoNearbyNote } from "@/components/candidate/job-picks";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   GUARANTEED_INTERVIEWS,
   REFERRED_STAGE,
   formatInterviewDate,
@@ -37,7 +32,7 @@ import {
   type Interview,
 } from "@/lib/candidate-activity";
 import { greeting } from "@/lib/greeting";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import { industryNames } from "@/lib/taxonomy";
 import { cn } from "@/lib/utils";
 import { PLAN_DETAILS, type MembershipPlan } from "@/lib/membership";
 import type { Resume } from "@/lib/resume";
@@ -75,8 +70,8 @@ function profileChecklist(resume: Resume | undefined, hasPhoto: boolean) {
 export default async function CandidateDashboard() {
   const candidate = await requireMember(CANDIDATE_HOME, { allowLapsed: true });
   if (candidate.lapsed) redirect(`${CANDIDATE_HOME}/interviews`);
-  const industry = INDUSTRIES.find((v) => v.slug === candidate.industry);
-  const sector = industry?.name;
+  const sectors = industryNames(candidate.industries);
+  const sector = sectors.join(", ") || undefined;
   const now = new Date();
 
   const [photoUrl, saved, applications, interviews, jobs, savedJobs] =
@@ -106,7 +101,7 @@ export default async function CandidateDashboard() {
   const picks = recommendJobs(
     jobs.filter((job) => !applied.has(job.slug)),
     {
-      sector,
+      sectors,
       city: candidate.city,
       pincode: candidate.pincode,
       roles: candidate.preferred_roles ?? [],

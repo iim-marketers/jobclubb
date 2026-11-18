@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  BadgeIndianRupee,
-  ClipboardCheck,
-  MailCheck,
-  Store,
-} from "lucide-react";
+import { MailCheck, Store } from "lucide-react";
 
 import { registerFranchise } from "@/app/(auth)/sign-up/franchise/actions";
 import {
@@ -87,7 +82,6 @@ export function FranchiseSignUp() {
   } = useStepForm({
     steps: STEPS,
     validate: validateFranchiseSignUp,
-    // validate: () => ({}),
     action: registerFranchise,
   });
   const [constitution, setConstitution] = useState<string | null>(null);

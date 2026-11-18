@@ -28,9 +28,7 @@ export default async function RegisterCandidatePage() {
           Register a candidate
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Fill in their details with them. We email them a code to confirm their
-          email, they choose a password, and registration finishes once the
-          membership is paid. Each person can only be registered once.
+          Verify their email, set a password and pay membership to finish.
         </p>
       </div>
 

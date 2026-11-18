@@ -153,6 +153,23 @@ export const INDUSTRIES: Industry[] = [
   },
 ];
 
+export const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({
+  value: v.slug,
+  label: v.name,
+}));
+
+export function industryNames(slugs: readonly string[] | null | undefined) {
+  return INDUSTRIES.filter((v) => slugs?.includes(v.slug)).map((v) => v.name);
+}
+
+export function industryRoles(slugs: readonly string[]) {
+  return [
+    ...new Set(
+      INDUSTRIES.filter((v) => slugs.includes(v.slug)).flatMap((v) => v.roles),
+    ),
+  ];
+}
+
 // Companies hiring across every industry; jobs always pick a concrete one.
 export const ALL_INDUSTRIES = { slug: "all", name: "All" } as const;
 

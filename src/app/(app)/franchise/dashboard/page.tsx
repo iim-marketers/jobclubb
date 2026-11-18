@@ -3,12 +3,10 @@ import {
   BadgeIndianRupee,
   CalendarClock,
   ChevronRight,
-  UserPlus,
   Users,
 } from "lucide-react";
 
 import { CopyCode } from "@/components/copy-code";
-import { Button } from "@/components/ui/button";
 import {
   COMMISSION_KIND_LABELS,
   FRANCHISE_CANDIDATES,
@@ -71,16 +69,6 @@ export default async function FranchiseOverviewPage() {
             Franchise code <CopyCode code={franchise.code} />
           </p>
         </div>
-        {/* {franchise.status === "active" && (
-          <Button
-            className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-            nativeButton={false}
-            render={<Link href={FRANCHISE_REGISTER} />}
-          >
-            <UserPlus className="size-4" />
-            Register a candidate
-          </Button>
-        )} */}
       </div>
 
       {banner && (
