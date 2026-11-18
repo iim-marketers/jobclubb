@@ -79,7 +79,10 @@ export function Hero({
                 <Input
                   name="q"
                   aria-label="Role"
-                  placeholder="Search jobs by role"
+                  placeholder="Search jobs by role or industry type"
+                  required
+                  pattern=".*\S.*"
+                  title="Enter a role or industry"
                   className="h-11 border-0 bg-transparent pl-8 shadow-none focus-visible:ring-0"
                 />
               </div>
