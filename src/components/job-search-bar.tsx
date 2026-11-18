@@ -18,6 +18,10 @@ import { cn } from "@/lib/utils";
 const FIELD =
   "h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground";
 
+function isBlank(...values: string[]) {
+  return values.every((v) => !v.trim());
+}
+
 function useJobSearch() {
   const router = useRouter();
   const params = useSearchParams();
@@ -69,6 +73,10 @@ function InlineForm({ member }: { member: boolean }) {
       role="search"
       onSubmit={(event) => {
         event.preventDefault();
+        if (isBlank(role, member ? place : "")) {
+          roleRef.current?.focus();
+          return;
+        }
         submit({ q: role, loc: place });
       }}
       className="flex h-10 w-full items-center gap-2 rounded-full border border-border bg-muted/50 pr-1 pl-3.5 transition-colors focus-within:border-brand focus-within:bg-card"
@@ -215,6 +223,10 @@ function MobileJobSearch({ member }: { member: boolean }) {
           role="search"
           onSubmit={(event) => {
             event.preventDefault();
+            if (isBlank(role, member ? place : "")) {
+              roleRef.current?.focus();
+              return;
+            }
             submit({ q: role, loc: place });
             setOpen(false);
           }}
