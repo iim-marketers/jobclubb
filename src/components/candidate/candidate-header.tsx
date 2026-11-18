@@ -13,7 +13,6 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  Search,
   Settings,
   Sparkles,
   User,
@@ -140,33 +139,9 @@ export function CandidateHeader({
           </p>
         </div>
 
-        {/* <form
-          action="/jobs"
-          role="search"
-          className="relative mx-auto hidden w-full max-w-md md:block"
-        >
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            name="q"
-            placeholder="Search roles, companies, cities…"
-            aria-label="Search jobs"
-            className="h-10 w-full rounded-full border border-border bg-card pr-4 pl-10 text-sm shadow-xs transition-colors outline-none placeholder:text-muted-foreground focus:border-brand focus:ring-3 focus:ring-brand/15"
-          />
-        </form> */}
         <div className="relative mx-auto hidden w-full max-w-md md:block" />
 
         <div className="ml-auto flex flex-none items-center  gap-1 sm:gap-1.5 md:ml-0">
-          {/* <Button
-            variant="ghost"
-            size="icon-sm"
-            className="md:hidden"
-            aria-label="Search jobs"
-            nativeButton={false}
-            render={<Link href="/jobs" />}
-          >
-            <Search className="size-4.5" />
-          </Button> */}
 
           <Button
             size="sm"
@@ -189,21 +164,6 @@ export function CandidateHeader({
           </Button>
 
           <MenuPrimitive.Root>
-            {/* <MenuPrimitive.Trigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="relative"
-                  aria-label={`Notifications, ${unread} unread`}
-                />
-              }
-            >
-              <Bell className="size-4.5" />
-              {unread > 0 && (
-                <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
-              )}
-            </MenuPrimitive.Trigger> */}
             <MenuPrimitive.Portal>
               <MenuPrimitive.Positioner
                 align="end"

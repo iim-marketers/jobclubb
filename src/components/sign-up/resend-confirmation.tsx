@@ -22,7 +22,9 @@ export function ResendConfirmation({
   className?: string;
 }) {
   const [cooldown, setCooldown] = useState(justSent ? COOLDOWN_SECONDS : 0);
-  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
+  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(
+    null,
+  );
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -34,13 +36,23 @@ export function ResendConfirmation({
   function resend() {
     startTransition(async () => {
       const { error } = await send(email);
-      setStatus(error ? { ok: false, message: error } : { ok: true, message: "Sent. Check your inbox and spam folder." });
+      setStatus(
+        error
+          ? { ok: false, message: error }
+          : { ok: true, message: "Sent. Check your inbox and spam folder." },
+      );
       if (!error) setCooldown(COOLDOWN_SECONDS);
     });
   }
 
-  const label = pending ? "Sending…" : cooldown > 0 ? `Resend in ${cooldown}s` : "Resend email";
-  const icon = <RotateCw className={`size-4 ${pending ? "animate-spin" : ""}`} />;
+  const label = pending
+    ? "Sending…"
+    : cooldown > 0
+      ? `Resend in ${cooldown}s`
+      : "Resend email";
+  const icon = (
+    <RotateCw className={`size-4 ${pending ? "animate-spin" : ""}`} />
+  );
 
   return (
     <div className={`text-sm ${className}`}>
@@ -57,8 +69,10 @@ export function ResendConfirmation({
           {label}
         </Button>
       ) : (
-        <>
-          <span className="text-muted-foreground">Didn&apos;t get the email? </span>
+        <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+          <span className="text-muted-foreground">
+            Didn&apos;t get the email?
+          </span>
           <button
             type="button"
             onClick={resend}
@@ -68,7 +82,7 @@ export function ResendConfirmation({
             {icon}
             {label}
           </button>
-        </>
+        </div>
       )}
       <p role="status" className="empty:hidden">
         {status && (

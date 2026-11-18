@@ -24,7 +24,6 @@ const MEMBER_BENEFITS = [
   "Unlock all live jobs",
   "Unlimited one-click apply",
   "Guaranteed employer interviews",
-  // "Full upskilling & certification access",
   "AI-generated, ATS-approved resume",
   "Location match — jobs near your home",
   "Priority support till you're hired",
@@ -209,10 +208,6 @@ export default async function MembershipPage() {
               title: "Communication",
               body: "Spoken English and guest-handling practice pitched at service-industry expectations.",
             },
-            // {
-            //   title: "Certification",
-            //   body: "Sector certifications that make your profile stand out to hiring managers.",
-            // },
           ].map((item) => (
             <div
               key={item.title}
@@ -274,26 +269,10 @@ export default async function MembershipPage() {
                 — your profile is kept safe, and job access resumes as soon as
                 you renew.
               </li>
-              {/* <li>
-                <span className="font-head font-bold text-foreground">
-                  No early renewal
-                </span>{" "}
-                — you can renew only once your membership ends. Your new year
-                starts from the day you renew.
-              </li> */}
             </ul>
           </div>
         </div>
 
-        {/* <div className="mt-8 text-center">
-          <Button
-            className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-            nativeButton={false}
-            render={<Link href="/sign-up" />}
-          >
-            Become a Member
-          </Button>
-        </div> */}
       </Section>
     </>
   );

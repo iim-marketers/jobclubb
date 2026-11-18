@@ -326,9 +326,6 @@ export default async function AdminPlacementPage({
             {sendBlocker}
           </p>
         )}
-        {/* {!["withdrawn", "declined", "not_joined"].includes(p.status) && (
-          <p className="rounded-2xl bg-brand/6 px-4 py-3 text-sm">{feeNote}</p>
-        )} */}
       </div>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">

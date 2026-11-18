@@ -114,9 +114,6 @@ const columns = helper.columns([
             ? formatRupees(row.original.monthlySalary)
             : "—"}
         </p>
-        {/* <p className="text-xs text-muted-foreground">
-          {row.original.fresher ? "Fresher · candidate pays" : "Experienced · company pays"}
-        </p> */}
       </div>
     ),
   }),

@@ -45,8 +45,6 @@ const COMPANY_STATUS_ERRORS: Record<string, string> = {
   rejected: "We couldn't verify your company. Contact support@jobclubb.com for help.",
 };
 
-// The caller picks where the session lives: a cookie-bound client for the web,
-// a non-persisting one for API clients that take the tokens from `session`.
 export async function signInCandidate(
   supabase: SupabaseClient,
   credentials: { email: string; password: string },

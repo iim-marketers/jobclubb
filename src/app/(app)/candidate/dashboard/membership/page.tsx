@@ -253,17 +253,6 @@ export default async function MembershipPage() {
             </Table>
           </div>
         )}
-        {/* <p className="mt-3 text-xs leading-5 text-muted-foreground">
-          Need a GST invoice? Email{" "}
-          <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="font-semibold text-brand hover:text-brand-dark"
-          >
-            {SUPPORT_EMAIL}
-          </a>{" "}
-          from your registered address and we&apos;ll send it within one
-          working day.
-        </p> */}
       </Panel>
     </div>
   );

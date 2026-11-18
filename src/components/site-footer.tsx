@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, Phone } from "lucide-react";
 
 import { FacebookIcon, InstagramIcon } from "@/components/brand-icons";
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
@@ -118,7 +118,6 @@ const COMPANY_LEGAL_LINKS = [
 ];
 
 export const CONTACT_ITEMS = [
-  // { icon: MapPin, text: "Kolkata, India", href: null },
   {
     icon: Mail,
     text: "support@jobclubb.com",

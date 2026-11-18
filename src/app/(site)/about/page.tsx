@@ -1,7 +1,5 @@
-import Link from "next/link";
 
 import { PageHeader, Section, SectionEyebrow } from "@/components/page-shell";
-import { Button } from "@/components/ui/button";
 import { INDUSTRIES } from "@/lib/taxonomy";
 
 export const metadata = {
@@ -126,15 +124,6 @@ export default function AboutPage() {
           ))}
         </div>
 
-        {/* <div className="mt-10 text-center">
-          <Button
-            className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-            nativeButton={false}
-            render={<Link href="/jobs" />}
-          >
-            Browse open roles
-          </Button>
-        </div> */}
       </Section>
     </>
   );

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tooltip } from "@base-ui/react/tooltip";
-import { LogOut, Plus, ShieldCheck } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 
 import { RailTooltip } from "@/components/candidate/candidate-sidebar";
 import { CompanyAvatar } from "@/components/company-avatar";
@@ -180,7 +180,6 @@ export function CompanySidebarContent({
                   {displayName}
                 </p>
                 <p className="flex items-center mt-0.5 text-[11px] text-brand-accent">
-                  {/* <ShieldCheck className="size-3.5 flex-none" /> */}
                   Verified employer
                 </p>
               </div>
@@ -190,7 +189,6 @@ export function CompanySidebarContent({
               onClick={onNavigate}
               className="mt-3 flex h-9 items-center justify-center gap-1.5 rounded-xl bg-white font-head text-sm font-semibold text-[#023b50] transition-colors hover:bg-white/90"
             >
-              {/* <Plus className="size-4" /> */}
               Post a job
             </Link>
           </div>

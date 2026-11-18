@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, FileCheck2, Lock, Upload } from "lucide-react";
+import { Check, Eye, EyeOff, FileCheck2, Lock, Upload } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -196,6 +196,72 @@ export function SelectField({
         </SelectContent>
       </Select>
     </FieldShell>
+  );
+}
+
+export function MultiSelectField({
+  id,
+  label,
+  options,
+  value,
+  onValueChange,
+  required,
+  hint,
+  error,
+  className = "",
+}: Omit<FieldShellProps, "optional"> & {
+  options: readonly { value: string; label: string }[];
+  value: string[];
+  onValueChange: (value: string[]) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-labelledby={`${id}-label`}
+      aria-describedby={error ? `${id}-error` : undefined}
+      className={`space-y-2 ${className}`}
+    >
+      <p id={`${id}-label`} className="flex items-center gap-1 text-sm leading-none font-medium select-none">
+        {label}
+        {required && <span className="text-destructive">*</span>}
+      </p>
+      {value.map((v) => (
+        <input key={v} type="hidden" name={id} value={v} />
+      ))}
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => {
+          const selected = value.includes(o.value);
+          return (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={selected}
+              onClick={() =>
+                onValueChange(
+                  selected
+                    ? value.filter((v) => v !== o.value)
+                    : options.flatMap((x) =>
+                        x.value === o.value || value.includes(x.value) ? x.value : [],
+                      ),
+                )
+              }
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none ${
+                selected
+                  ? "border-brand bg-brand/10 font-medium text-brand"
+                  : error
+                    ? "border-destructive/60 bg-card text-muted-foreground hover:text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-brand/40 hover:text-foreground"
+              }`}
+            >
+              {selected && <Check className="size-3.5" />}
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
+      <FieldError id={`${id}-error`} message={error} />
+    </div>
   );
 }
 

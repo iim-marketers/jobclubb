@@ -12,7 +12,10 @@ export async function generateMetadata({
 }: PageProps<"/sign-up/submitted">) {
   const { route } = await searchParams;
   return {
-    title: route === "candidate" ? "Check your inbox — JobClubb" : "Registration received — JobClubb",
+    title:
+      route === "candidate"
+        ? "Check your inbox — JobClubb"
+        : "Registration received — JobClubb",
     robots: { index: false, follow: false },
   };
 }
@@ -60,7 +63,10 @@ export default async function SignUpSubmittedPage({
   const pendingEmail = (await cookies()).get(PENDING_EMAIL_COOKIE)?.value;
   if (route === "candidate")
     return (
-      <CheckInbox email={pendingEmail} membershipIncluded={membership === "included"} />
+      <CheckInbox
+        email={pendingEmail}
+        membershipIncluded={membership === "included"}
+      />
     );
 
   const franchise = route === "franchise";
@@ -86,10 +92,10 @@ export default async function SignUpSubmittedPage({
           {content.body}
         </p>
 
-        <ol className="mt-6 space-y-2.5 text-left">
+        <ol className="mt-6 space-y-3 rounded-2xl bg-muted/50 p-4 text-left">
           {content.steps.map((step, i) => (
-            <li key={step} className="flex items-start gap-3 text-sm">
-              <span className="flex size-5 flex-none items-center justify-center rounded-full bg-muted font-head text-xs font-bold">
+            <li key={step} className="flex items-start gap-3 text-sm leading-6">
+              <span className="flex size-6 flex-none items-center justify-center rounded-full bg-brand/10 font-head text-xs font-bold text-brand">
                 {i + 1}
               </span>
               <span className="text-muted-foreground">{step}</span>
@@ -98,10 +104,10 @@ export default async function SignUpSubmittedPage({
         </ol>
 
         {pendingEmail && confirmed !== "1" && (
-          <ResendConfirmation email={pendingEmail} justSent className="mt-6" />
+          <ResendConfirmation email={pendingEmail} justSent className="mt-4" />
         )}
 
-        <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <Button
             variant="outline"
             className="font-head"
@@ -113,7 +119,9 @@ export default async function SignUpSubmittedPage({
           <Button
             className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
             nativeButton={false}
-            render={<Link href={franchise ? "/franchise" : "/sign-in?as=company"} />}
+            render={
+              <Link href={franchise ? "/franchise" : "/sign-in?as=company"} />
+            }
           >
             {franchise ? "About the franchise program" : "Go to sign in"}
           </Button>

@@ -14,7 +14,7 @@ export default async function AdminCandidatesPage() {
   const { data, error } = await createAdminClient()
     .from("candidates")
     .select(
-      "id, first_name, last_name, email, phone, city, industry, membership_plan, membership_expires_at, email_verified_at, created_at, emporium_batch_id, franchise_id, franchises (id, name, code)",
+      "id, first_name, last_name, email, phone, city, industries, membership_plan, membership_expires_at, email_verified_at, created_at, emporium_batch_id, franchise_id, franchises (id, name, code)",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -25,7 +25,7 @@ export default async function AdminCandidatesPage() {
     email: c.email,
     phone: c.phone,
     city: c.city,
-    industry: c.industry,
+    industries: c.industries,
     plan: c.membership_plan,
     membershipExpiresAt: c.membership_expires_at,
     emailVerified: c.email_verified_at !== null,

@@ -186,7 +186,6 @@ export function CompanySignUp() {
               placeholder="E.g., Kolkata"
               autoComplete="address-level2"
               required
-              // hint="All jobs are posted here, and it can't be changed later."
               error={errors.city}
             />
             <Field

@@ -43,7 +43,7 @@ export async function updateProfile(
       phone: values.phone,
       city: values.city,
       pincode: values.pincode,
-      industry: values.industry,
+      industries: values.industries,
       preferred_roles: values.roles,
     })
     .eq("id", candidate.id);

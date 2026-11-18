@@ -9,7 +9,6 @@ import {
   Loader2,
   Lock,
   MapPin,
-  School,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -23,6 +22,7 @@ import {
   Field,
   FieldError,
   FileField,
+  MultiSelectField,
   PasswordField,
   SelectField,
 } from "@/components/sign-up/fields";
@@ -49,12 +49,13 @@ import {
   isStudentCode,
   validateCandidate,
 } from "@/lib/sign-up-validation";
-import { SOURCING_CHANNELS, INDUSTRIES } from "@/lib/taxonomy";
+import {
+  INDUSTRY_OPTIONS,
+  SOURCING_CHANNELS,
+  industryNames,
+  industryRoles,
+} from "@/lib/taxonomy";
 
-const INDUSTRY_OPTIONS = INDUSTRIES.map((v) => ({
-  value: v.slug,
-  label: v.name,
-}));
 const SOURCE_OPTIONS = SOURCING_CHANNELS.map((c) => ({ value: c, label: c }));
 const EMPORIUM_SOURCE = "Emporium";
 const CODE_CHECK_DELAY_MS = 400;
@@ -83,7 +84,7 @@ export function CandidateSignUp({
     validate: validateCandidate,
     action: registerCandidate,
   });
-  const [industry, setIndustry] = useState<string | null>("airlines");
+  const [industries, setIndustries] = useState<string[]>([]);
   const [accepted, setAccepted] = useState(false);
   const [hasRead, setHasRead] = useState(false);
   const code = (values.code ?? initialCode ?? "").trim().toUpperCase();
@@ -135,8 +136,8 @@ export function CandidateSignUp({
             firstName={values.firstName}
             lastName={values.lastName}
             city={values.city}
-            industry={industry}
-            filled={countFilled(values, industry)}
+            industries={industries}
+            filled={countFilled(values, industries)}
           />
           <PanelPoints
             points={[
@@ -165,9 +166,6 @@ export function CandidateSignUp({
         </>
       }
     >
-      {/* {emporiumOk && emporium.location && emporium.batchNo && (
-        <EmporiumBanner location={emporium.location} batchNo={emporium.batchNo} />
-      )} */}
 
       <StepProgress steps={CANDIDATE_STEPS} current={step} onJump={goTo} />
 
@@ -259,17 +257,18 @@ export function CandidateSignUp({
               required
               error={errors.pincode}
             />
-            <SelectField
-              id="industry"
-              label="Preferred industry"
+            <MultiSelectField
+              id="industries"
+              label="Preferred industries"
               options={INDUSTRY_OPTIONS}
-              value={industry}
+              value={industries}
               onValueChange={(v) => {
-                setIndustry(v);
-                clearError("industry");
+                setIndustries(v);
+                clearError("industries");
               }}
               required
-              error={errors.industry}
+              hint="Pick all that interest you."
+              error={errors.industries}
               className="sm:col-span-2"
             />
           </div>
@@ -408,9 +407,9 @@ const PREVIEW_FIELDS = [
   "pincode",
 ];
 
-function countFilled(values: Record<string, string>, industry: string | null) {
+function countFilled(values: Record<string, string>, industries: string[]) {
   const filled = PREVIEW_FIELDS.filter((f) => values[f]?.trim()).length;
-  return (filled + (industry ? 1 : 0)) / (PREVIEW_FIELDS.length + 1);
+  return (filled + (industries.length > 0 ? 1 : 0)) / (PREVIEW_FIELDS.length + 1);
 }
 
 // SOP §4.2: employers only ever see skills and experience — this card shows the
@@ -419,17 +418,18 @@ function ProfilePreview({
   firstName,
   lastName,
   city,
-  industry,
+  industries,
   filled,
 }: {
   firstName?: string;
   lastName?: string;
   city?: string;
-  industry: string | null;
+  industries: string[];
   filled: number;
 }) {
   const name = [firstName, lastName].filter((s) => s?.trim()).join(" ");
-  const sector = INDUSTRIES.find((v) => v.slug === industry);
+  const sectors = industryNames(industries);
+  const roles = industryRoles(industries).slice(0, 3);
 
   return (
     <PanelCard
@@ -460,7 +460,11 @@ function ProfilePreview({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Chip>{sector?.name ?? "Your industry"}</Chip>
+        {sectors.length > 0 ? (
+          sectors.map((s) => <Chip key={s}>{s}</Chip>)
+        ) : (
+          <Chip>Your industry</Chip>
+        )}
         <Chip>
           <MapPin className="size-3" />
           {city?.trim() || "Your city"}
@@ -473,7 +477,7 @@ function ProfilePreview({
           Skills &amp; experience
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {(sector?.roles.slice(0, 3) ?? ["Skill", "Skill", "Skill"]).map(
+          {(roles.length > 0 ? roles : ["Skill", "Skill", "Skill"]).map(
             (r, i) => (
               <span
                 key={`${r}-${i}`}

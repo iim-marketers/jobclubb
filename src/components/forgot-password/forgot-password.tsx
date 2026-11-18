@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  ExternalLink,
-  KeyRound,
-  Mail,
-  MailCheck,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, KeyRound, Mail, MailCheck } from "lucide-react";
 
 import {
   requestPasswordReset,

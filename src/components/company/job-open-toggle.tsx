@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, LockKeyhole, RotateCcw } from "lucide-react";
+import { Loader2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import { setJobOpen } from "@/app/(app)/company/dashboard/jobs/actions";

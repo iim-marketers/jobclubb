@@ -4,7 +4,7 @@ import {
   getWebsiteDomain,
 } from "@/lib/company-verification";
 import { GST_STATES, pincodeState } from "@/lib/gst";
-import { INDUSTRIES, isCompanyIndustry } from "@/lib/taxonomy";
+import { INDUSTRIES, industryRoles, isCompanyIndustry } from "@/lib/taxonomy";
 
 export type FieldErrors = Partial<Record<string, string>>;
 
@@ -38,6 +38,18 @@ function checkUpload(file: File | null): string | undefined {
   if (file.size > MAX_UPLOAD_BYTES) return "Files must be 5 MB or smaller.";
 }
 
+export function readIndustries(formData: FormData) {
+  return [...new Set(formData.getAll("industries").map(String))];
+}
+
+export function industriesError(slugs: string[]) {
+  if (
+    slugs.length === 0 ||
+    slugs.some((slug) => !INDUSTRIES.some((s) => s.slug === slug))
+  )
+    return "Choose at least one industry.";
+}
+
 export function firstStepWithError(steps: SignUpStep[], errors: FieldErrors) {
   const index = steps.findIndex((s) => s.fields.some((f) => errors[f]));
   return index === -1 ? steps.length - 1 : index;
@@ -58,7 +70,7 @@ export const CANDIDATE_STEPS: SignUpStep[] = [
   {
     title: "Your preferences",
     description: "We use these to match you with openings near you.",
-    fields: ["city", "pincode", "industry"],
+    fields: ["city", "pincode", "industries"],
   },
   {
     title: "Finish up",
@@ -94,7 +106,7 @@ export function validateCandidate(formData: FormData): FieldErrors {
     confirmPassword: String(formData.get("confirmPassword") ?? ""),
     city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
-    industry: readText(formData, "industry"),
+    industries: readIndustries(formData),
     source: readText(formData, "source"),
     code: readText(formData, "code").toUpperCase(),
     acceptTerms: readText(formData, "acceptTerms"),
@@ -112,7 +124,8 @@ export function validateCandidate(formData: FormData): FieldErrors {
   else if (v.password !== v.confirmPassword) errors.confirmPassword = "Passwords don't match.";
   if (!v.city) errors.city = "Enter your city.";
   if (!PINCODE_PATTERN.test(v.pincode)) errors.pincode = "Enter a 6-digit pincode.";
-  if (!INDUSTRIES.some((s) => s.slug === v.industry)) errors.industry = "Choose an industry.";
+  const industriesProblem = industriesError(v.industries);
+  if (industriesProblem) errors.industries = industriesProblem;
   if (!v.source) errors.source = "Tell us how you heard about JobClubb.";
   if (v.code && !CODE_PATTERN.test(v.code)) errors.code = "Codes use letters, numbers and dashes, like JC-STU-7F2A.";
   else if (isFranchiseCode(v.code)) errors.code = FRANCHISE_CODE_ERROR;
@@ -133,7 +146,7 @@ export function validateCandidateProfile(formData: FormData) {
     phone: readText(formData, "phone"),
     city: readText(formData, "city"),
     pincode: readText(formData, "pincode"),
-    industry: readText(formData, "industry"),
+    industries: readIndustries(formData),
     roles: [...new Set(formData.getAll("roles").map((r) => String(r)))],
   };
   const errors: FieldErrors = {};
@@ -146,10 +159,10 @@ export function validateCandidateProfile(formData: FormData) {
   if (!values.city) errors.city = "Enter your city.";
   else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
   if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
-  const industry = INDUSTRIES.find((s) => s.slug === values.industry);
-  if (!industry) errors.industry = "Choose an industry.";
-  else if (values.roles.some((r) => !industry.roles.includes(r)))
-    errors.roles = "Choose roles from your industry.";
+  const industriesProblem = industriesError(values.industries);
+  if (industriesProblem) errors.industries = industriesProblem;
+  else if (values.roles.some((r) => !industryRoles(values.industries).includes(r)))
+    errors.roles = "Choose roles from your industries.";
   else if (values.roles.length > MAX_PREFERRED_ROLES)
     errors.roles = `Choose up to ${MAX_PREFERRED_ROLES} roles.`;
 

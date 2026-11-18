@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UserPlus, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 import { FranchiseCandidatesList } from "@/components/franchise/franchise-ui";
 import { Button } from "@/components/ui/button";
@@ -28,16 +28,6 @@ export default async function FranchiseCandidatesPage() {
             they&apos;ve got with jobs.
           </p>
         </div>
-        {/* {canRegister && (
-          <Button
-            className="bg-brand font-head text-brand-foreground hover:bg-brand-dark"
-            nativeButton={false}
-            render={<Link href={FRANCHISE_REGISTER} />}
-          >
-            <UserPlus className="size-4" />
-            Register a candidate
-          </Button>
-        )} */}
       </div>
 
       {candidates.length === 0 ? (

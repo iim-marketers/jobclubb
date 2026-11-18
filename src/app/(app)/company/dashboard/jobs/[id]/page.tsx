@@ -6,7 +6,6 @@ import {
   CalendarDays,
   CircleCheck,
   MapPin,
-  Pencil,
   UserRoundSearch,
 } from "lucide-react";
 

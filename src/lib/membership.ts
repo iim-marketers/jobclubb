@@ -44,7 +44,6 @@ export const MEMBER_FEATURES = [
   "Unlimited one-click apply",
   "3 guaranteed employer interviews",
   "AI-built, ATS-approved resume",
-  // "Upskilling & certification access",
   "Priority support till you're hired",
 ];
 

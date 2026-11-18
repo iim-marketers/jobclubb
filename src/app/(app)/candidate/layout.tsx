@@ -5,7 +5,7 @@ import {
   SIDEBAR_COOKIE,
 } from "@/components/candidate/candidate-shell";
 import type { CandidateProfile } from "@/components/candidate/candidate-sidebar";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import { industryNames } from "@/lib/taxonomy";
 import { requireMember } from "@/server/auth/current-candidate";
 import { getCandidatePhotoUrl } from "@/server/candidates/photo";
 
@@ -32,7 +32,7 @@ export default async function CandidateLayout({
     lastName: candidate.last_name,
     email: candidate.email,
     photoUrl: await getCandidatePhotoUrl(candidate.photo_path),
-    sector: INDUSTRIES.find((v) => v.slug === candidate.industry)?.name,
+    sector: industryNames(candidate.industries).join(", ") || undefined,
     plan: candidate.membership_plan,
     lapsed: candidate.lapsed,
     validUntil: formatDate(expiresAt),

@@ -26,10 +26,6 @@ export default async function AdminEmporiumPage() {
     name: l.name,
     nextBatchNo: l.nextBatchNo,
   }));
-  // const totals = {
-  //   batches: locations.reduce((sum, l) => sum + l.batches, 0),
-  //   students: locations.reduce((sum, l) => sum + l.used, 0),
-  // };
 
   return (
     <div className="flex-1 space-y-6 px-4 py-6">
@@ -65,11 +61,6 @@ export default async function AdminEmporiumPage() {
         </div>
       ) : (
         <>
-          {/* <p className="text-sm text-muted-foreground">
-            {locations.length} {locations.length === 1 ? "location" : "locations"} ·{" "}
-            {totals.batches} {totals.batches === 1 ? "batch" : "batches"} · {totals.students}{" "}
-            {totals.students === 1 ? "student" : "students"} joined
-          </p> */}
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {locations.map((location) => (
               <li key={location.id}>

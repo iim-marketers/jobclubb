@@ -35,7 +35,7 @@ export default async function SettingsPage() {
     phone: candidate.phone,
     city: candidate.city,
     pincode: candidate.pincode,
-    industry: candidate.industry,
+    industries: candidate.industries ?? [],
     roles: candidate.preferred_roles ?? [],
   };
 

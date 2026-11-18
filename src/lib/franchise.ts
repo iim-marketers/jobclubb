@@ -1,8 +1,13 @@
 import { locationPrefix } from "@/lib/emporium";
 import { pincodeState } from "@/lib/gst";
 import { addDays, formatDateOnly, parseRupees, todayIst } from "@/lib/placements";
-import { GSTIN_PATTERN, type FieldErrors, type SignUpStep } from "@/lib/sign-up-validation";
-import { INDUSTRIES } from "@/lib/taxonomy";
+import {
+  GSTIN_PATTERN,
+  industriesError,
+  readIndustries,
+  type FieldErrors,
+  type SignUpStep,
+} from "@/lib/sign-up-validation";
 
 export const FRANCHISE_HOME = "/franchise/dashboard";
 export const FRANCHISE_CANDIDATES = `${FRANCHISE_HOME}/candidates`;
@@ -20,7 +25,6 @@ export const OTP_TTL_MINUTES = 15;
 export const OTP_MAX_ATTEMPTS = 5;
 export const PAYOUT_WORKING_DAYS = 2;
 export const STATEMENT_DISPUTE_DAYS = 15;
-// Clause 3.1: the same one-time fee for every franchise, plus GST.
 export const FRANCHISE_FEE = 300_000_00;
 export const FRANCHISE_FEE_LABEL = "₹3,00,000 + GST";
 // Clause 4.1; larger outlets need JobClubb's written approval, so only the minimum is enforced.
@@ -190,7 +194,6 @@ function cleanErrors(errors: FieldErrors) {
   return errors;
 }
 
-// Business, outlet and bank details: what the franchisee gives at sign-up.
 export function validateFranchiseProfile(formData: FormData) {
   const values = {
     name: oneLine(text(formData, "name")),
@@ -421,7 +424,7 @@ export const FRANCHISE_CANDIDATE_FIELDS = [
   "phone",
   "city",
   "pincode",
-  "industry",
+  "industries",
   "consent",
 ] as const;
 
@@ -433,7 +436,7 @@ export function validateFranchiseCandidate(formData: FormData) {
     phone: text(formData, "phone"),
     city: oneLine(text(formData, "city")),
     pincode: text(formData, "pincode"),
-    industry: text(formData, "industry"),
+    industries: readIndustries(formData),
     consent: text(formData, "consent") === "yes",
   };
   const errors: FieldErrors = {};
@@ -448,7 +451,8 @@ export function validateFranchiseCandidate(formData: FormData) {
   if (!values.city) errors.city = "Enter the candidate's city.";
   else if (values.city.length > 80) errors.city = "Use 80 characters or fewer.";
   if (!PINCODE_PATTERN.test(values.pincode)) errors.pincode = "Enter a 6-digit pincode.";
-  if (!INDUSTRIES.some((s) => s.slug === values.industry)) errors.industry = "Choose an industry.";
+  const industriesProblem = industriesError(values.industries);
+  if (industriesProblem) errors.industries = industriesProblem;
   if (!values.consent) errors.consent = "Confirm the candidate has agreed to share these details.";
 
   return { values, errors };
