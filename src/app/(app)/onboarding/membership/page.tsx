@@ -14,6 +14,7 @@ import {
 
 import { CANDIDATE_HOME } from "@/components/candidate/nav";
 import { MembershipCheckout } from "@/components/membership-checkout";
+import { MembershipPrice } from "@/components/membership-price";
 import { SignOutDialog } from "@/components/sign-out-dialog";
 import {
   CHECKOUT_PATH,
@@ -22,6 +23,7 @@ import {
   isMembershipActive,
   CHECKOUT_PLAN,
 } from "@/lib/membership";
+import { formatRupees } from "@/lib/placements";
 import {
   getCurrentCandidate,
   getLapsedAccessUntil,
@@ -156,12 +158,7 @@ export default async function CheckoutPage() {
                 </span>
               )}
             </div>
-            <p className="mt-4 flex flex-wrap items-baseline gap-2">
-              <span className="font-head text-4xl font-extrabold tracking-tight text-brand">
-                {details.price}
-              </span>
-              <span className="text-sm text-muted-foreground">/ year</span>
-            </p>
+            <MembershipPrice plan={CHECKOUT_PLAN} className="mt-4" />
 
             <ul className="mt-6 grid grid-cols-1 gap-3 border-t border-border pt-6 sm:grid-cols-2">
               {MEMBER_FEATURES.map((feature) => (
@@ -196,6 +193,22 @@ export default async function CheckoutPage() {
                   {renewal ? "1 year from today" : "1 year"}
                 </dd>
               </div>
+              {details.listPrice && details.listAmount && (
+                <>
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted-foreground">Price</dt>
+                    <dd className="text-right font-medium text-muted-foreground line-through">
+                      {details.listPrice}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt className="text-muted-foreground">Limited-time offer</dt>
+                    <dd className="text-right font-medium text-good">
+                      −{formatRupees((details.listAmount - details.amount) * 100)}
+                    </dd>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between gap-4 border-t border-border pt-3">
                 <dt className="font-head font-bold">Total</dt>
                 <dd className="font-head text-lg font-extrabold">

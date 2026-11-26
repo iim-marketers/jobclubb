@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BadgeCheck, Check, Handshake, Info, Lock, Share2 } from "lucide-react";
 
+import { MembershipPrice } from "@/components/membership-price";
 import { PageHeader, Section, SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -101,7 +102,7 @@ export default async function MembershipPage() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-3xl border border-border bg-card p-8">
+        {/* <div className="mt-6 rounded-3xl border border-border bg-card p-8">
           <div className="flex flex-wrap items-start gap-5">
             <span className="flex size-12 flex-none items-center justify-center rounded-2xl bg-brand-accent/15 text-good">
               <Share2 className="size-5" />
@@ -126,7 +127,7 @@ export default async function MembershipPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="mt-6 rounded-3xl border border-border bg-card p-8">
           <div className="flex flex-wrap items-start gap-5">
@@ -144,9 +145,9 @@ export default async function MembershipPage() {
                     {viewer.category === "fresher"
                       ? "Your membership is included with your Emporium batch."
                       : "You were registered through a JobClubb franchise partner."}{" "}
-                    When an employer selects you, our placement team contacts you
-                    about the offer and a one-time placement fee equal to one
-                    month&apos;s salary. It isn&apos;t paid on JobClubb: the
+                    When an employer selects you, our placement team contacts
+                    you about the offer and a one-time placement fee equal to
+                    one month&apos;s salary. It isn&apos;t paid on JobClubb: the
                     team arranges it with you directly, then sends your offer
                     letter. Once paid, the fee is non-refundable. See our{" "}
                     <Link
@@ -272,7 +273,6 @@ export default async function MembershipPage() {
             </ul>
           </div>
         </div>
-
       </Section>
     </>
   );
@@ -367,17 +367,14 @@ function PlanCard({
       <h3 className="font-head text-lg font-bold tracking-tight">
         {details.name}
       </h3>
-      <p className="mt-3 flex flex-wrap items-baseline gap-2">
-        <span className="font-head text-4xl font-extrabold tracking-tight text-brand">
-          {details.price}
-        </span>
-        <span className="text-sm text-muted-foreground">
-          {plan === "emporium" ? "with your Emporium batch" : "/ year"}
-        </span>
-      </p>
+      <MembershipPrice
+        plan={plan}
+        suffix={plan === "emporium" ? "with your Emporium batch" : undefined}
+        className="mt-3"
+      />
       <div className="mt-6 flex-1">{children}</div>
       <Button
-        className="mt-7 w-full shrink-0 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+        className="mt-4 w-full shrink-0 bg-brand font-head text-brand-foreground hover:bg-brand-dark"
         nativeButton={false}
         render={<Link href={action.href} />}
       >

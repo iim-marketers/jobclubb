@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 
 import type { NonMemberView } from "@/components/home/shared";
+import { MembershipPrice } from "@/components/membership-price";
 import { SectionEyebrow } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { MEMBERSHIP_FEATURES, MEMBERSHIP_POINTS } from "@/lib/home-data";
@@ -71,12 +72,7 @@ export function Membership({ view }: { view: NonMemberView }) {
             {details.name}
           </h3>
 
-          <p className="mt-4 flex flex-wrap items-baseline gap-2">
-            <span className="font-head text-4xl font-extrabold tracking-tight text-brand">
-              {details.price}
-            </span>
-            <span className="text-sm text-muted-foreground">/ year</span>
-          </p>
+          <MembershipPrice plan={plan} className="mt-4" />
 
           <ul className="mt-6 space-y-3">
             {MEMBERSHIP_FEATURES.map((feature) => (
@@ -88,7 +84,7 @@ export function Membership({ view }: { view: NonMemberView }) {
           </ul>
 
           <Button
-            className="mt-7 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
+            className="mt-4 w-full bg-brand font-head text-brand-foreground hover:bg-brand-dark"
             nativeButton={false}
             render={<Link href={card.href} />}
           >

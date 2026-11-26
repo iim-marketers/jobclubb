@@ -51,6 +51,7 @@ import {
   SubmitButton,
   submitManually,
 } from "@/components/candidate/settings-forms";
+import { MembershipPrice } from "@/components/membership-price";
 import { RazorpayCheckout } from "@/components/razorpay-checkout";
 import {
   Field,
@@ -839,13 +840,8 @@ function CollectMembership({
         <p className="font-head text-sm font-semibold text-white/80">
           {plan.name}
         </p>
-        <p className="mt-1 flex items-baseline gap-1.5">
-          <span className="font-head text-4xl font-extrabold tracking-tight">
-            {plan.price}
-          </span>
-          <span className="text-sm text-white/75">/ year</span>
-        </p>
-        <p className="mt-1 text-xs text-white/75">
+        <MembershipPrice plan={CHECKOUT_PLAN} onDark className="relative mt-2" />
+        <p className="relative mt-2 text-xs text-white/75">
           GST included · Valid for 1 year from payment
         </p>
       </div>
